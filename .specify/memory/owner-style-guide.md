@@ -136,9 +136,15 @@ public static class Builders
 
 **Patterns:**
 - Static factory methods for builders
-- Method overloading for optional dependencies (⚠️ **CRITIQUE:** 8+ overloads is excessive - C# optional params or fluent builder would be cleaner)
+- Method overloading for optional dependencies (**Null avoidance strategy** - see design intent below)
 - Nested sealed classes for internal implementations
 - **Inconsistency note:** Nested class uses `_underscore` prefix (may be older code or .NET convention - avoid in WorldZones per owner preference)
+
+**Design Intent Revealed (2026-02-14):**
+- **8 overloads were for null avoidance**, not poor design
+- Owner: "I have a strong aversion to null, hence the 8 overloads for the 2 optional dependencies"
+- Compile-time safety over runtime null checks
+- BETTER alternatives for WorldZones: Fluent builder for 2+ optionals, or required-only dependencies
 
 ### BotClientBuilder Pattern (commit 4383fad)
 ```csharp
