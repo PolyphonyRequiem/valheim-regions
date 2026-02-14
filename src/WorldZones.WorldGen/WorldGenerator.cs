@@ -95,6 +95,9 @@ namespace WorldZones.WorldGen
             float baseHeight = GetBaseHeight(worldX, worldZ);
             float angleVariation = (float)(WorldAngle(worldX, worldZ) * 100.0);
             
+            // Helper to get normalized noise [0, 1] from FastNoiseLite [-1, 1]
+            float Noise01(FastNoiseLite noise, float nx, float ny) => (noise.GetNoise(nx, ny) + 1f) * 0.5f;
+            
             // Check waterAlwaysOcean condition
             if (waterAlwaysOcean && GetHeight(worldX, worldZ) <= oceanLevel)
             {
@@ -102,7 +105,7 @@ namespace WorldZones.WorldGen
             }
             
             // Check for Ashlands (not implemented yet - requires IsAshlands)
-            // if (IsAshlands(worldX, worldZ)) return BiomeType.Ashlands;
+            // if (IsAshlands(worldX, worldZ)) return BiomeType.AshLands;
             
             // Check base ocean condition
             if (!waterAlwaysOcean && baseHeight <= oceanLevel)
@@ -124,7 +127,9 @@ namespace WorldZones.WorldGen
             }
             
             // Swamp biome (noise-based placement with distance and height constraints)
-            if (PerlinNoise(this.noise0, worldX, worldZ, this.offset0, 0.001f) > 0.6f 
+            double swampX = (this.offset0 + worldX) * 0.001;
+            double swampZ = (this.offset0 + worldZ) * 0.001;
+            if (Noise01(this.noise0, (float)swampX, (float)swampZ) > 0.6f 
                 && distance > 2000f 
                 && distance < this.maxMarshDistance 
                 && baseHeight > 0.05f 
@@ -134,7 +139,9 @@ namespace WorldZones.WorldGen
             }
             
             // Mistlands biome
-            if (PerlinNoise(this.noise4, worldX, worldZ, this.offset4, 0.001f) > this.minDarklandNoise 
+            double mistX = (this.offset4 + worldX) * 0.001;
+            double mistZ = (this.offset4 + worldZ) * 0.001;
+            if (Noise01(this.noise4, (float)mistX, (float)mistZ) > this.minDarklandNoise 
                 && distance > (6000.0 + angleVariation) 
                 && distance < 10000f)
             {
@@ -142,7 +149,9 @@ namespace WorldZones.WorldGen
             }
             
             // Plains biome
-            if (PerlinNoise(this.noise1, worldX, worldZ, this.offset1, 0.001f) > 0.4f 
+            double plainsX = (this.offset1 + worldX) * 0.001;
+            double plainsZ = (this.offset1 + worldZ) * 0.001;
+            if (Noise01(this.noise1, (float)plainsX, (float)plainsZ) > 0.4f 
                 && distance > (3000.0 + angleVariation) 
                 && distance < 8000f)
             {
@@ -150,7 +159,9 @@ namespace WorldZones.WorldGen
             }
             
             // Black Forest biome
-            if (PerlinNoise(this.noise2, worldX, worldZ, this.offset2, 0.001f) > 0.4f 
+            double forestX = (this.offset2 + worldX) * 0.001;
+            double forestZ = (this.offset2 + worldZ) * 0.001;
+            if (Noise01(this.noise2, (float)forestX, (float)forestZ) > 0.4f 
                 && distance > (600.0 + angleVariation) 
                 && distance < 6000f)
             {
@@ -177,19 +188,6 @@ namespace WorldZones.WorldGen
         }
         
         /// <summary>
-        /// Gets Perlin noise value at world coordinates with offset and scale.
-        /// Matches Valheim's DUtils.PerlinNoise usage pattern.
-        /// </summary>
-        float PerlinNoise(FastNoiseLite noise, float wx, float wy, double offset, float scale)
-        {
-            double x = (offset + wx) * scale;
-            double y = (offset + wy) * scale;
-            
-            // FastNoiseLite returns [-1, 1], normalize to [0, 1]
-            return (noise.GetNoise((float)x, (float)y) + 1f) * 0.5f;
-        }
-        
-        /// <summary>
         /// Gets the base height at the specified world coordinates.
         /// This is the foundational terrain height before biome-specific modifications.
         /// </summary>
@@ -203,34 +201,43 @@ namespace WorldZones.WorldGen
             double x = worldX + 100000.0 + this.offset0;
             double y = worldZ + 100000.0 + this.offset1;
             
+            // Helper to normalize noise from [-1, 1] to [0, 1] (matching Valheim's PerlinNoise)
+            float Noise01(float nx, float ny) => (this.noiseBase.GetNoise(nx, ny) + 1f) * 0.5f;
+            
             // Multi-octave noise for base terrain shape
             float height = 0f;
             
             // First octave: broad features
-            float n1 = PerlinNoise(this.noiseBase, (float)x, (float)y, 0, 0.001f);
-            float n2 = PerlinNoise(this.noiseBase, (float)x, (float)y, 0, 0.0015f);
+            float n1 = Noise01((float)(x * 0.002 * 0.5), (float)(y * 0.002 * 0.5));
+            float n2 = Noise01((float)(x * 0.003 * 0.5), (float)(y * 0.003 * 0.5));
             height += n1 * n2 * 1.0f;
             
-            // Second octave: medium features
-            float n3 = PerlinNoise(this.noiseBase, (float)x, (float)y, 0, 0.002f);
-            float n4 = PerlinNoise(this.noiseBase, (float)x, (float)y, 0, 0.003f);
+            // Second octave: medium features (amplifies existing height)
+            float n3 = Noise01((float)(x * 0.002), (float)(y * 0.002));
+            float n4 = Noise01((float)(x * 0.003), (float)(y * 0.003));
             height += n3 * n4 * height * 0.9f;
             
             // Third octave: fine details
-            float n5 = PerlinNoise(this.noiseBase, (float)x, (float)y, 0, 0.005f);
-            float n6 = PerlinNoise(this.noiseBase, (float)x, (float)y, 0, 0.01f);
+            float n5 = Noise01((float)(x * 0.005), (float)(y * 0.005));
+            float n6 = Noise01((float)(x * 0.01), (float)(y * 0.01));
             height += n5 * n6 * 0.5f * height;
             
             // Baseline adjustment
             height -= 0.07f;
             
-            // River calculation (distance-based depression)
-            float river1 = PerlinNoise(this.noiseBase, (float)x, (float)y, 0.123, 0.0005f);
-            float river2 = PerlinNoise(this.noiseBase, (float)x, (float)y, 0.321, 0.0005f);
+            // River calculation (TEMPORARILY DISABLED - needs debugging)
+            // Rivers are carved when two noise channels have similar values (small delta)
+            // Currently causing too much terrain to be zeroed - likely noise parameter mismatch
+            // TODO: Fix river calculation to match Valheim's behavior
+            /*
+            float river1 = Noise01((float)(x * 0.002 * 0.25 + 0.123), (float)(y * 0.002 * 0.25 + 0.15123));
+            float river2 = Noise01((float)(x * 0.002 * 0.25 + 0.321), (float)(y * 0.002 * 0.25 + 0.231));
             float riverDelta = Math.Abs(river1 - river2);
-            float riverFactor = 1f - MathUtils.LerpStep(0.02f, 0.12f, riverDelta);
-            riverFactor *= MathUtils.SmoothStep(744f, 1000f, distance);
+            float riverIntensity = 1f - MathUtils.LerpStep(0.02f, 0.12f, riverDelta);
+            float riverDistanceFade = MathUtils.SmoothStep(744f, 1000f, distance);
+            float riverFactor = riverIntensity * riverDistanceFade;
             height *= (1f - riverFactor);
+            */
             
             // Edge fade to deep ocean
             if (distance > 10000f)
