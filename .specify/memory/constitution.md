@@ -160,43 +160,53 @@ increases cognitive load and maintenance burden.
 Clear documentation prevents misuse. Thread safety clarity prevents race conditions in multiplayer.
 Performance contracts enable modders to make informed decisions about when to call APIs.
 
-### VII. Iterative Development Process (NON-NEGOTIABLE)
+### VII. Iterative Development Process
 
-**Rules - Iteration Planning**:
-- Work MUST be broken into small, planned iterations (single day or less of implementation).
-- Each iteration begins with investigation phase: research, prototyping, exploring approaches.
-- Agent MUST propose "next iteration" with clear justification before implementation begins.
-- User steers and approves iteration plan before any implementation work.
-- No multi-day feature branches without explicit approval.
+**Iteration Boundaries:**
+- A **planned phase** (as defined in tasks.md) constitutes one iteration
+- User review/approval occurs at phase completion, not at individual task level
+- Agent works autonomously within a phase, applying judgment on approach
 
-**Rules - Implementation Phase**:
-- Implement the SIMPLEST version of the approved iteration (no scope creep).
-- Keep changes minimal and focused on the agreed iteration goal.
-- Demonstrate tests are appropriate and passing before presenting for review.
-- Changes MUST be easy to review (small diffs, clear intent).
+**Rules - Planning & Execution**:
+- **Micro-planning:** Agent uses judgment on what requires explicit planning
+  - Complex tasks (algorithm ports, architectural decisions) → plan before implementing
+  - Trivial tasks (simple tests, straightforward implementations) → just execute
+  - Rule of thumb: If task is explainable in one sentence, planning overhead likely unnecessary
+- **Commit granularity:** Balance reviewability with flow state
+  - API changes, foundational types → small commits (bite-sized, easy review)
+  - Algorithmic work (porting complex calculations) → batch commits to maintain flow
+  - Avoid context-switching that kills productivity
+- **Implementation approach:** Agent chooses optimal approach for the work
+  - Exploratory spikes allowed when algorithm understanding is incomplete
+  - Testability by design (library-first, pure functions, no Unity coupling)
+  - **NOT** strict TDD (red-green-refactor) - write tests when it makes sense, not as dogma
 
 **Rules - Acceptance Phase**:
-- User reviews implementation for alignment with approved iteration plan.
-- User performs manual testing with game client if integration changes are present.
-- Only after user acceptance does work proceed to next iteration or merge.
-- If iteration reveals unexpected complexity, stop and re-plan rather than expanding scope.
+- User reviews at phase boundaries (not every commit)
+- User performs manual testing with game client if integration changes are present
+- If phase reveals unexpected complexity, stop and re-plan rather than expanding scope
+
+**Rules - Domain Modeling**:
+- Use concrete types for domain concepts (BiomeType, WorldGenerator, CoordinateRegion)
+- Use tuples/primitives for algorithm internals (helper values, intermediate calculations)
+- If uncertain whether something is "domain" vs "implementation detail," make it private first
 
 **Rules - No Big-Bang Features**:
-- Reject "implement entire feature" tasks in favor of incremental delivery.
+- Reject "implement entire feature" in one iteration
 - Each iteration should deliver a testable, demonstrable increment.
 - Prefer delivering partial but working functionality over complete but untested features.
 
 **Rules - Keep Artifacts Current**:
-- When new findings emerge during investigation or implementation, update relevant documentation BEFORE proceeding to next phase.
-- Research findings MUST be captured in `research.md` or relevant planning documents immediately.
-- Stale documentation is technical debt - address it when discovered, not later.
-- If findings invalidate current approach, stop and update plan before continuing implementation.
+- When new findings emerge during implementation, update relevant documentation BEFORE proceeding
+- Capture learnings in appropriate location (docs/, .specify/memory/, code comments)
+- Stale documentation is technical debt - address when discovered
+- If findings invalidate current approach, stop and update plan before continuing
 
-**Rationale**: Small iterations reduce risk for a foundational library mod. Downstream modders 
-depend on stability. Mistakes in big-bang features are costly (wasted downstream dev time). 
-Iterative approach enables early feedback, course correction, and maintains high quality bar. 
-Agent investigation prevents premature commitment to wrong approaches. Keeping artifacts current
-prevents confusion and ensures design decisions are traceable.
+**Rationale**: Small phases reduce risk. Autonomous execution within phases maintains velocity.
+Phase boundaries provide natural checkpoints for course correction. Micro-planning overhead 
+on trivial tasks kills productivity. Flow state matters for complex algorithmic work. 
+Testability architecture (not TDD process) enables quality in Unity mod environment.
+Keeping artifacts current prevents confusion and ensures design decisions are traceable.
 
 ## Technology Stack
 
