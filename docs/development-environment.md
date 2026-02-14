@@ -1,5 +1,28 @@
 # Development Environment Notes
 
+## Valheim Assembly References
+
+**Experiment Result (2026-02-14):** Some Valheim assemblies CAN be referenced without Unity runtime!
+
+### What Works ✅
+- **assembly_utils.dll** - Utility extensions (GetStableHashCode, string helpers)
+  - Loads in `dotnet test` without Unity
+  - Zero UnityEngine dependencies
+  - Tests run fast (<10s)
+  
+### What Doesn't Work ❌
+- **WorldGenerator** and core game classes - Require UnityEngine runtime
+  - Uses `UnityEngine.Random`, `Vector2/3`, `Color`
+  - Static singletons with Unity lifecycle
+  - Takes Unity-coupled objects (World, GameObject)
+
+### Hybrid Approach
+We reference `assembly_utils.dll` for utilities but port game algorithms ourselves.
+
+**See:** `tests/WorldZones.WorldGen.Tests/AssemblyUtilsCompatibilityTest.cs` for validation tests.
+
+---
+
 ## Windows-Specific Issues
 
 ### Test Process Locking (xUnit on Windows)
