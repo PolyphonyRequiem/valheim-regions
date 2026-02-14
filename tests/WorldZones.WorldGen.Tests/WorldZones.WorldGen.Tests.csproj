@@ -5,6 +5,7 @@
     <LangVersion>9.0</LangVersion>
     <IsPackable>false</IsPackable>
     <Nullable>enable</Nullable>
+    <ValheimInstallPath Condition="'$(ValheimInstallPath)' == ''">C:\Program Files (x86)\Steam\steamapps\common\Valheim</ValheimInstallPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,6 +19,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\WorldZones.WorldGen\WorldZones.WorldGen.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="assembly_utils">
+      <HintPath>$(ValheimInstallPath)\valheim_Data\Managed\assembly_utils.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
   </ItemGroup>
 
 </Project>
