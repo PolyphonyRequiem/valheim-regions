@@ -207,6 +207,23 @@ prevents confusion and ensures design decisions are traceable.
 - No external dependencies in core library (keep mod lightweight)
 - BepInEx plugin may reference Harmony for patching (if needed)
 
+**Code Style Standards**:
+- **Immutability**: Default to `readonly` (structs, fields, properties); minimize mutable state
+- **Functional style**: Prefer expression-bodied members, pure functions, LINQ over loops (unless performance-critical)
+- **Modern C# patterns**: Use C# 7.3 features (tuples, pattern matching, local functions) where appropriate
+- **Naming conventions**:
+  - Always use `this.` qualification for field access (clarity and safety)
+  - Fields: lowercase (e.g., `worldSeed`, NOT `_worldSeed`)
+  - Properties/Methods: PascalCase (e.g., `WorldSeed`, `GetBiome`)
+  - Local variables: camelCase (e.g., `biomeType`)
+- **Thread safety**: Design for concurrent access by default; document exceptions with comments
+- **Performance**: Functional style preferred unless profiling shows measurable impact
+
+**Enforcement**:
+- `.editorconfig` file defines style rules with IDE warnings
+- Code reviews verify adherence to standards
+- Automated formatting on save (VS Code/VS settings)
+
 ## Quality Gates
 
 **Pre-Merge Requirements**:
@@ -260,4 +277,4 @@ prevents confusion and ensures design decisions are traceable.
 - Follow plan-template.md for technical planning and constitution checks.
 - Follow tasks-template.md for implementation task organization.
 
-**Version**: 1.2.0 | **Ratified**: 2026-02-14 | **Last Amended**: 2026-02-14
+**Version**: 1.3.0 | **Ratified**: 2026-02-14 | **Last Amended**: 2026-02-14
