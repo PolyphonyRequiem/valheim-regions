@@ -43,20 +43,26 @@
 
 ### Decision
 
-**DECISION: Option C - Implement Perlin noise from reference with parameter tuning**
+**DECISION: Use FastNoiseLite library**
+
+**UPDATE (2026-02-14)**: During planning review, discovered [FastNoiseLite](https://github.com/Auburn/FastNoiseLite) - a well-maintained, single-file C# Perlin noise implementation that is likely compatible with or identical to what Valheim uses.
 
 **Rationale**: 
-- DUtils appears to be Unity's built-in `Mathf.PerlinNoise` wrapper (after closer inspection of usage patterns)
-- Unity uses Perlin noise with specific scaling/frequency parameters visible in WorldGenerator.cs
-- We can implement standard Perlin noise and validate output by comparing biome maps with online tools
-- The noise parameters (0.002, 0.003, etc.) are fully specified in the decompiled source
-- This maintains zero external dependencies while being verifiable against reference implementations
+- FastNoiseLite is a battle-tested, widely-used noise library
+- Available as standalone C# file (can copy into project - no NuGet dependency)
+- MIT licensed, actively maintained
+- Supports multiple noise algorithms including Perlin
+- Likely matches or closely approximates Valheim's noise implementation
+- Better than custom implementation: proven, debugged, optimized
 
 **Implementation approach**:
-1. Implement classic improved Perlin noise (Ken Perlin 2002)
-2. Use the exact frequency/amplitude parameters from WorldGenerator.cs
-3. Validate with test seed "42" - compare exported map to online Valheim world generators
-4. Document noise algorithm in code comments with references
+1. Copy FastNoiseLite.cs into `WorldZones.WorldGen/` project
+2. Use Perlin noise mode with parameters from WorldGenerator.cs (0.002, 0.003, etc.)
+3. Validate with test seed against online Valheim world generators
+4. If noise output doesn't match, adjust parameters or fall back to custom implementation
+5. Document FastNoiseLite usage and version in code comments
+
+**Dependency status**: Still zero external NuGet dependencies (single .cs file copied into source tree)
 
 ---
 
