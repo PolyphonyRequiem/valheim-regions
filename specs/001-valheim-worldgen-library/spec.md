@@ -1,7 +1,7 @@
 # Feature Specification: Valheim World Generator Library
 
 **Feature Branch**: `001-valheim-worldgen-library`  
-**Created**: 2025-01-22  
+**Created**: 2026-02-14  
 **Status**: Draft  
 **Input**: User description: "Create a synthetic Valheim world generator that replicates the game's biome and heightmap generation system for testing and prototyping region algorithms. The generator should accept a world seed, calculate base height using Perlin noise, determine biomes using the game's procedural algorithm, and export biome maps as PNG images for visual validation against existing online tools. This is a pure C# library component (no Unity dependencies) that ports the core worldgen logic from the decompiled Valheim source code to enable realistic testing of future region generation algorithms."
 
