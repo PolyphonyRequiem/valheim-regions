@@ -71,29 +71,40 @@ welcomes constructive pushback - it's a feature, not a bug.
 testing of complex algorithms, reduces coupling to game updates, and allows other projects to
 reuse core logic without Unity baggage.
 
-### III. Hybrid Testing Strategy (NON-NEGOTIABLE)
+### III. Pragmatic Testing Strategy
 
-**Rules - TDD (Strict) for Core Logic**:
-- All region generation algorithms, naming systems, and geography processing MUST be developed
-  using Test-Driven Development.
-- Tests MUST be written first, user-approved, confirmed to fail, then implemented (Red-Green-Refactor).
-- No implementation of core logic without prior failing tests.
-- Core logic test suite MUST run without game runtime, Unity, or BepInEx.
+**Core Principle: Exercise Judgment on Test Value**
 
-**Rules - Pragmatic Testing for Game Integration**:
-- Unity hooks, biome detection, and map system integration require pragmatic testing approach.
-- Integration tests MAY be written after implementation when runtime dependencies make TDD impractical.
-- All integration code MUST have test coverage, but timing of test writing is flexible.
-- Document integration test execution requirements (runtime dependencies, manual steps).
+Strong typing + immutability + functional patterns eliminate many bug classes that would require unit tests in dynamic languages. Focus testing effort where it provides real value.
 
-**Rules - Public API Coverage**:
-- Every public API exposed to downstream mods MUST have test coverage (contract tests).
-- API behavior, error handling, and edge cases MUST be verified.
-- Breaking changes MUST be caught by failing contract tests.
+**What Architecture Already Guarantees (Minimal/No Testing Needed):**
+- Type safety - compiler catches type errors
+- Null safety - nullable reference types + no-null policy prevent NullReferenceException
+- Immutability - readonly/init prevent mutation bugs and race conditions
+- Side effects - pure functions are deterministic and composable
+- Simple getters/setters/wrappers - type system validates correctness
 
-**Rationale**: High-quality core algorithms are critical for downstream stability. TDD ensures
-correctness. Pragmatic approach for game integration avoids productivity loss from mocking
-Unity/BepInEx. Public API tests protect downstream modders from breaking changes.
+**What Still Requires Testing (High Value):**
+- **Algorithmic correctness** - Does SmoothStep implement 3t²-2t³ correctly? Does our biome logic match Valheim's?
+- **Edge cases** - Division by zero, boundary conditions, min==max scenarios
+- **System behavior** - Does WorldGenerator produce correct biomes for known seeds?
+- **Regression prevention** - Catch when refactoring or "optimization" breaks behavior
+- **Integration points** - Does library load/work in Unity runtime?
+- **Real scenarios** - Use cases modders will encounter in practice
+
+**Testing Approach (Judgment-Based):**
+- **Algorithms:** Test thoroughly (formulas, edge cases, correctness vs reference implementation)
+- **Complex logic:** Test branches, conditions, business rules
+- **System/integration:** Test real scenarios and workflows
+- **Trivial code:** Skip if architecture guarantees correctness
+- **Rule of thumb:** If system/integration tests already cover the path, granular unit tests may be redundant
+
+**Design for Testability:**
+- Core libraries MUST be testable without Unity runtime (architectural requirement)
+- Pure functions preferred (deterministic, side-effect-free)
+- Unity integration as thin adapters composing testable core logic
+
+**Rationale:** In strongly typed compiled languages (especially with immutability + functional style), the compiler catches most errors that would require unit tests in dynamic languages. Testing should focus on algorithmic correctness, edge cases, and system behavior - not proving the type system works. Different types/functions have different testing needs; exercise judgment on where tests add value.
 
 ### IV. Stable Public API
 
