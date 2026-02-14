@@ -171,10 +171,17 @@ Performance contracts enable modders to make informed decisions about when to ca
 - Each iteration should deliver a testable, demonstrable increment.
 - Prefer delivering partial but working functionality over complete but untested features.
 
+**Rules - Keep Artifacts Current**:
+- When new findings emerge during investigation or implementation, update relevant documentation BEFORE proceeding to next phase.
+- Research findings MUST be captured in `research.md` or relevant planning documents immediately.
+- Stale documentation is technical debt - address it when discovered, not later.
+- If findings invalidate current approach, stop and update plan before continuing implementation.
+
 **Rationale**: Small iterations reduce risk for a foundational library mod. Downstream modders 
 depend on stability. Mistakes in big-bang features are costly (wasted downstream dev time). 
 Iterative approach enables early feedback, course correction, and maintains high quality bar. 
-Agent investigation prevents premature commitment to wrong approaches.
+Agent investigation prevents premature commitment to wrong approaches. Keeping artifacts current
+prevents confusion and ensures design decisions are traceable.
 
 ## Technology Stack
 
@@ -253,4 +260,4 @@ Agent investigation prevents premature commitment to wrong approaches.
 - Follow plan-template.md for technical planning and constitution checks.
 - Follow tasks-template.md for implementation task organization.
 
-**Version**: 1.1.0 | **Ratified**: 2026-02-14 | **Last Amended**: 2026-02-14
+**Version**: 1.2.0 | **Ratified**: 2026-02-14 | **Last Amended**: 2026-02-14
