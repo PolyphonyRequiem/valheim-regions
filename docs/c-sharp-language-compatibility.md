@@ -25,11 +25,32 @@ C# language version and target framework are NOT 1:1 coupled. Many modern C# fea
 
 ## Restricted Features
 
-### ⚠️ Use With Caution
-- **C# 9.0 Records (reference types)** - Emit runtime attributes Unity may not have
-  - **Alternative**: Use record structs or manual readonly classes
+### ⚠️ UNITY 2019.4 COMPATIBILITY ISSUES
 
-### ❌ DO NOT USE
+**Critical Discovery (2026-02-14):** Unity 2019.4 uses C# 7.x compiler and .NET 4.x runtime that lacks C# 9 support classes.
+
+**Records Compatibility:**
+- ❌ **Reference type records** (`record class`) - Emit `IsExternalInit` attribute Unity runtime doesn't have
+- ⚠️ **Record structs** - Same issue, UNTESTED with polyfill
+- **Workaround**: Include `IsExternalInit` polyfill (see below), but TEST IN UNITY EARLY
+
+**Init Properties:**
+- ⚠️ Require `IsExternalInit` polyfill for Unity compatibility
+- Safe to use in our library IF we include polyfill
+
+### IsExternalInit Polyfill (Required for Unity)
+
+```csharp
+// Add to WorldZones.WorldGen project
+namespace System.Runtime.CompilerServices
+{
+    internal static class IsExternalInit { }
+}
+```
+
+This allows C# 9 `init` and `record` features to work in .NET Framework 4.7.2 and Unity 2019.4.
+
+### ❌ DO NOT USE (Confirmed Incompatible)
 - **C# 8.0 Default interface methods** - Requires .NET Core runtime
 - **C# 10+ Features** - Not tested with net472 IL emission
 
@@ -67,11 +88,24 @@ public class BiomeResult
 }
 ```
 
-## Validation
+## Validation Strategy
 
-- All IL must load in Unity 2019.4 runtime (.NET Framework 4.7.2)
-- Test early with actual game integration to catch runtime issues
-- If Unity complains about attributes or IL opcodes, fallback to C# 7.3 equivalent
+**Phase 1: Library Development (Current)**
+- Develop with C# 9.0 + nullable enabled
+- Include IsExternalInit polyfill immediately
+- Avoid reference type records entirely (use readonly classes)
+- Record structs are EXPERIMENTAL - test early
+
+**Phase 2: Unity Integration Testing (Critical)**
+- Build BepInEx plugin that references WorldZones.WorldGen.dll
+- Load in actual Valheim (Unity 2019.4 runtime)
+- If Unity throws TypeLoadException or MissingMethodException on init/record:
+  - Fallback to C# 7.3 for affected types
+  - Document incompatibility in this file
+
+**Phase 3: Continuous Validation**
+- Every merge to main should test in-game
+- If Unity compatibility breaks, revert language features
 
 ## References
 
