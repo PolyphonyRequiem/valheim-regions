@@ -100,6 +100,70 @@ public ISubscriptionClient BuildSubscriptionClient(...)
 **From Townsharp:** Owner mentioned "I made a lot of bad choices here" - need to identify these during code review and avoid repeating.
 
 **Watch for:**
+- ⚠️ Potential over-engineering (mentioned by owner)
+- ⚠️ Complexity that could be simpler
+- Need to balance DI patterns with simplicity bias
+
+---
+
+## Recent Commits Analysis (August 2024)
+
+### Builder Pattern Observations (Builders.cs - commit 4383fad)
+```csharp
+// ✅ OBSERVED: Static factory methods with method overloads
+public static class Builders
+{
+   // Nested sealed class for internal implementation
+   internal sealed class DefaultHttpClientFactory : IHttpClientFactory, IDisposable
+   {
+      private readonly Lazy<HttpMessageHandler> _handlerLazy = new(() => new HttpClientHandler());
+      // ⚠️ NOTE: Uses _underscore in nested class (inconsistent with main pattern)
+   }
+   
+   // Multiple overloads for flexibility
+   public static BotClientBuilder CreateBotClientBuilder(BotCredential botCredential)
+   public static BotClientBuilder CreateBotClientBuilder(BotCredential botCredential, ILoggerFactory loggerFactory)
+   // ... more overloads
+}
+```
+
+**Patterns:**
+- Static factory methods for builders
+- Method overloading for optional dependencies
+- Nested sealed classes for internal implementations
+- **Inconsistency note:** Nested class uses `_underscore` prefix (may be older code or .NET convention for private impl)
+
+### BotClientBuilder Pattern (commit 4383fad)
+```csharp
+public class BotClientBuilder
+{
+   private readonly BotCredential botCredential;
+   private readonly ILoggerFactory loggerFactory;
+   
+   internal protected BotClientBuilder(...)  // Restricted construction
+   {
+      this.botCredential = botCredential;
+      this.loggerFactory = loggerFactory;
+   }
+   
+   public ISubscriptionClient BuildSubscriptionClient(...) 
+      => SubscriptionMultiplexer.Create(...);  // Expression-bodied
+}
+```
+
+**Confirmed Patterns:**
+- `internal protected` for controlled instantiation (builder only via factory)
+- Expression-bodied members for simple returns
+- All fields readonly and lowercase
+- Consistent `this.` qualification
+
+---
+
+## Anti-Patterns (Warning from Owner)
+
+**From Townsharp:** Owner mentioned "I made a lot of bad choices here" - need to identify these during code review and avoid repeating.
+
+**Watch for:**
 - ⚠️ Potential over-engineering (he mentioned this)
 - ⚠️ Complexity that could be simpler
 - Need to balance DI patterns with simplicity bias
