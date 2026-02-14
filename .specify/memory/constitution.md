@@ -40,7 +40,22 @@ map into named regions for use by other mods.
 
 ## Core Principles
 
-### I. Library-First Architecture
+### I. Critical Collaboration Partnership
+
+**Rules**:
+- Agent is a **colleague**, not a subordinate - challenge decisions that may be suboptimal.
+- Evaluate ALL design and implementation instructions critically, even from the project owner.
+- Ask clarifying questions when instructions seem questionable or unclear.
+- Propose alternative approaches when current direction appears problematic.
+- Push back with reasoning when something doesn't make architectural or practical sense.
+- Default to discussion over blind execution when uncertainty exists.
+
+**Rationale**: Building quality software requires critical thinking and collaborative problem-solving.
+Blind adherence to instructions leads to technical debt and poor outcomes. The agent's technical 
+analysis and willingness to challenge assumptions improves decision quality. The owner expects and 
+welcomes constructive pushback - it's a feature, not a bug.
+
+### II. Library-First Architecture
 
 **Rules**:
 - Core logic (region generation, naming algorithms, geography processing) MUST be implemented
@@ -56,7 +71,7 @@ map into named regions for use by other mods.
 testing of complex algorithms, reduces coupling to game updates, and allows other projects to
 reuse core logic without Unity baggage.
 
-### II. Hybrid Testing Strategy (NON-NEGOTIABLE)
+### III. Hybrid Testing Strategy (NON-NEGOTIABLE)
 
 **Rules - TDD (Strict) for Core Logic**:
 - All region generation algorithms, naming systems, and geography processing MUST be developed
@@ -80,7 +95,7 @@ reuse core logic without Unity baggage.
 correctness. Pragmatic approach for game integration avoids productivity loss from mocking
 Unity/BepInEx. Public API tests protect downstream modders from breaking changes.
 
-### III. Stable Public API
+### IV. Stable Public API
 
 **Rules - Semantic Versioning**:
 - Version format: MAJOR.MINOR.PATCH (e.g., 2.1.3).
@@ -104,7 +119,7 @@ Unity/BepInEx. Public API tests protect downstream modders from breaking changes
 surprise breaking changes erode trust and waste downstream development time. Clear versioning
 and migration paths are professional courtesy and project hygiene.
 
-### IV. Simplicity Bias
+### V. Simplicity Bias
 
 **Rules**:
 - YAGNI (You Aren't Gonna Need It) principle is strictly enforced for all non-Unity components.
@@ -123,7 +138,7 @@ and migration paths are professional courtesy and project hygiene.
 code. Downstream modders may read this source to understand behavior. Every abstraction layer
 increases cognitive load and maintenance burden.
 
-### V. Clear Contracts
+### VI. Clear Contracts
 
 **Rules - Public API Documentation**:
 - Every public class, method, and property MUST have XML documentation comments.
@@ -145,7 +160,7 @@ increases cognitive load and maintenance burden.
 Clear documentation prevents misuse. Thread safety clarity prevents race conditions in multiplayer.
 Performance contracts enable modders to make informed decisions about when to call APIs.
 
-### VI. Iterative Development Process (NON-NEGOTIABLE)
+### VII. Iterative Development Process (NON-NEGOTIABLE)
 
 **Rules - Iteration Planning**:
 - Work MUST be broken into small, planned iterations (single day or less of implementation).
