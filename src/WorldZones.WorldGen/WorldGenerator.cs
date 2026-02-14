@@ -20,12 +20,12 @@ namespace WorldZones.WorldGen
         readonly float maxMarshDistance = 6000f;
         readonly float minDarklandNoise = 0.4f;
         
-        // Perlin noise generators for each offset channel
-        readonly FastNoiseLite noise0;
-        readonly FastNoiseLite noise1;
-        readonly FastNoiseLite noise2;
-        readonly FastNoiseLite noise4;
-        readonly FastNoiseLite noiseBase;
+        // Perlin noise generators for each offset channel (matches Unity's Mathf.PerlinNoise)
+        readonly PerlinNoise noise0;
+        readonly PerlinNoise noise1;
+        readonly PerlinNoise noise2;
+        readonly PerlinNoise noise4;
+        readonly PerlinNoise noiseBase;
         
         // Constants matching Valheim's world generation
         const float WorldRadius = 10000f;
@@ -61,20 +61,12 @@ namespace WorldZones.WorldGen
             this.offset3 = random.NextDouble() * 100000.0;
             this.offset4 = random.NextDouble() * 100000.0;
             
-            // Initialize noise generators (Perlin noise matching Valheim's usage)
-            this.noise0 = CreateNoiseGenerator(this.seedHash + 0);
-            this.noise1 = CreateNoiseGenerator(this.seedHash + 1);
-            this.noise2 = CreateNoiseGenerator(this.seedHash + 2);
-            this.noise4 = CreateNoiseGenerator(this.seedHash + 4);
-            this.noiseBase = CreateNoiseGenerator(this.seedHash + 100);
-        }
-        
-        FastNoiseLite CreateNoiseGenerator(int seed)
-        {
-            var noise = new FastNoiseLite(seed);
-            noise.SetNoiseType(FastNoiseLite.NoiseType.Perlin);
-            noise.SetFractalType(FastNoiseLite.FractalType.None);
-            return noise;
+            // Initialize noise generators (Perlin noise matching Unity's Mathf.PerlinNoise)
+            this.noise0 = new PerlinNoise(this.seedHash + 0);
+            this.noise1 = new PerlinNoise(this.seedHash + 1);
+            this.noise2 = new PerlinNoise(this.seedHash + 2);
+            this.noise4 = new PerlinNoise(this.seedHash + 4);
+            this.noiseBase = new PerlinNoise(this.seedHash + 100);
         }
         
         /// <summary>
@@ -95,8 +87,8 @@ namespace WorldZones.WorldGen
             float baseHeight = GetBaseHeight(worldX, worldZ);
             float angleVariation = (float)(WorldAngle(worldX, worldZ) * 100.0);
             
-            // Helper to get normalized noise [0, 1] from FastNoiseLite [-1, 1]
-            float Noise01(FastNoiseLite noise, float nx, float ny) => (noise.GetNoise(nx, ny) + 1f) * 0.5f;
+            // Helper to get noise [0, 1] - PerlinNoise already returns this range
+            float GetNoise(PerlinNoise noise, float nx, float ny) => noise.GetNoise(nx, ny);
             
             // Check waterAlwaysOcean condition
             if (waterAlwaysOcean && GetHeight(worldX, worldZ) <= oceanLevel)
@@ -129,7 +121,7 @@ namespace WorldZones.WorldGen
             // Swamp biome (noise-based placement with distance and height constraints)
             double swampX = (this.offset0 + worldX) * 0.001;
             double swampZ = (this.offset0 + worldZ) * 0.001;
-            if (Noise01(this.noise0, (float)swampX, (float)swampZ) > 0.6f 
+            if (GetNoise(this.noise0, (float)swampX, (float)swampZ) > 0.6f 
                 && distance > 2000f 
                 && distance < this.maxMarshDistance 
                 && baseHeight > 0.05f 
@@ -141,7 +133,7 @@ namespace WorldZones.WorldGen
             // Mistlands biome
             double mistX = (this.offset4 + worldX) * 0.001;
             double mistZ = (this.offset4 + worldZ) * 0.001;
-            if (Noise01(this.noise4, (float)mistX, (float)mistZ) > this.minDarklandNoise 
+            if (GetNoise(this.noise4, (float)mistX, (float)mistZ) > this.minDarklandNoise 
                 && distance > (6000.0 + angleVariation) 
                 && distance < 10000f)
             {
@@ -151,7 +143,7 @@ namespace WorldZones.WorldGen
             // Plains biome
             double plainsX = (this.offset1 + worldX) * 0.001;
             double plainsZ = (this.offset1 + worldZ) * 0.001;
-            if (Noise01(this.noise1, (float)plainsX, (float)plainsZ) > 0.4f 
+            if (GetNoise(this.noise1, (float)plainsX, (float)plainsZ) > 0.4f 
                 && distance > (3000.0 + angleVariation) 
                 && distance < 8000f)
             {
@@ -161,7 +153,7 @@ namespace WorldZones.WorldGen
             // Black Forest biome
             double forestX = (this.offset2 + worldX) * 0.001;
             double forestZ = (this.offset2 + worldZ) * 0.001;
-            if (Noise01(this.noise2, (float)forestX, (float)forestZ) > 0.4f 
+            if (GetNoise(this.noise2, (float)forestX, (float)forestZ) > 0.4f 
                 && distance > (600.0 + angleVariation) 
                 && distance < 6000f)
             {
@@ -201,25 +193,25 @@ namespace WorldZones.WorldGen
             double x = worldX + 100000.0 + this.offset0;
             double y = worldZ + 100000.0 + this.offset1;
             
-            // Helper to normalize noise from [-1, 1] to [0, 1] (matching Valheim's PerlinNoise)
-            float Noise01(float nx, float ny) => (this.noiseBase.GetNoise(nx, ny) + 1f) * 0.5f;
+            // Helper - PerlinNoise already returns [0, 1]
+            float Noise(float nx, float ny) => this.noiseBase.GetNoise(nx, ny);
             
             // Multi-octave noise for base terrain shape
             float height = 0f;
             
             // First octave: broad features
-            float n1 = Noise01((float)(x * 0.002 * 0.5), (float)(y * 0.002 * 0.5));
-            float n2 = Noise01((float)(x * 0.003 * 0.5), (float)(y * 0.003 * 0.5));
+            float n1 = Noise((float)(x * 0.002 * 0.5), (float)(y * 0.002 * 0.5));
+            float n2 = Noise((float)(x * 0.003 * 0.5), (float)(y * 0.003 * 0.5));
             height += n1 * n2 * 1.0f;
             
             // Second octave: medium features (amplifies existing height)
-            float n3 = Noise01((float)(x * 0.002), (float)(y * 0.002));
-            float n4 = Noise01((float)(x * 0.003), (float)(y * 0.003));
+            float n3 = Noise((float)(x * 0.002), (float)(y * 0.002));
+            float n4 = Noise((float)(x * 0.003), (float)(y * 0.003));
             height += n3 * n4 * height * 0.9f;
             
             // Third octave: fine details
-            float n5 = Noise01((float)(x * 0.005), (float)(y * 0.005));
-            float n6 = Noise01((float)(x * 0.01), (float)(y * 0.01));
+            float n5 = Noise((float)(x * 0.005), (float)(y * 0.005));
+            float n6 = Noise((float)(x * 0.01), (float)(y * 0.01));
             height += n5 * n6 * 0.5f * height;
             
             // Baseline adjustment
