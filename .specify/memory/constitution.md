@@ -100,11 +100,12 @@ Strong typing + immutability + functional patterns eliminate many bug classes th
 - **Rule of thumb:** If system/integration tests already cover the path, granular unit tests may be redundant
 
 **Design for Testability:**
-- Core libraries MUST be testable without Unity runtime (architectural requirement)
-- Pure functions preferred (deterministic, side-effect-free)
-- Unity integration as thin adapters composing testable core logic
+- Core libraries MUST be testable without Unity runtime (enables fast feedback loop)
+- Pure functions preferred (deterministic, side-effect-free, easy to test in isolation)
+- Unity integration as thin adapters composing testable core logic (shift complexity to testable layer)
+- **Goal:** Mod developers validate changes via `dotnet test`, not by launching Valheim
 
-**Rationale:** In strongly typed compiled languages (especially with immutability + functional style), the compiler catches most errors that would require unit tests in dynamic languages. Testing should focus on algorithmic correctness, edge cases, and system behavior - not proving the type system works. Different types/functions have different testing needs; exercise judgment on where tests add value.
+**Rationale:** In strongly typed compiled languages (especially with immutability + functional style), the compiler catches most errors that would require unit tests in dynamic languages. Testing should focus on algorithmic correctness, edge cases, and system behavior - not proving the type system works. Different types/functions have different testing needs; exercise judgment on where tests add value. **Primary goal: Enable mod development with fast feedback loops, shifting validation left from slow in-game testing to rapid automated tests.**
 
 ### IV. Stable Public API
 
