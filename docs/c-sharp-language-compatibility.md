@@ -37,11 +37,14 @@ C# 9 records and init properties are **compiler features** that emit standard IL
 - **Null-coalescing assignment** - `??=`
 
 ### ✅ C# 9.0 Features (With IsExternalInit Polyfill)
-- **Records (reference types)** - `public record WorldConfig(int Seed);` - FULLY SUPPORTED
-- **Record structs** - `public readonly record struct WorldPosition(float X, float Z);` - FULLY SUPPORTED
-- **init-only properties** - `{ get; init; }` - FULLY SUPPORTED
-- **Target-typed new** - `List<string> list = new();`
-- **Pattern matching improvements** - Relational patterns, logical patterns
+- **init-only properties** - `{ get; init; }` - ✅ CONFIRMED WORKING (used in CoordinateRegion)
+- **Target-typed new** - `List<string> list = new();` - Should work (compiler feature)
+- **Pattern matching improvements** - Relational patterns, logical patterns - Should work (IL patterns)
+
+### ⚠️ C# 9.0 Features (Claimed but Actually C# 10)
+- **Records (reference types)** - `public record WorldConfig(int Seed);` - ❌ C# 10 ONLY
+- **Record structs** - `public readonly record struct WorldPosition(float X, float Z);` - ❌ C# 10 ONLY
+- **Workaround:** Use `readonly struct` with `init` properties instead (same immutability, slightly more verbose)
 
 ## IsExternalInit Polyfill (Already Included)
 
@@ -49,9 +52,16 @@ Located at `src/WorldZones.WorldGen/IsExternalInit.cs` - this internal type allo
 
 ## Restricted Features
 
-### ❌ DO NOT USE
+### ❌ C# 10+ Features (NOT AVAILABLE in C# 9)
+**Empirically discovered during Phase 2 implementation:**
+- **File-scoped namespaces** - `namespace Foo;` (without braces) - Requires LangVersion 10.0+
+- **Record structs** - `record struct Point(float X, float Z);` - Requires LangVersion 10.0+
+- **Reference type records** - `record Person(string Name);` - Requires LangVersion 10.0+ (despite online claims they're C# 9)
+
+**Microsoft's documentation can be misleading** - record structs are sometimes listed as C# 9, but the compiler requires C# 10.
+
+### ❌ Runtime Incompatible
 - **C# 8.0 Default interface methods** - Requires .NET Core/.NET 5+ runtime (not available in .NET Framework 4.7.2)
-- **C# 10+ Features** - Untested with net472, likely incompatible
 
 ## Example: Using C# 9 Features Safely
 
@@ -92,10 +102,19 @@ public class WorldGenerator
 
 ## Validation Strategy
 
-**Phase 1-3: Library Development (Current)**
-- Use C# 9.0 features freely (records, init, nullable reference types)
+**Phase 1-3: Library Development**
+- Use C# 9.0 features freely (init properties, nullable reference types, pattern matching)
 - IsExternalInit polyfill already included
+- **AVOID** features that claim to be C# 9 but actually require C# 10 (see Restricted Features)
 - Build and test library in isolation
+
+**Phase 2 Validation Results (2026-02-14):**
+- ✅ `readonly struct` with `init` properties - Works perfectly
+- ✅ `this.` qualification throughout - Compiles cleanly
+- ✅ Nullable reference types enabled - No issues
+- ❌ Record structs - Compiler rejected (CS8773: requires C# 10)
+- ❌ File-scoped namespaces - Compiler rejected (CS8773: requires C# 10)
+- **Fallback:** Converted to `readonly struct` + manual constructor - trivial change, validates "optimistic but cautious" strategy
 
 **Phase 4: BepInEx Integration Testing**
 - Create minimal BepInEx plugin that references WorldZones.WorldGen.dll
