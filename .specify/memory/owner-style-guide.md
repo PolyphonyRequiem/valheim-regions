@@ -164,6 +164,12 @@ public class BotClientBuilder
 - All fields readonly and lowercase
 - Consistent `this.` qualification
 
+**Design Intent Revealed (2026-02-14):**
+- **8 overloads were for null avoidance**, not poor design
+- Owner: "I have a strong aversion to null, hence the 8 overloads for the 2 optional dependencies"
+- Compile-time safety over runtime null checks
+- BETTER alternatives: Fluent builder for 2+ optionals, or required-only dependencies
+
 ---
 
 ## Anti-Patterns (Warning from Owner)
