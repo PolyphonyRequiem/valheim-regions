@@ -72,7 +72,7 @@ Create a pure C# library that ports Valheim's world generation algorithms (heigh
 - ✅ **PASS**: Single library project structure (no repository patterns, DI, or service layers)
 - ✅ **PASS**: Straightforward Perlin noise implementation (either port DUtils or use vetted library)
 - ✅ **PASS**: PNG export uses standard library (System.Drawing) or minimal dependency (ImageSharp)
-- ✅ **POST-DESIGN VERIFICATION**: Research.md confirms custom Perlin implementation (0 dependencies), ImageSharp only in CLI tool, no unnecessary abstractions
+- ✅ **POST-DESIGN VERIFICATION**: Research.md confirms FastNoiseLite usage (single .cs file copied into source - 0 NuGet dependencies), ImageSharp only in CLI tool, no unnecessary abstractions
 
 ### V. Clear Contracts
 - ✅ **PASS**: All public APIs MUST have XML documentation
