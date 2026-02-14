@@ -97,11 +97,18 @@ public ISubscriptionClient BuildSubscriptionClient(...)
 
 ## Anti-Patterns (Warning from Owner)
 
-**From Townsharp:** Owner mentioned "I made a lot of bad choices here" - need to identify these during code review and avoid repeating.
+**Owner Statement (2026-02-14):** *"I made a lot of bad choices here"* + **"I give you consent to critique the code that I gave you as reference btw if you think I've given BAD guidance here."**
+
+**Critical Understanding:**
+- Owner WANTS critical analysis, not blind copying
+- Townsharp is a reference for style, NOT gospel for design
+- Challenge patterns that don't make sense
+- Modern/simpler alternatives preferred over complex patterns
 
 **Watch for:**
 - ⚠️ Potential over-engineering (mentioned by owner)
 - ⚠️ Complexity that could be simpler
+- ⚠️ Builder pattern with 8+ overloads (could use optional params or fluent API)
 - Need to balance DI patterns with simplicity bias
 
 ---
@@ -129,9 +136,9 @@ public static class Builders
 
 **Patterns:**
 - Static factory methods for builders
-- Method overloading for optional dependencies
+- Method overloading for optional dependencies (⚠️ **CRITIQUE:** 8+ overloads is excessive - C# optional params or fluent builder would be cleaner)
 - Nested sealed classes for internal implementations
-- **Inconsistency note:** Nested class uses `_underscore` prefix (may be older code or .NET convention for private impl)
+- **Inconsistency note:** Nested class uses `_underscore` prefix (may be older code or .NET convention - avoid in WorldZones per owner preference)
 
 ### BotClientBuilder Pattern (commit 4383fad)
 ```csharp
