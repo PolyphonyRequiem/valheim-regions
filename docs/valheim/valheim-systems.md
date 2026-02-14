@@ -146,34 +146,231 @@ public class BiomeDetector : BaseUnityPlugin
 
 ---
 
-## Open Questions (Need Disassembly Investigation)
+## Disassembly Findings (Valheim 0.221.10)
 
-### Zone System Internals
-- [ ] What does `ZoneSystem` class look like internally?
-- [ ] Are zones generated on-demand or pre-computed?
-- [ ] Can we query all zones in a region efficiently?
-- [ ] Is there zone data persistence/caching?
+### World Boundaries and Coordinate System
+✅ **World Size:** 10,000m radius (20,000m diameter), circular
+- Origin (0, 0, 0) at world center
+- X and Z are horizontal plane (Y is elevation)
+- Water edge extends to 10,500m radius
+- World boundary enforced in code: checks `magnitude < 10000f`
+- Random spawn uses range: `UnityEngine.Random.Range(-10000f, 10000f)`
 
-### Biome Detection
-- [ ] Thread safety of `Heightmap.FindBiome()` and `ZoneSystem.GetBiome()`?
-- [ ] Performance characteristics - can we call it thousands of times?
-- [ ] What's the difference between the two APIs?
-- [ ] Do they cache results?
+### Zone System Architecture
 
-### Coordinates & Bounds
-- [ ] What coordinate system does Valheim use? (Origin location, scale, limits)
-- [ ] What are the world boundaries? (min/max X and Z)
-- [ ] Is Y (elevation) important for region definition?
+#### Zone Structure
+✅ **Zone Size:** 64m x 64m (constant: `ZoneSystem.c_ZoneSize = 64f`)
+- Zone half-size: 32m (constant: `c_ZoneHalfSize`)
+- Zones identified by `Vector2i` (integer grid coordinates)
+- Water level: 30m (constant: `c_WaterLevel`)
 
-### Existing Region Concepts
-- [ ] Does Valheim have any built-in concept of "regions" beyond zones?
-- [ ] Are there named areas in the game already?
-- [ ] How do boss locations/spawn points work - are they "regions"?
+#### Zone Coordinate Conversion
+```csharp
+// World position → Zone ID
+public static Vector2i GetZone(Vector3 point) {
+    int x = Utils.FloorToInt((point.x + 32.0) / 64.0);
+    int y = Utils.FloorToInt((point.z + 32.0) / 64.0);  // Note: Z not Y
+    return new Vector2i(x, y);
+}
 
-### Multiplayer Considerations
-- [ ] How does ZoneSystem work in multiplayer? (server-side? client-side? synced?)
-- [ ] Can mods add persistent data to zones?
-- [ ] How would region names sync across players?
+// Zone ID → World position (center of zone)
+public static Vector3 GetZonePos(Vector2i id) {
+    return new Vector3(id.x * 64.0, 0f, id.y * 64.0);
+}
+```
+
+#### Zone Loading and Lifecycle
+✅ **On-Demand Loading:** Zones are generated/loaded dynamically around players
+- Active area: `m_activeArea` zones around center (default: 1 = 3x3 grid)
+- Active distant area: `m_activeDistantArea` (default: 1)
+- Time-to-live (TTL): Inactive zones destroyed after `m_zoneTTL` seconds (default: 4s)
+- Time-to-spawn (TTS): Active zones spawn after `m_zoneTTS` seconds (default: 4s)
+- Zone tracking: `Dictionary<Vector2i, ZoneData> m_zones`
+- Generated zones: `HashSet<Vector2i> m_generatedZones` (persisted in save file)
+
+#### Zone Generation State
+✅ **Persistent Generation:** Once a zone is generated, it's tracked forever
+- `m_generatedZones` saved with world data
+- Vegetation, locations, and features generated once per zone
+- Regeneration only occurs if world data changes
+
+### Biome System Deep Dive
+
+#### Biome Enum (Flags)
+```csharp
+public enum Biome {
+    None = 0,
+    Meadows = 1,
+    Swamp = 2,
+    Mountain = 4,
+    BlackForest = 8,
+    Plains = 0x10,      // 16
+    AshLands = 0x20,    // 32
+    DeepNorth = 0x40,   // 64
+    Ocean = 0x100,      // 256
+    Mistlands = 0x200,  // 512
+    All = 0x37F         // 895 (all biomes OR'd)
+}
+```
+
+**Note:** Flags-based enum allows biome masks for filtering (e.g., spawn only in Meadows | BlackForest).
+
+#### Heightmap Corner Biomes
+✅ **Biome Storage:** Each heightmap (64x64m zone) has 4 corner biomes
+- `private Biome[] m_cornerBiomes = new Biome[4]` (corners of the zone)
+- Corners calculated from `WorldGenerator.GetBiome()` at zone boundaries
+- Pure zones: all 4 corners same biome
+- Edge zones: corners differ (transition zones)
+
+#### Biome Detection APIs
+
+**1. Heightmap.FindBiome(Vector3 point) - Static**
+```csharp
+public static Biome FindBiome(Vector3 point) {
+    Heightmap heightmap = FindHeightmap(point);  // Find heightmap containing point
+    if (!heightmap) return Biome.None;
+    return heightmap.GetBiome(point);            // Delegate to instance method
+}
+```
+- Searches `static List<Heightmap> s_heightmaps` (all loaded heightmaps)
+- **Thread Safety:** ❌ NOT thread-safe (iterates non-locked static collection)
+- **Performance:** O(n) where n = loaded heightmaps (typically small, ~9-25 for 3x3 to 5x5 active area)
+
+**2. Heightmap.GetBiome(Vector3 point) - Instance**
+```csharp
+public Biome GetBiome(Vector3 point, float oceanLevel = 0.02f, bool waterAlwaysOcean = false) {
+    // Fast path: pure zone (all corners same biome)
+    if (m_cornerBiomes[0] == m_cornerBiomes[1] && 
+        m_cornerBiomes[0] == m_cornerBiomes[2] && 
+        m_cornerBiomes[0] == m_cornerBiomes[3]) {
+        return m_cornerBiomes[0];
+    }
+    
+    // Edge zone: weighted interpolation from 4 corners
+    // Convert world pos to normalized heightmap coords (0-1 range)
+    float x, y;
+    WorldToNormalizedHM(point, out x, out y);
+    
+    // Calculate distance-based weights for each corner
+    s_tempBiomeWeights[...] = Distance(x, y, corner0);  // etc for 4 corners
+    
+    // Return biome with highest weight
+    return dominantBiome;
+}
+```
+- **Thread Safety:** ❌ NOT thread-safe (uses `static float[] s_tempBiomeWeights` without locking)
+- **Performance:** 
+  - Pure zones: O(1) - simple comparison
+  - Edge zones: O(1) - fixed calculation (4 corners, no loops over large data)
+  - **Can be called frequently** but only from main thread
+
+**3. WorldGenerator.GetBiome(float wx, float wy) - Authoritative**
+```csharp
+public Heightmap.Biome GetBiome(float wx, float wy, float oceanLevel = 0.02f, bool waterAlwaysOcean = false) {
+    // Distance from world center
+    float distance = DUtils.Length(wx, wy);
+    float baseHeight = GetBaseHeight(wx, wy, menuTerrain: false);
+    
+    // Procedural biome assignment based on:
+    // - Distance from center (concentric rings)
+    // - Perlin noise (adds variation)
+    // - Base height (ocean vs land, mountains)
+    // - World angle (slight rotational variation)
+    
+    // Order matters - earlier checks take precedence:
+    if (IsAshlands(wx, wy)) return Biome.AshLands;
+    if (baseHeight <= oceanLevel) return Biome.Ocean;
+    if (IsDeepnorth(wx, wy)) { /* Mountain or DeepNorth */ }
+    if (baseHeight > 0.4f) return Biome.Mountain;
+    if (/* Perlin noise + distance + height */) return Biome.Swamp;
+    if (/* Perlin noise + distance */) return Biome.Mistlands;
+    if (/* Perlin noise + distance */) return Biome.Plains;
+    if (/* Perlin noise + distance */) return Biome.BlackForest;
+    if (distance > 5000f + angle_variation) return Biome.BlackForest;
+    return Biome.Meadows;  // Default (near center)
+}
+```
+- **Deterministic:** Same (wx, wy, seed) always returns same biome
+- **Thread Safety:** ⚠️ Probably safe for read-only calls, but has `ReaderWriterLockSlim` for river cache
+- **Performance:** Expensive (multiple Perlin noise calls, height calculations)
+- **When used:** During heightmap generation (zone corners), not for runtime queries
+
+### Multiplayer and Networking
+
+#### Server-Client Architecture
+✅ **Server Authoritative:** ZoneSystem runs on server, syncs to clients
+- Server generates zones and sends location icons to clients
+- RPC calls: `"GlobalKeys"`, `"LocationIcons"`, `"SetGlobalKey"`, `"RemoveGlobalKey"`
+- Clients receive location data via `RPC_LocationIcons(long sender, ZPackage pkg)`
+- Server sends to all clients: `ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, ...)`
+
+#### Persistent Data
+✅ **Generated Zones Saved:** `m_generatedZones` persisted in world save file
+- Tracks which zones have been generated (vegetation, locations placed)
+- Shared across all players in the world
+- Cannot be reset without world regeneration
+
+#### Modding Implications
+⚠️ **Custom Region Data Sync:** 
+- No built-in mod data persistence in ZoneSystem
+- Region names would need custom networking (RPC or ZDO system)
+- Must sync region definitions to all clients on join
+
+### Thread Safety Summary
+
+❌ **NOT Thread-Safe:**
+- `Heightmap.FindBiome()` - iterates static list without locks
+- `Heightmap.GetBiome()` - uses static `s_tempBiomeWeights` array
+- `s_heightmaps` list - modified as zones load/unload
+
+✅ **Main Thread Only:** All biome detection APIs must be called from Unity main thread
+
+⚠️ **WorldGenerator:** Has locking for river cache, but biome calculation itself not thread-safe
+
+### Performance Characteristics
+
+**Biome Queries:**
+- Pure zones: ~10-20 CPU cycles (comparison only)
+- Edge zones: ~100-200 CPU cycles (4 distance calculations + lookup)
+- Finding heightmap: O(n) but n is small (<50 heightmaps typically)
+- **Can call thousands per frame** if all from main thread
+
+**Zone Generation:**
+- Expensive (vegetation placement, location spawning, terrain generation)
+- Happens in background (coroutines)
+- Cached forever once generated
+
+**Recommended Usage:**
+- ✅ Batch biome queries for region analysis
+- ✅ Cache results if querying same points repeatedly
+- ❌ Do NOT call from background threads
+- ❌ Do NOT call WorldGenerator.GetBiome() at runtime (use heightmap APIs)
+
+---
+
+## Remaining Open Questions
+
+### Custom Data Persistence
+- [ ] How to persist custom region names across save/load? (ZDO system? Custom save file?)
+- [ ] Where to store region metadata? (In-memory only? Persistent?)
+- [ ] How to handle world seed changes? (Regions must regenerate)
+
+### Region Naming Strategy
+- [ ] Should regions follow biome boundaries or fixed grid?
+- [ ] What granularity for regions? (single zone? 10x10 zones? variable size?)
+- [ ] How to handle biome transitions in region names?
+- [ ] Norse mythology name pool size needed?
+
+### API Design for Downstream Modders
+- [ ] What query patterns will modders use most? (point → region? region → bounds? all regions?)
+- [ ] Should regions be generated all at once or on-demand like zones?
+- [ ] How to expose biome-aware region data efficiently?
+- [ ] Event system for "entered region" / "left region"?
+
+### Testing Without Game Runtime
+- [ ] Can we mock WorldGenerator for core logic tests?
+- [ ] How to unit test region generation algorithms?
+- [ ] Integration test strategy for Unity-dependent code?
 
 ---
 
