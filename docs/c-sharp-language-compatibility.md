@@ -2,9 +2,22 @@
 
 **Target Framework**: .NET Framework 4.7.2  
 **Language Version**: C# 9.0  
-**Runtime**: Unity 2019.4 via BepInEx mod loading
+**Runtime**: Unity 2019.4 via BepInEx mod loading  
+**Philosophy**: Optimistic but cautious - use modern features, but architect for fallback
 
-## Rationale
+## Strategy
+
+**"Try It, Rewrite If Needed"**
+
+We use C# 9 features for cleaner, safer code BUT design architecture so no feature is load-bearing. If runtime issues appear, we can mechanically translate:
+
+- Records → manual structs/classes with Equals/GetHashCode
+- `init` properties → `private set` + constructor assignment  
+- Nullable annotations → remove (keep the null-avoidance design)
+
+**DO:** Write with modern features for quality of life  
+**DON'T:** Design APIs that *require* C# 9 to function  
+**WHEN BLOCKED:** Rewrite affected types to C# 7.3 equivalent
 
 **CRITICAL DISTINCTION:** BepInEx mods compile OUTSIDE Unity using standard Roslyn compiler, then load as DLLs at runtime. This means:
 
