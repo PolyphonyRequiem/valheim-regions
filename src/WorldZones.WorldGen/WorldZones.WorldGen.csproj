@@ -4,6 +4,14 @@
     <TargetFramework>net472</TargetFramework>
     <LangVersion>9.0</LangVersion>
     <Nullable>enable</Nullable>
+    <ValheimInstallPath Condition="'$(ValheimInstallPath)' == ''">C:\Program Files (x86)\Steam\steamapps\common\Valheim</ValheimInstallPath>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="assembly_utils">
+      <HintPath>$(ValheimInstallPath)\valheim_Data\Managed\assembly_utils.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
 
 </Project>
