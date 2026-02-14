@@ -1,63 +1,62 @@
-# C# Language Compatibility Guide
+# C# Language Compatibility Guide - BepInEx Mod Context
 
 **Target Framework**: .NET Framework 4.7.2  
 **Language Version**: C# 9.0  
-**Unity Compatibility**: Unity 2019.4 (Valheim runtime)
+**Runtime**: Unity 2019.4 via BepInEx mod loading
 
 ## Rationale
 
-C# language version and target framework are NOT 1:1 coupled. Many modern C# features are **compiler features** that emit IL compatible with older runtimes. We maximize language quality while maintaining runtime compatibility.
+**CRITICAL DISTINCTION:** BepInEx mods compile OUTSIDE Unity using standard Roslyn compiler, then load as DLLs at runtime. This means:
 
-## Safe Features (C# 8-9)
+- ✅ We can use ANY C# 9 features that emit .NET Framework 4.7.2-compatible IL
+- ✅ Unity's C# 7.x compiler limitations DON'T apply to us
+- ✅ Only runtime compatibility matters (can the .NET 4.7.2 runtime execute our IL?)
 
-### ✅ C# 8.0 Features (Compiler-Only)
-- **Nullable reference types** (`string?`, `string!`) - Compile-time null safety
-- **Pattern matching enhancements** - `switch` expressions, property patterns
-- **Using declarations** - `using var file = ...` (no braces)
+C# 9 records and init properties are **compiler features** that emit standard IL. With the `IsExternalInit` polyfill, they work perfectly on .NET Framework 4.7.2 runtime.
+
+## Fully Supported Features (C# 8-9)
+
+### ✅ C# 8.0 Features
+- **Nullable reference types** (`string?`, `string!`) - Compiler annotations only, zero runtime impact
+- **Pattern matching enhancements** - Just IL patterns
+- **Using declarations** - `using var file = ...`
 - **Static local functions**
 - **Null-coalescing assignment** - `??=`
 
-### ✅ C# 9.0 Features (Compiler-Only)
-- **init-only properties** - `{ get; init; }` for immutability
+### ✅ C# 9.0 Features (With IsExternalInit Polyfill)
+- **Records (reference types)** - `public record WorldConfig(int Seed);` - FULLY SUPPORTED
+- **Record structs** - `public readonly record struct WorldPosition(float X, float Z);` - FULLY SUPPORTED
+- **init-only properties** - `{ get; init; }` - FULLY SUPPORTED
 - **Target-typed new** - `List<string> list = new();`
 - **Pattern matching improvements** - Relational patterns, logical patterns
-- **Record structs** - `record struct Point(float X, float Z);` (value semantics)
+
+## IsExternalInit Polyfill (Already Included)
+
+Located at `src/WorldZones.WorldGen/IsExternalInit.cs` - this internal type allows C# 9 init/record features to work on .NET Framework 4.7.2. No assembly conflicts since it's internal to our DLL.
 
 ## Restricted Features
 
-### ⚠️ UNITY 2019.4 COMPATIBILITY ISSUES
+### ❌ DO NOT USE
+- **C# 8.0 Default interface methods** - Requires .NET Core/.NET 5+ runtime (not available in .NET Framework 4.7.2)
+- **C# 10+ Features** - Untested with net472, likely incompatible
 
-**Critical Discovery (2026-02-14):** Unity 2019.4 uses C# 7.x compiler and .NET 4.x runtime that lacks C# 9 support classes.
-
-**Records Compatibility:**
-- ❌ **Reference type records** (`record class`) - Emit `IsExternalInit` attribute Unity runtime doesn't have
-- ⚠️ **Record structs** - Same issue, UNTESTED with polyfill
-- **Workaround**: Include `IsExternalInit` polyfill (see below), but TEST IN UNITY EARLY
-
-**Init Properties:**
-- ⚠️ Require `IsExternalInit` polyfill for Unity compatibility
-- Safe to use in our library IF we include polyfill
-
-### IsExternalInit Polyfill (Required for Unity)
+## Example: Using C# 9 Features Safely
 
 ```csharp
-// Add to WorldZones.WorldGen project
-namespace System.Runtime.CompilerServices
+// ✅ EXCELLENT: Record for immutable value type
+public readonly record struct WorldPosition(float X, float Z);
+
+// ✅ EXCELLENT: Record class for immutable reference type
+public record WorldConfig(int Seed, float WorldRadius);
+
+// ✅ EXCELLENT: Init-only properties with null safety
+public class BiomeResult
 {
-    internal static class IsExternalInit { }
+    public required BiomeType Biome { get; init; }
+    public required float Confidence { get; init; }
 }
-```
 
-This allows C# 9 `init` and `record` features to work in .NET Framework 4.7.2 and Unity 2019.4.
-
-### ❌ DO NOT USE (Confirmed Incompatible)
-- **C# 8.0 Default interface methods** - Requires .NET Core runtime
-- **C# 10+ Features** - Not tested with net472 IL emission
-
-## Example: Null-Safe API Design
-
-```csharp
-// ✅ GOOD: Nullable reference types + init properties
+// ✅ EXCELLENT: Nullable reference types for explicit null handling
 public class WorldGenerator
 {
     private readonly int worldSeed;
@@ -72,40 +71,28 @@ public class WorldGenerator
     public BiomeType GetBiome(WorldPosition position)
     {
         // Compiler enforces null check before use
-        var noise = this.customNoise ?? CreateDefaultNoise();
+        var noise = this.customNoise ?? this.CreateDefaultNoise();
         // ...
     }
-}
-
-// ✅ GOOD: Record struct for immutable data
-public readonly record struct WorldPosition(float X, float Z);
-
-// ✅ GOOD: init-only properties
-public class BiomeResult
-{
-    public BiomeType Biome { get; init; }
-    public float Confidence { get; init; }
 }
 ```
 
 ## Validation Strategy
 
-**Phase 1: Library Development (Current)**
-- Develop with C# 9.0 + nullable enabled
-- Include IsExternalInit polyfill immediately
-- Avoid reference type records entirely (use readonly classes)
-- Record structs are EXPERIMENTAL - test early
+**Phase 1-3: Library Development (Current)**
+- Use C# 9.0 features freely (records, init, nullable reference types)
+- IsExternalInit polyfill already included
+- Build and test library in isolation
 
-**Phase 2: Unity Integration Testing (Critical)**
-- Build BepInEx plugin that references WorldZones.WorldGen.dll
-- Load in actual Valheim (Unity 2019.4 runtime)
-- If Unity throws TypeLoadException or MissingMethodException on init/record:
-  - Fallback to C# 7.3 for affected types
-  - Document incompatibility in this file
+**Phase 4: BepInEx Integration Testing**
+- Create minimal BepInEx plugin that references WorldZones.WorldGen.dll
+- Load in actual Valheim and call library methods
+- Monitor for TypeLoadException or MissingMethodException
+- **Expected outcome:** Everything works (C# 9 features are runtime-compatible)
 
-**Phase 3: Continuous Validation**
-- Every merge to main should test in-game
-- If Unity compatibility breaks, revert language features
+**Phase 5: Continuous Validation**
+- Every major change: quick in-game smoke test
+- If runtime issues appear, document and fallback to C# 7.3 equivalent
 
 ## References
 
