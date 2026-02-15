@@ -53,15 +53,43 @@ namespace WorldZones.WorldGen
             // Use Valheim's GetStableHashCode from assembly_utils
             this.seedHash = string.IsNullOrEmpty(seed) ? 0 : seed.GetStableHashCode();
             
-            // Generate deterministic offsets using System.Random (matches Valheim)
-            Random random = new Random(this.seedHash);
-            this.offset0 = random.NextDouble() * 100000.0;
-            this.offset1 = random.NextDouble() * 100000.0;
-            this.offset2 = random.NextDouble() * 100000.0;
-            this.offset3 = random.NextDouble() * 100000.0;
-            this.offset4 = random.NextDouble() * 100000.0;
+            // Generate deterministic offsets using Unity's Xorshift128 (matches Valheim's actual implementation)
+            var unityRandom = new UnityRandom();
+            unityRandom.InitState(this.seedHash);
+            this.offset0 = unityRandom.NextDouble() * 100000.0;
+            this.offset1 = unityRandom.NextDouble() * 100000.0;
+            this.offset2 = unityRandom.NextDouble() * 100000.0;
+            this.offset3 = unityRandom.NextDouble() * 100000.0;
+            this.offset4 = unityRandom.NextDouble() * 100000.0;
             
             // Initialize noise generators (Perlin noise matching Unity's Mathf.PerlinNoise)
+            this.noise0 = new PerlinNoise(this.seedHash + 0);
+            this.noise1 = new PerlinNoise(this.seedHash + 1);
+            this.noise2 = new PerlinNoise(this.seedHash + 2);
+            this.noise4 = new PerlinNoise(this.seedHash + 4);
+            this.noiseBase = new PerlinNoise(this.seedHash + 100);
+        }
+        
+        /// <summary>
+        /// Constructor for testing with explicit offsets (to test different Random implementations).
+        /// </summary>
+        public WorldGenerator(string seed, double offset0, double offset1, double offset2, double offset3, double offset4, double offsetBase)
+        {
+            if (seed == null)
+            {
+                throw new ArgumentNullException(nameof(seed));
+            }
+            
+            this.seed = seed;
+            this.seedHash = string.IsNullOrEmpty(seed) ? 0 : seed.GetStableHashCode();
+            
+            this.offset0 = offset0;
+            this.offset1 = offset1;
+            this.offset2 = offset2;
+            this.offset3 = offset3;
+            this.offset4 = offset4;
+            
+            // Initialize noise generators
             this.noise0 = new PerlinNoise(this.seedHash + 0);
             this.noise1 = new PerlinNoise(this.seedHash + 1);
             this.noise2 = new PerlinNoise(this.seedHash + 2);
@@ -217,19 +245,14 @@ namespace WorldZones.WorldGen
             // Baseline adjustment
             height -= 0.07f;
             
-            // River calculation (TEMPORARILY DISABLED - needs debugging)
-            // Rivers are carved when two noise channels have similar values (small delta)
-            // Currently causing too much terrain to be zeroed - likely noise parameter mismatch
-            // TODO: Fix river calculation to match Valheim's behavior
-            /*
-            float river1 = Noise01((float)(x * 0.002 * 0.25 + 0.123), (float)(y * 0.002 * 0.25 + 0.15123));
-            float river2 = Noise01((float)(x * 0.002 * 0.25 + 0.321), (float)(y * 0.002 * 0.25 + 0.231));
+            // River calculation - carves river valleys where two noise channels align
+            float river1 = Noise((float)(x * 0.002 * 0.25 + 0.123), (float)(y * 0.002 * 0.25 + 0.15123));
+            float river2 = Noise((float)(x * 0.002 * 0.25 + 0.321), (float)(y * 0.002 * 0.25 + 0.231));
             float riverDelta = Math.Abs(river1 - river2);
             float riverIntensity = 1f - MathUtils.LerpStep(0.02f, 0.12f, riverDelta);
             float riverDistanceFade = MathUtils.SmoothStep(744f, 1000f, distance);
             float riverFactor = riverIntensity * riverDistanceFade;
             height *= (1f - riverFactor);
-            */
             
             // Edge fade to deep ocean
             if (distance > 10000f)

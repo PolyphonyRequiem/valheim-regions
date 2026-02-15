@@ -272,6 +272,109 @@ static class MathUtils {
 
 ---
 
+## 6. Ground Truth Data Validation (2026-02-15)
+
+**Question**: How can we validate our WorldGenerator output against actual Valheim data?
+
+### Investigation
+
+**Available Ground Truth Data**:
+- PNG Map: `data/seeds/HHcLC5acQt/Map_HHcLC5acQt.png` (8192×8192)
+- Tile Data: `data/seeds/HHcLC5acQt/data/tiles/*.bin.gz` (256 tiles, 16×16 grid)
+
+### Coordinate System Validation Results
+
+**PNG Dataset**:
+- Dimensions: 8192×8192 pixels
+- Center: (4095, 4095) - validated via radial symmetry testing
+- Content radius: 3491 pixels (pure biome colors)
+- Void boundary: 3512 pixels (gradient transition zone: 3491-3512)
+- Contains 8,112 distinct RGB values (86% pure biomes, 14% gradients)
+- Anti-aliasing: Gradients are rendering artifacts, must exclude from validation
+
+**Tile Dataset**:
+- Format: GZip compressed binary, 256 tiles (00-15 in X and Z)
+- Tile size: 1500m × 1500m world units
+- Sample grid: 1024×1024 per tile (10 bytes per sample)
+- Sample format: uint16 biome ID + float height + float forestFactor
+- Void marker: height = -400.0f exactly
+- Tile 08-08 covers world [0, 1500] for both X and Z
+
+**Coordinate Mapping (VALIDATED)**:
+```csharp
+// Key Constants
+const int WORLD_SIZE = 24576;           // Total world diameter (meters)
+const double SCALE = 3.0;                // Exact m/pixel ratio
+const int PNG_CENTER = 4095;             // PNG center pixel
+const int TILE_SIZE = 1500;              // Tile width (meters)
+const int TILE_CENTER_OFFSET = 8;        // Tiles to world origin
+
+// PNG to World
+double worldX = (px - PNG_CENTER) * SCALE;
+double worldZ = -(py - PNG_CENTER) * SCALE;  // Z FLIPPED!
+
+// World to Tile
+int tileX = (int)Floor(worldX / TILE_SIZE) + TILE_CENTER_OFFSET;
+int tileZ = (int)Floor(worldZ / TILE_SIZE) + TILE_CENTER_OFFSET;
+```
+
+**Validation Results**:
+- All tiles: 93.79% match (23.7M pixels compared)
+- Interior tiles (04-11): **99.9917% match** (9.9M pixels compared)
+- Center tile (08-08): 99.99% match (134K pixels compared)
+- Only 827 mismatches out of 9,948,863 interior pixels!
+
+**Critical Findings**:
+1. **Shallows** in PNG represent underwater non-ocean areas - must exclude
+2. **Gradients** are PNG rendering artifacts - must exclude
+3. **Z-axis flip**: PNG Y increases down, world Z increases up
+4. **Scale**: Exactly 3.0 m/pixel (worldSize=24576)
+5. **Rounding**: Sub-pixel precision causes minor boundary mismatches
+
+### Validation Strategy for WorldGenerator
+
+**Phase 1: Spot Checks** (quick validation)
+1. Generate seed "HHcLC5acQt" with our WorldGenerator
+2. Compare GetBiome() output at 100 random interior coordinates
+3. Expect >95% match (accounting for rounding differences)
+
+**Phase 2: Regional Validation** (comprehensive)
+1. Generate full biome map for tile 08-08 region [0, 1500]
+2. Sample every 10m (150×150 grid = 22,500 comparisons)
+3. Compare to tile 08-08 data using validated coordinate mapping
+4. Expect >99% match for interior regions
+
+**Phase 3: Full World Validation** (production ready)
+1. Generate biome maps for all interior tiles (04-11)
+2. Pixel-by-pixel comparison using coordinate mapping
+3. Target: >99% match rate across 64 tiles
+4. Document any systematic biases (e.g., biome boundary shifts)
+
+**Test Utilities Created**:
+- `FindMapBounds.cs` - Empirically locates PNG boundaries
+- `ValidateRadiusTransition.cs` - Tests biome/void boundaries  
+- `TestOppositeAngleSymmetry.cs` - Proves PNG center accuracy
+- `ValidateAllTiles.cs` - Compares WorldGen output to tiles
+- `FindOptimalWorldSize.cs` - Calibrates coordinate scaling
+
+### Decision
+
+**DECISION: Use tile data (not PNG) as primary ground truth for WorldGenerator validation**
+
+**Rationale**:
+1. Tile data has no anti-aliasing artifacts (100% pure biomes)
+2. Tile data includes height information (can validate GetHeight too)
+3. PNG useful for visual debugging but tiles are programmatic truth
+4. 99.99% validation proves coordinate mapping is correct
+
+**Implementation**: 
+- Create `GroundTruthValidator` class
+- Load tile data for region validation
+- Compare GetBiome() and GetHeight() outputs
+- Report match percentage and systematic biases
+
+---
+
 ## Summary of Decisions
 
 | Topic | Decision | Dependencies Added |
