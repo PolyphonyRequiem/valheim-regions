@@ -1,0 +1,516 @@
+[Licensing::Module] Trying to connect to existing licensing client channel...
+Built from '6000.3/staging' branch; Version is '6000.3.8f1 (1c7db571dde0) revision 1867189'; Using compiler version '194234433'; Build Type 'Release'
+OS: 'Windows 11  (10.0.26200) Enterprise' Language: 'en' Physical Memory: 65360 MB
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
+System  architecture: x64
+Process architecture: x64
+Date: 2026-02-15T05:00:48Z
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-dangreen" at "2026-02-15T05:00:48.3171218Z"
+
+COMMAND LINE ARGUMENTS:
+C:\Program Files\Unity\Hub\Editor\6000.3.8f1\Editor\Unity.exe
+-quit
+-batchmode
+-projectPath
+C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper
+-executeMethod
+ExtractSeedOffsets.Extract
+-logFile
+C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\extract-offsets.log
+Successfully changed project path to: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper
+C:/Users/dangreen/projects/valheim/worldzones/unity-perlin-wrapper
+[UnityMemory] Configuration Parameters - Can be set up in boot.config
+    "memorysetup-temp-allocator-size-nav-mesh-worker=65536"
+    "memorysetup-temp-allocator-size-audio-worker=65536"
+    "memorysetup-temp-allocator-size-gfx=262144"
+    "memorysetup-allocator-temp-initial-block-size-main=262144"
+    "memorysetup-allocator-temp-initial-block-size-worker=262144"
+    "memorysetup-temp-allocator-size-background-worker=32768"
+    "memorysetup-temp-allocator-size-job-worker=262144"
+    "memorysetup-temp-allocator-size-preload-manager=33554432"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-bucket-allocator-granularity=16"
+    "memorysetup-bucket-allocator-bucket-count=8"
+    "memorysetup-bucket-allocator-block-size=33554432"
+    "memorysetup-bucket-allocator-block-count=8"
+    "memorysetup-main-allocator-block-size=16777216"
+    "memorysetup-thread-allocator-block-size=16777216"
+    "memorysetup-gfx-main-allocator-block-size=16777216"
+    "memorysetup-gfx-thread-allocator-block-size=16777216"
+    "memorysetup-cache-allocator-block-size=4194304"
+    "memorysetup-typetree-allocator-block-size=2097152"
+    "memorysetup-profiler-bucket-allocator-granularity=16"
+    "memorysetup-profiler-bucket-allocator-bucket-count=8"
+    "memorysetup-profiler-bucket-allocator-block-size=33554432"
+    "memorysetup-profiler-bucket-allocator-block-count=8"
+    "memorysetup-profiler-allocator-block-size=16777216"
+    "memorysetup-profiler-editor-allocator-block-size=1048576"
+    "memorysetup-temp-allocator-size-main=16777216"
+    "memorysetup-job-temp-allocator-block-size=2097152"
+    "memorysetup-job-temp-allocator-block-size-background=1048576"
+    "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
+    "memorysetup-temp-allocator-size-cloud-worker=32768"
+Player connection [34524]  Target information:
+
+Player connection [34524]  * "[IP] 172.17.240.1 [Port] 55504 [Flags] 2 [Guid] 1211812079 [EditorId] 1211812079 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-AQ1AU6E) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [34524]  * "[IP] 172.18.80.1 [Port] 55504 [Flags] 2 [Guid] 1211812079 [EditorId] 1211812079 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-AQ1AU6E) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [34524]  * "[IP] 100.64.216.87 [Port] 55504 [Flags] 2 [Guid] 1211812079 [EditorId] 1211812079 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-AQ1AU6E) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [34524]  * "[IP] 192.168.0.125 [Port] 55504 [Flags] 2 [Guid] 1211812079 [EditorId] 1211812079 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-AQ1AU6E) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [34524] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [34524] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Input System module state changed to: Initialized.
+[Physics::Module] Initialized fallback backend.
+[Physics::Module] Id: 0xdecafbad
+[Package Manager] Connected to IPC stream "Upm-1940" after 0.3 seconds.
+[Licensing::Module] Licensing is not yet initialized.
+[Licensing::Client] Handshaking with LicensingClient:
+  Version:                 1.17.4+4293ba1
+  Session Id:              9fc27813d45644c095e6a7b42d85d65b
+  Correlation Id:          c8b8ba5792d212314bdd8d77580d6491
+  External correlation Id: 2954807742553829996
+  Machine Id:              fn9t0wrHQOY542YEBvMsTrpKnTc=
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-dangreen" (connect: 0.00s, validation: 0.01s, handshake: 0.97s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-dangreen-notifications" at "2026-02-15T05:00:49.2984957Z"
+[Licensing::Module] Error: Access token is unavailable; failed to update
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: 20066275243332-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+[Licensing::Client] Successfully updated license, isAsync: True, time: 0.00
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] Licensing Background thread has ended after 1.02s
+[Licensing::Module] Licensing is initialized (took 0.20s).
+[Licensing::Client] Successfully resolved entitlement details
+Library Redirect Path: Library/
+[Physics::Module] Selected backend.
+[Physics::Module] Name: PhysX
+[Physics::Module] Id: 0xf2b8ea05
+[Physics::Module] SDK Version: 4.1.2
+[Physics::Module] Integration Version: 1.0.0
+[Physics::Module] Threading Mode: Multi-Threaded
+Refreshing native plugins compatible for Editor in 0.00 ms, found 0 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Initialize engine version: 6000.3.8f1 (1c7db571dde0)
+[Subsystems] Discovering subsystems at path C:/Program Files/Unity/Hub/Editor/6000.3.8f1/Editor/Data/Resources/UnitySubsystems
+[Subsystems] Discovering subsystems at path C:/Users/dangreen/projects/valheim/worldzones/unity-perlin-wrapper/Assets
+GfxDevice: creating device client; kGfxThreadingModeNonThreaded
+Direct3D:
+    Version:  Direct3D 11.0 [level 11.1]
+    Renderer: NVIDIA GeForce RTX 4060 Laptop GPU (ID=0x28a0)
+    Vendor:   NVIDIA
+    VRAM:     7960 MB
+    Driver:   32.0.15.8180
+Initialize mono
+Mono path[0] = 'C:/Program Files/Unity/Hub/Editor/6000.3.8f1/Editor/Data/Managed'
+Mono path[1] = 'C:/Program Files/Unity/Hub/Editor/6000.3.8f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-win32'
+Mono config path = 'C:/Program Files/Unity/Hub/Editor/6000.3.8f1/Editor/Data/MonoBleedingEdge/etc'
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56940
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+ImportWorker Server TCP listen port: 0
+AcceleratorClientConnectionCallback - disconnected - :0
+Begin MonoManager ReloadAssembly
+Registering precompiled unity dll's ...
+Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.3.8f1/Editor/Data/PlaybackEngines/WebGLSupport/UnityEditor.WebGL.Extensions.dll
+Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.3.8f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
+Registered in 0.002323 seconds.
+- Loaded All Assemblies, in  0.448 seconds
+Native extension for WindowsStandalone target not found
+Native extension for WebGL target not found
+ScheduleIndexationOnStartup MainProcess:False IndexOnStartup:False
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  0.407 seconds
+Domain Reload Profiling: 852ms
+	BeginReloadAssembly (186ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (0ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (37ms)
+	RebuildCommonClasses (34ms)
+	RebuildNativeTypeToScriptingClass (11ms)
+	initialDomainReloadingComplete (41ms)
+	LoadAllAssembliesAndSetupDomain (173ms)
+		LoadAssemblies (147ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (169ms)
+			TypeCache.Refresh (167ms)
+				TypeCache.ScanAssembly (152ms)
+			BuildScriptInfoCaches (0ms)
+			ResolveRequiredComponents (1ms)
+	FinalizeReload (408ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (368ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (49ms)
+			SetLoadedEditorAssemblies (6ms)
+			BeforeProcessingInitializeOnLoad (80ms)
+			ProcessInitializeOnLoadAttributes (162ms)
+			ProcessInitializeOnLoadMethodAttributes (71ms)
+			AfterProcessingInitializeOnLoad (0ms)
+			EditorAssembliesLoaded (0ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (0ms)
+[Licensing::Client] Successfully resolved entitlement details
+Application.AssetDatabase Initial Refresh Start
+Package Manager log level set to [2]
+[Package Manager] Restoring resolved packages state from cache
+[Licensing::Client] Successfully resolved entitlement details
+[Package Manager] Registered 39 packages:
+  Built-in packages:
+    com.unity.multiplayer.center@1.0.1 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.multiplayer.center@f01f4ba8d00a)
+    com.unity.test-framework@1.6.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.test-framework@0b7a23ab2e1d)
+    com.unity.modules.accessibility@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.accessibility)
+    com.unity.modules.adaptiveperformance@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.adaptiveperformance)
+    com.unity.modules.ai@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.ai)
+    com.unity.modules.androidjni@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.androidjni)
+    com.unity.modules.animation@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.animation)
+    com.unity.modules.assetbundle@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.assetbundle)
+    com.unity.modules.audio@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.audio)
+    com.unity.modules.cloth@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.cloth)
+    com.unity.modules.director@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.director)
+    com.unity.modules.imageconversion@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.imageconversion)
+    com.unity.modules.imgui@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.imgui)
+    com.unity.modules.jsonserialize@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.jsonserialize)
+    com.unity.modules.particlesystem@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.particlesystem)
+    com.unity.modules.physics@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.physics)
+    com.unity.modules.physics2d@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.physics2d)
+    com.unity.modules.screencapture@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.screencapture)
+    com.unity.modules.terrain@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.terrain)
+    com.unity.modules.terrainphysics@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.terrainphysics)
+    com.unity.modules.tilemap@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.tilemap)
+    com.unity.modules.ui@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.ui)
+    com.unity.modules.uielements@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.uielements)
+    com.unity.modules.umbra@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.umbra)
+    com.unity.modules.unityanalytics@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.unityanalytics)
+    com.unity.modules.unitywebrequest@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.unitywebrequest)
+    com.unity.modules.unitywebrequestassetbundle@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.unitywebrequestassetbundle)
+    com.unity.modules.unitywebrequestaudio@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.unitywebrequestaudio)
+    com.unity.modules.unitywebrequesttexture@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.unitywebrequesttexture)
+    com.unity.modules.unitywebrequestwww@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.unitywebrequestwww)
+    com.unity.modules.vectorgraphics@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.vectorgraphics)
+    com.unity.modules.vehicles@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.vehicles)
+    com.unity.modules.video@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.video)
+    com.unity.modules.vr@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.vr)
+    com.unity.modules.wind@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.wind)
+    com.unity.modules.xr@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.xr)
+    com.unity.modules.subsystems@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.subsystems)
+    com.unity.modules.hierarchycore@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.modules.hierarchycore)
+    com.unity.ext.nunit@2.0.5 (location: C:\Users\dangreen\projects\valheim\worldzones\unity-perlin-wrapper\Library\PackageCache\com.unity.ext.nunit@d8c07649098d)
+[Subsystems] No new subsystems found in resolved package list.
+[Package Manager] Done registering packages in 0.06 seconds
+[ScriptCompilation] Requested script compilation because: Assetdatabase observed changes in script compilation related files
+Starting: C:\Program Files\Unity\Hub\Editor\6000.3.8f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
+WorkingDir: C:/Users/dangreen/projects/valheim/worldzones/unity-perlin-wrapper
+DisplayProgressbar: Compiling Scripts
+ExitCode: 4 Duration: 0s233ms
+Rebuilding DAG because FileSignature timestamp changed: Library/Bee/1900b0aE-inputdata.json
+*** Tundra requires additional run (0.18 seconds), 1 items updated, 197 evaluated
+Starting: C:\Program Files\Unity\Hub\Editor\6000.3.8f1\Editor\Data\netcorerun\netcorerun.exe "C:\Program Files\Unity\Hub\Editor\6000.3.8f1\Editor\Data\Tools\BuildPipeline\ScriptCompilationBuildProgram.exe" "Library/Bee/1900b0aE.dag.json" "Library/Bee/1900b0aE-inputdata.json" "Library\Bee\buildprogram0.traceevents"
+WorkingDir: C:/Users/dangreen/projects/valheim/worldzones/unity-perlin-wrapper
+ExitCode: 0 Duration: 0s340ms
+Starting: C:\Program Files\Unity\Hub\Editor\6000.3.8f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --dagfilejson="Library\Bee\1900b0aE.dag.json" --profile="Library/Bee/backend2.traceevents" ScriptAssemblies
+WorkingDir: C:/Users/dangreen/projects/valheim/worldzones/unity-perlin-wrapper
+ExitCode: 0 Duration: 0s509ms
+Finished compiling graph: 204 nodes, 1466 flattened edges (1404 ToBuild, 14 ToUse), maximum node priority 65
+[170/201    0s] WriteText Library/Bee/artifacts/1900b0aE.dag/WorldZones.WorldGen.Tests.Unity.rsp
+[198/201    0s] Csc Library/Bee/artifacts/1900b0aE.dag/WorldZones.WorldGen.Tests.Unity.dll (+2 others)
+[199/201    0s] CopyFiles Library/ScriptAssemblies/WorldZones.WorldGen.Tests.Unity.pdb
+[200/201    0s] CopyFiles Library/ScriptAssemblies/WorldZones.WorldGen.Tests.Unity.dll
+*** Tundra build success (0.46 seconds), 4 items updated, 201 evaluated
+Total cache size 1419724
+Total cache size after purge 1419724, took 00:00:00.0126314
+AssetDatabase: script compilation time: 1.633303s
+Begin MonoManager ReloadAssembly
+- Loaded All Assemblies, in  5.590 seconds
+Start importing Packages/com.unity.test-framework using Guid(78f12e007f434add71744283084a1cc9) (DefaultImporter) -> (artifact id: 'f30a676aabfb6120213a74d0ef51c1f9') in 0.0237574 seconds
+Start importing Packages/com.unity.ext.nunit using Guid(aa43149513e0d0ab612ac9968c8a459c) (DefaultImporter) -> (artifact id: 'ee13436749111590db54b58b9cfcf583') in 0.0007515 seconds
+Start importing Assets/Tests using Guid(bb3bca86d5e396341aba5a45ed17759a) (DefaultImporter) -> (artifact id: '5da081aff9a4eaadc2db2faa54c60492') in 0.033362 seconds
+Start importing Packages/com.unity.test-framework/UnityEngine.TestRunner using Guid(950890083f4907541a6ed06d70959e49) (DefaultImporter) -> (artifact id: 'b2380b0eb08023ce063c7b7396ba8e5e') in 0.0008413 seconds
+Start importing Packages/com.unity.test-framework/UnityEditor.TestRunner using Guid(95cdf27b47eb82747ba9e51f41e72a35) (DefaultImporter) -> (artifact id: '77f76be7513a4e9a3b3e2eeeb0b13cad') in 0.0005558 seconds
+Start importing Packages/com.unity.test-framework/Tests using Guid(b70e28337c9001e4390442151ea5542c) (DefaultImporter) -> (artifact id: '88dd20ad2c23d64332e901fda31c7692') in 0.0005342 seconds
+Start importing Packages/com.unity.ext.nunit/net40 using Guid(af19581c6078849139e0671f575e4b7c) (DefaultImporter) -> (artifact id: '7cfa80f12945c74956f086b3610c7a51') in 0.000534 seconds
+Start importing Packages/com.unity.ext.nunit/net40/unity-custom using Guid(c0673f99c7a5d42e081a6f88c5a37862) (DefaultImporter) -> (artifact id: 'f4fcd55258eeff1a5f459a9ca176b6e0') in 0.0006314 seconds
+Start importing Packages/com.unity.test-framework/UnityEditor.TestRunner/UnityTestProtocol using Guid(936c6340f3468444ebb1785b4c311126) (DefaultImporter) -> (artifact id: '483d26fa6f42e15acd6790bf9c72ba8c') in 0.0005627 seconds
+Start importing Packages/com.unity.test-framework/UnityEditor.TestRunner/CommandLineTest using Guid(b477d1f29b65a674e9d5cdab4eb72b01) (DefaultImporter) -> (artifact id: 'd7abe359a1b05afd93dcd5b5d76cf33e') in 0.0004943 seconds
+Start importing Packages/com.unity.test-framework/UnityEditor.TestRunner/TestSettings using Guid(95b719082a664ea45bb56759eed1f271) (DefaultImporter) -> (artifact id: '4d0b04fada6b6a6a34a84bcd27e10c97') in 0.0005249 seconds
+Start importing Packages/com.unity.test-framework/UnityEditor.TestRunner/CommandLineParser using Guid(7602252bdb82b8d45ae3483c3a00d3e1) (DefaultImporter) -> (artifact id: '7f4042be8b266d41f83337d8fd3e2897') in 0.0005742 seconds
+Start importing Packages/com.unity.test-framework/UnityEditor.TestRunner/TestLaunchers using Guid(d64d92e4f04a13e4b99ea8d48e9e8ae9) (DefaultImporter) -> (artifact id: '3292843884b5f7b4874453a902cfa1e0') in 0.0005443 seconds
+Start importing Packages/com.unity.test-framework/UnityEditor.TestRunner/TestRun using Guid(8721cb2237d4a564a94a51f56243bdac) (DefaultImporter) -> (artifact id: '878b6064979e1990108a77cb392d64d1') in 0.0005355 seconds
+Start importing Packages/com.unity.test-framework/UnityEngine.TestRunner/UnityTestProtocol using Guid(19e1940646874613a076c6b01d1f3404) (DefaultImporter) -> (artifact id: 'e62a4d5776733de3dd284c7bda3e08bd') in 0.0005663 seconds
+Start importing Packages/com.unity.test-framework/UnityEditor.TestRunner/TestRunner using Guid(49d4c2ab7ff0f4442af256bad7c9d57c) (DefaultImporter) -> (artifact id: '2c2a8c762103d2c2092be30ecefdc9a7') in 0.0006462 seconds
+Start importing Packages/com.unity.test-framework/UnityEngine.TestRunner/Assertions using Guid(1ad55f5ad04d1d045a1f287409c650dd) (DefaultImporter) -> (artifact id: '6bdaa59d84691a380c3ba7c1d8bfa849') in 0.0007947 seconds
+Start importing Packages/com.unity.test-framework/Tests/TestNewCustomAssembly using Guid(ca0e5e7973267894ca8e1dceb2210ee5) (DefaultImporter) -> (artifact id: 'ec9729808b7dd6604b68694c1a94e68b') in 0.0009544 seconds
+Start importing Packages/com.unity.test-framework/UnityEditor.TestRunner/Api using Guid(fa423365b1ce06a4dbdc6fb4a8597bfa) (DefaultImporter) -> (artifact id: '4f9583793d5edc94661340236f21f4e3') in 0.0008576 seconds
+Start importing Packages/com.unity.test-framework/UnityEngine.TestRunner/Utils using Guid(bb32bccaf32a6db448d1c0cc99c78688) (DefaultImporter) -> (artifact id: 'b9ac2eaa7c139997734a4cfd1edbf73e') in 0.0009458 seconds
+Start importing Packages/com.unity.test-framework/UnityEngine.TestRunner/TestRunner using Guid(1ddb9e1c877ea80479d1eab4ddaa5d0d) (DefaultImporter) -> (artifact id: '6a7e2bf038898dc9a9d8427c931ca44c') in 0.0009547 seconds
+Start importing Packages/com.unity.test-framework/UnityEngine.TestRunner/NUnitExtensions using Guid(3e8d6af343b383544ba5743d119f4062) (DefaultImporter) -> (artifact id: '3f6e2ec14976a9de8c44a24fd5a1df3a') in 0.0010296 seconds
+Start importing Packages/com.unity.test-framework/UnityEditor.TestRunner/GUI using Guid(7e609b27ad2caa14c83dd9951b6c13c6) (DefaultImporter) -> (artifact id: '112f12c0c6681ccaea11688622ebb526') in 0.0009964 seconds
+Start importing Packages/com.unity.test-framework/UnityEditor.TestRunner/NUnitExtension using Guid(3f9202a39620f51418046c7754f215f0) (DefaultImporter) -> (artifact id: 'ab112e9ad4c0d836ad3545dea28bc266') in 0.0021877 seconds
+Start importing Packages/com.unity.test-framework/UnityEngine.TestRunner/Utils/AssemblyProvider using Guid(51557afa652635743b264a309f0a5c60) (DefaultImporter) -> (artifact id: '8a639915519a692529fdf384c74138af') in 0.0009706 seconds
+Start importing Packages/com.unity.test-framework/UnityEngine.TestRunner/TestRunner/Callbacks using Guid(61e236e8570a95e4eb754fb291e102e0) (DefaultImporter) -> (artifact id: 'd55b575d8e5d473cc2e43dbbdeaeff7c') in 0.0005912 seconds
+Start importing Packages/com.unity.test-framework/UnityEngine.TestRunner/TestRunner/RemoteHelpers using Guid(91c20d2c22b8b3a4cb6c816bd225591a) (DefaultImporter) -> (artifact id: '30fb2d9dd2eecdb696675b50955e4ebc') in 0.0005266 seconds
+Start importing Packages/com.unity.test-framework/UnityEngine.TestRunner/Assertions/LogScope using Guid(b1d8465ba1376b148bdab58965101f47) (DefaultImporter) -> (artifact id: 'aac2509859303379c698e7a61b119125') in 0.0006561 seconds
+Start importing Packages/com.unity.test-framework/UnityEditor.TestRunner/GUI/TestAssets using Guid(92e3104769da143888a712cdea27d950) (DefaultImporter) -> (artifact id: '1c339984e4f7b537284cfc59f8240800') in 0.0006221 seconds
+Start importing Packages/com.unity.test-framework/UnityEditor.TestRunner/TestLaunchers/Helpers using Guid(a3cb89150b8a4060b89a32725a8e267e) (DefaultImporter) -> (artifact id: '1c6550e824ea391f5fd50f57247dd2be') in 0.0005948 seconds
+Start importing Packages/com.unity.test-framework/UnityEngine.TestRunner/NUnitExtensions/Filters using Guid(c3de99f9efc582a48995bc8e8c2df418) (DefaultImporter) -> (artifact id: '6a3e6215aa297c9a4e3c7159efb1015c') in 0.0005396 seconds
+Start importing Packages/com.unity.test-framework/UnityEngine.TestRunner/TestRunner/Messages using Guid(256a0ca37fa972840bce7fca446e75e7) (DefaultImporter) -> (artifact id: '49c9fa09840fad3e17b412376a8dcf2a') in 0.000589 seconds
+Start importing Packages/com.unity.test-framework/UnityEditor.TestRunner/GUI/Views using Guid(c5535d742ea2e4941850b421f9c70a1f) (DefaultImporter) -> (artifact id: 'd8974548c2c7ab5d5ad7599c432a1bc7') in 0.0012077 seconds
+Start importing Packages/com.unity.test-framework/UnityEditor.TestRunner/UnityTestProtocol/Data using Guid(3610673068254436ac90019f46e09f01) (DefaultImporter) -> (artifact id: 'edf71b33f3965ea27aa0f561aefe6dce') in 0.0011196 seconds
+Start importing Packages/com.unity.test-framework/UnityEditor.TestRunner/NUnitExtension/Attributes using Guid(96c503bf059df984c86eecf572370347) (DefaultImporter) -> (artifact id: '2e346665254194df03f2d47ad0a2e81b') in 0.0012362 seconds
+Start importing Packages/com.unity.test-framework/UnityEditor.TestRunner/GUI/TestListBuilder using Guid(07ea0326ed848fb4489187cb58f96113) (DefaultImporter) -> (artifact id: 'c9ef4e1b8c0b54cbe4a5a11c696e4b78') in 0.0007673 seconds
+Start importing Packages/com.unity.test-framework/UnityEngine.TestRunner/NUnitExtensions/Runner using Guid(37888acc09d9ee848bf9559f06645c45) (DefaultImporter) -> (artifact id: 'ee1e527b3560111b8f9aa3c43ad7e9a9') in 0.0005543 seconds
+Start importing Packages/com.unity.test-framework/UnityEditor.TestRunner/GUI/TestListTreeView using Guid(68cb547af0187634aad591a09c01cd5b) (DefaultImporter) -> (artifact id: 'bcc7fabbc19415c35b0572cf2f2337a5') in 0.0004956 seconds
+Start importing Packages/com.unity.test-framework/UnityEditor.TestRunner/GUI/Controls using Guid(e88eef57957d4440c8a7ff2ef9dd3d97) (DefaultImporter) -> (artifact id: 'c4f64d42392877fbc9299e30e3929089') in 0.0005739 seconds
+Start importing Packages/com.unity.test-framework/UnityEditor.TestRunner/TestRun/Data using Guid(4926c06156894939ba0a2680f1b0aa7a) (DefaultImporter) -> (artifact id: 'e85e5880a8fb926656c64ebb007116bd') in 0.0004371 seconds
+Start importing Packages/com.unity.test-framework/UnityEditor.TestRunner/Api/Analytics using Guid(891bb6b9f5094c36b59c3788e21c8213) (DefaultImporter) -> (artifact id: '7afc1f32db95c3782cc44b8be1b1fdd2') in 0.0005379 seconds
+Start importing Packages/com.unity.test-framework/UnityEditor.TestRunner/TestRunner/Messages using Guid(d9682e749d3efc642af54d789d9090a6) (DefaultImporter) -> (artifact id: '34a2da094325aea95250bbc91b3bacfc') in 0.0005073 seconds
+Start importing Packages/com.unity.test-framework/UnityEngine.TestRunner/NUnitExtensions/Commands using Guid(6b72875690e0f7343911e06af3145bd5) (DefaultImporter) -> (artifact id: 'f36e7cf57d57bd868768c4d06537389c') in 0.0004766 seconds
+Start importing Packages/com.unity.test-framework/UnityEditor.TestRunner/TestLaunchers/PlatformSetup using Guid(ebc4d20cc106cea49b1df1153f0b3b5e) (DefaultImporter) -> (artifact id: 'b557b5aa3ee3c1d394dd361be2918e20') in 0.0005961 seconds
+Start importing Packages/com.unity.test-framework/UnityEngine.TestRunner/NUnitExtensions/Attributes using Guid(0cb14878543cf3d4f8472b15f7ecf0e3) (DefaultImporter) -> (artifact id: '75903ed02331572f0967609c7b7f1e1c') in 0.0004963 seconds
+Start importing Packages/com.unity.test-framework/UnityEditor.TestRunner/TestRunner/Callbacks using Guid(5d7f0d6acfced954682a89e7002c04d9) (DefaultImporter) -> (artifact id: '0dec5c1fe4d62597a6f06205aa5984cd') in 0.0004667 seconds
+Start importing Packages/com.unity.test-framework/UnityEditor.TestRunner/TestRun/Tasks using Guid(6dba53789da15814387fa5b1445e81e0) (DefaultImporter) -> (artifact id: '72f33cfefcd167ac88b3efeb6da24af6') in 0.000509 seconds
+Start importing Packages/com.unity.test-framework/UnityEditor.TestRunner/UnityTestProtocol/Messages using Guid(9ea154c33fd8466f973f004e5c962df7) (DefaultImporter) -> (artifact id: 'd8ce3e034bebd7e36b2b6ecc121483da') in 0.00047 seconds
+Start importing Packages/com.unity.test-framework/UnityEngine.TestRunner/Utils/MonoBehaviourTest using Guid(ce8da628f68c7594b8b9a597fa52db7b) (DefaultImporter) -> (artifact id: '2d38e1309f0ea79159d19d1fe0eb6c3d') in 0.0004774 seconds
+Start importing Packages/com.unity.test-framework/UnityEditor.TestRunner/TestRunner/Utils using Guid(1f5bbb88ca730434483440cbc0278ef6) (DefaultImporter) -> (artifact id: 'd5d79cd3d4288070e6bddcbfc9c58d29') in 0.0006183 seconds
+Start importing Packages/com.unity.test-framework/UnityEditor.TestRunner/TestRun/Tasks/Player using Guid(94a6220ee1a442249702c9df66e0fe1b) (DefaultImporter) -> (artifact id: 'f827ae25f95ca0b2387aab13d0de9e87') in 0.0005732 seconds
+Start importing Packages/com.unity.test-framework/UnityEditor.TestRunner/TestRun/Tasks/Scene using Guid(692476ac695e7b74a8d9eabd48862009) (DefaultImporter) -> (artifact id: 'c93fad50921024025a405a0a862090ff') in 0.0004726 seconds
+Start importing Packages/com.unity.test-framework/UnityEditor.TestRunner/TestRun/Tasks/Platform using Guid(d973b7805df545bdae3986ab72a6c2e8) (DefaultImporter) -> (artifact id: '20a6de28fd8aedef407457a6ca2d05cd') in 0.0005204 seconds
+Start importing Packages/com.unity.test-framework/UnityEditor.TestRunner/TestRun/Tasks/Events using Guid(cca5935142d6c754f9ecdce1294f7079) (DefaultImporter) -> (artifact id: '1f81049cc8c4f238fec5f2b1ea887709') in 0.0004921 seconds
+Start importing Packages/com.unity.test-framework/Tests/TestNewCustomAssembly/TestNewCustomAssembly.asmdef using Guid(005d90528beb64e71b011a6207806ed5) (AssemblyDefinitionImporter) -> (artifact id: 'fdab9d5d4dfc6a2d471dd347f8a4173e') in 0.003703 seconds
+Start importing Assets/Tests/WorldZones.WorldGen.Tests.Unity.asmdef using Guid(36a0a1e1e4df1444eac129326b9d51d4) (AssemblyDefinitionImporter) -> (artifact id: 'af71a3262fb14514a2e088181b9de247') in 0.0212168 seconds
+Start importing Packages/com.unity.test-framework/UnityEngine.TestRunner/UnityEngine.TestRunner.asmdef using Guid(27619889b8ba8c24980f49ee34dbb44a) (AssemblyDefinitionImporter) -> (artifact id: '4e99211f6fa79279dcc82bfb5cb90702') in 0.002624 seconds
+Start importing Packages/com.unity.test-framework/UnityEditor.TestRunner/UnityEditor.TestRunner.asmdef using Guid(0acc523941302664db1f4e527237feb3) (AssemblyDefinitionImporter) -> (artifact id: 'a37885b78cc3bc346b8ba1ba7dd76b0c') in 0.0027412 seconds
+Refreshing native plugins compatible for Editor in 0.00 ms, found 0 plugins.
+Native extension for WindowsStandalone target not found
+Native extension for WebGL target not found
+ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:True
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  0.429 seconds
+Domain Reload Profiling: 6017ms
+	BeginReloadAssembly (252ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (14ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (67ms)
+	RebuildCommonClasses (39ms)
+	RebuildNativeTypeToScriptingClass (12ms)
+	initialDomainReloadingComplete (23ms)
+	LoadAllAssembliesAndSetupDomain (5262ms)
+		LoadAssemblies (4582ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (811ms)
+			TypeCache.Refresh (804ms)
+				TypeCache.ScanAssembly (799ms)
+			BuildScriptInfoCaches (5ms)
+			ResolveRequiredComponents (0ms)
+	FinalizeReload (429ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (323ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (28ms)
+			SetLoadedEditorAssemblies (3ms)
+			BeforeProcessingInitializeOnLoad (124ms)
+			ProcessInitializeOnLoadAttributes (128ms)
+			ProcessInitializeOnLoadMethodAttributes (35ms)
+			AfterProcessingInitializeOnLoad (4ms)
+			EditorAssembliesLoaded (0ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (9ms)
+Start importing Packages/com.unity.ext.nunit/package.json using Guid(8143d3a8390f2c64685e3bc272bd9e90) (PackageManifestImporter) -> (artifact id: 'b3b8f0f121831b39f23fd68d5d301926') in 0.0033782 seconds
+Start importing Packages/com.unity.ext.nunit/CHANGELOG.md using Guid(f49bbe06ffa5ae24abe32abdab430c24) (TextScriptImporter) -> (artifact id: 'fceecea86d3291d57dee7acd6734d35a') in 0.0031323 seconds
+Start importing Packages/com.unity.test-framework/CHANGELOG.md using Guid(d691174143fd3774ba63d7c493633b99) (TextScriptImporter) -> (artifact id: '042e5d077a319e13cd83b80ccc9d2b2b') in 0.0075375 seconds
+Start importing Packages/com.unity.test-framework/package.json using Guid(d6a2e6e4803de7b43baacdc355fc144d) (PackageManifestImporter) -> (artifact id: '271823ffe92dfcb18e1e8f28cbc4651d') in 0.0065992 seconds
+Start importing Packages/com.unity.ext.nunit/LICENSE.md using Guid(f91a00d2dca52b843b2d50ccf750737d) (TextScriptImporter) -> (artifact id: '55298590a2352299e08e2ff1f27aa1b0') in 0.0042019 seconds
+Start importing Packages/com.unity.ext.nunit/README.md using Guid(5da62a0c1c5218c4aa16b74546a7822d) (TextScriptImporter) -> (artifact id: 'ebd2415c4602e9e8df3bcf5433f75a5e') in 0.0051399 seconds
+Start importing Packages/com.unity.test-framework/LICENSE.md using Guid(3ec7596410385054a9e0bc90377fbe63) (TextScriptImporter) -> (artifact id: '0186e104071661cdf600f060f6e90c25') in 0.0031457 seconds
+Start importing Packages/com.unity.ext.nunit/Third Party Notices.md using Guid(bfcb3ba499f7d452b92d9a9cc3378788) (TextScriptImporter) -> (artifact id: 'a0ad95160bf24b81a3492900b4dce76e') in 0.0047427 seconds
+Refreshing native plugins compatible for Editor in 0.00 ms, found 0 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=88ed0e595a234744c8a49bc1d4633e71): Total: 8.145 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+	Summary:
+		Imports: total=66 (actual=66, local cache=0, cache server=0)
+		Asset DB Process Time: managed=6 ms, native=762 ms
+		Asset DB Callback time: managed=66 ms, native=68 ms
+		Scripting: domain reloads=1, domain reload time=5591 ms, compile time=1636 ms, other=11 ms
+		Project Asset Count: scripts=171, non-scripts=89
+		Asset File Changes: new=0, changed=0, moved=0, deleted=1
+		Scan Filter Count: 0
+	InvokeCustomDependenciesCallbacks: 0.001ms
+	InvokePackagesCallback: 72.936ms
+	ApplyChangesToAssetFolders: 0.588ms
+	Scan: 62.251ms
+	OnSourceAssetsModified: 0.820ms
+	CategorizeAssetsWithTransientArtifact: 3.474ms
+	ProcessAssetsWithTransientArtifactChanges: 4.158ms
+	UnregisterDeletedAssets: 0.001ms
+	CategorizeAssets: 1.652ms
+	ImportOutOfDateAssets: 605.904ms (-1205.985ms without children)
+		ImportManagerImport: 174.684ms (5.346ms without children)
+			ImportInProcess: 169.048ms
+			UpdateCategorizedAssets: 0.289ms
+		CompileScripts: 1636.323ms
+		ReloadNativeAssets: 0.001ms
+		UnloadImportedAssets: 0.420ms
+		ReloadImportedAssets: 0.004ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 0.040ms
+		InitializingProgressBar: 0.008ms
+		PostProcessAllAssetNotificationsAddChangedAssets: 0.001ms
+		OnDemandSchedulerStart: 0.409ms
+	PostProcessAllAssets: 69.651ms
+	Hotreload: 1.145ms
+	GatherAllCurrentPrimaryArtifactRevisions: 0.002ms
+	UnloadStreamsBegin: 1.027ms
+	PersistCurrentRevisions: 0.117ms
+	UnloadStreamsEnd: 0.002ms
+	GenerateScriptTypeHashes: 0.179ms
+	Untracked: 7320.820ms
+
+Application.AssetDatabase Initial Refresh End
+Launched and connected shader compiler UnityShaderCompiler.exe after 0.02 seconds
+Scanning for USB devices : 8.063ms
+Initializing Unity extensions:
+[MODES] ModeService[none].Initialize
+[MODES] ModeService[none].LoadModes
+[MODES] Loading mode Default (0) for mode-current-id-unity-perlin-wrapper
+Unloading 3 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 475 unused Assets / (1.1 MB). Loaded Objects now: 1077.
+Memory consumption went from 95.3 MB to 94.2 MB.
+Total: 6.177800 ms (FindLiveObjects: 0.247300 ms CreateObjectMapping: 0.042600 ms MarkObjects: 5.376200 ms  DeleteObjects: 0.508600 ms)
+
+Seed: HHcLC5acQt
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ExtractSeedOffsets:Extract () (at Assets/Editor/ExtractSeedOffsets.cs:39)
+
+(Filename: Assets/Editor/ExtractSeedOffsets.cs Line: 39)
+
+  Hash: 298112588
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ExtractSeedOffsets:Extract () (at Assets/Editor/ExtractSeedOffsets.cs:40)
+
+(Filename: Assets/Editor/ExtractSeedOffsets.cs Line: 40)
+
+  Offsets: 20292.7857637405, 64034.7898006439, 71026.7126560211, 6663.8357937336, 38212.8894329071
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ExtractSeedOffsets:Extract () (at Assets/Editor/ExtractSeedOffsets.cs:41)
+
+(Filename: Assets/Editor/ExtractSeedOffsets.cs Line: 41)
+
+Seed: 42
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ExtractSeedOffsets:Extract () (at Assets/Editor/ExtractSeedOffsets.cs:39)
+
+(Filename: Assets/Editor/ExtractSeedOffsets.cs Line: 39)
+
+  Hash: -1063954652
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ExtractSeedOffsets:Extract () (at Assets/Editor/ExtractSeedOffsets.cs:40)
+
+(Filename: Assets/Editor/ExtractSeedOffsets.cs Line: 40)
+
+  Offsets: 50223.3564853668, 67149.1682529449, 78337.2282981873, 50808.7813854218, 88518.0115699768
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ExtractSeedOffsets:Extract () (at Assets/Editor/ExtractSeedOffsets.cs:41)
+
+(Filename: Assets/Editor/ExtractSeedOffsets.cs Line: 41)
+
+Seed: TestSeed123
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ExtractSeedOffsets:Extract () (at Assets/Editor/ExtractSeedOffsets.cs:39)
+
+(Filename: Assets/Editor/ExtractSeedOffsets.cs Line: 39)
+
+  Hash: -964659047
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ExtractSeedOffsets:Extract () (at Assets/Editor/ExtractSeedOffsets.cs:40)
+
+(Filename: Assets/Editor/ExtractSeedOffsets.cs Line: 40)
+
+  Offsets: 93832.8146934509, 12742.1155571938, 862.2051216662, 62151.9982814789, 40036.2908840179
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ExtractSeedOffsets:Extract () (at Assets/Editor/ExtractSeedOffsets.cs:41)
+
+(Filename: Assets/Editor/ExtractSeedOffsets.cs Line: 41)
+
+✓ Offsets extracted to: C:\Users\dangreen\projects\valheim\worldzones\src\WorldZones.WorldGen\UnitySeedOffsets.cs
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+ExtractSeedOffsets:Extract () (at Assets/Editor/ExtractSeedOffsets.cs:54)
+
+(Filename: Assets/Editor/ExtractSeedOffsets.cs Line: 54)
+
+Batchmode quit successfully invoked - shutting down!
+Curl error 42: Callback aborted
+[Physics::Module] Cleanup current backend.
+[Physics::Module] Id: 0xf2b8ea05
+Input System module state changed to: ShutdownInProgress.
+Input System polling thread exited.
+Input System module state changed to: Shutdown.
+[Licensing::IpcConnector] LicenseClient-dangreen-notifications channel disconnected successfully.
+[Licensing::IpcConnector] LicenseClient-dangreen channel disconnected successfully.
+AcceleratorClientConnectionCallback - disconnected - :0
+Cleanup mono
+Exiting batchmode successfully now!
+Exiting without the bug reporter. Application will terminate with return code 0

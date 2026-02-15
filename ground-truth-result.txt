@@ -1,0 +1,63 @@
+  Determining projects to restore...
+C:\Users\dangreen\projects\valheim\worldzones\tests\WorldZones.WorldGen.Tests\WorldZones.WorldGen.Tests.csproj : warning NU1903: Package 'System.Text.Json' 8.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-8g4q-xg66-9fp4
+C:\Users\dangreen\projects\valheim\worldzones\tests\WorldZones.WorldGen.Tests\WorldZones.WorldGen.Tests.csproj : warning NU1903: Package 'System.Text.Json' 8.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-hh2w-p6rv-4g7w
+  All projects are up-to-date for restore.
+C:\Program Files\dotnet\sdk\10.0.200-preview.0.26103.119\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(383,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\Users\dangreen\projects\valheim\worldzones\tests\WorldZones.WorldGen.Tests\WorldZones.WorldGen.Tests.csproj]
+C:\Users\dangreen\projects\valheim\worldzones\tests\WorldZones.WorldGen.Tests\WorldZones.WorldGen.Tests.csproj : warning NU1903: Package 'System.Text.Json' 8.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-8g4q-xg66-9fp4
+C:\Users\dangreen\projects\valheim\worldzones\tests\WorldZones.WorldGen.Tests\WorldZones.WorldGen.Tests.csproj : warning NU1903: Package 'System.Text.Json' 8.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-hh2w-p6rv-4g7w
+  WorldZones.WorldGen -> C:\Users\dangreen\projects\valheim\worldzones\src\WorldZones.WorldGen\bin\Debug\net472\WorldZones.WorldGen.dll
+  WorldZones.WorldGen.Tests -> C:\Users\dangreen\projects\valheim\worldzones\tests\WorldZones.WorldGen.Tests\bin\Debug\net472\WorldZones.WorldGen.Tests.dll
+Test run for C:\Users\dangreen\projects\valheim\worldzones\tests\WorldZones.WorldGen.Tests\bin\Debug\net472\WorldZones.WorldGen.Tests.dll (.NETFramework,Version=v4.7.2)
+A total of 1 test files matched the specified pattern.
+C:\Users\dangreen\projects\valheim\worldzones\tests\WorldZones.WorldGen.Tests\bin\Debug\net472\WorldZones.WorldGen.Tests.dll
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.6+bf9b858c26 (64-bit .NET Framework 4.8.9221.0)
+[xUnit.net 00:00:06.49]   Discovering: WorldZones.WorldGen.Tests
+[xUnit.net 00:00:06.58]   Discovered:  WorldZones.WorldGen.Tests
+[xUnit.net 00:00:06.58]   Starting:    WorldZones.WorldGen.Tests
+[xUnit.net 00:00:10.72]   Finished:    WorldZones.WorldGen.Tests
+  Passed WorldZones.WorldGen.Tests.GroundTruthComparisonTests.CompareAgainstValheimExport_HHcLC5acQt [4 s]
+  Standard Output Messages:
+ Loaded map: 8192x8192
+ Ground Truth Comparison
+=======================
+Total comparisons: 90,510
+Matches: 38,972 (43.1%)
+Mismatches: 51,538
+
+Valheim's Biome Distribution:
+  Ocean            38875 ( 43.0%) - accuracy: 99.8%
+  Mistlands        23623 ( 26.1%) - accuracy: 0.0%
+  Mountain         11682 ( 12.9%) - accuracy: 0.0%
+  BlackForest       6751 (  7.5%) - accuracy: 2.4%
+  Meadows           6177 (  6.8%) - accuracy: 0.0%
+  Swamp             3402 (  3.8%) - accuracy: 0.0%
+
+Sample Mismatches (first 20):
+  ( -11709,   11853): Ours=Ocean        Valheim=BlackForest
+  ( -11661,   11853): Ours=Ocean        Valheim=BlackForest
+  ( -11613,   11853): Ours=Ocean        Valheim=BlackForest
+  ( -11565,   11853): Ours=Ocean        Valheim=BlackForest
+  ( -11517,   11853): Ours=Ocean        Valheim=BlackForest
+  ( -11469,   11853): Ours=Ocean        Valheim=BlackForest
+  ( -11421,   11853): Ours=Ocean        Valheim=BlackForest
+  ( -11373,   11853): Ours=Ocean        Valheim=BlackForest
+  ( -11325,   11853): Ours=Ocean        Valheim=BlackForest
+  ( -11277,   11853): Ours=Ocean        Valheim=BlackForest
+  ( -11709,   11805): Ours=Ocean        Valheim=BlackForest
+  ( -11661,   11805): Ours=Ocean        Valheim=BlackForest
+  ( -11613,   11805): Ours=Ocean        Valheim=BlackForest
+  ( -11565,   11805): Ours=Ocean        Valheim=BlackForest
+  ( -11517,   11805): Ours=Ocean        Valheim=BlackForest
+  ( -11469,   11805): Ours=Ocean        Valheim=BlackForest
+  ( -11421,   11805): Ours=Ocean        Valheim=BlackForest
+  ( -11373,   11805): Ours=Ocean        Valheim=BlackForest
+  ( -11325,   11805): Ours=Ocean        Valheim=BlackForest
+  ( -11277,   11805): Ours=Ocean        Valheim=BlackForest
+
+
+
+
+Test Run Successful.
+Total tests: 1
+     Passed: 1
+ Total time: 11.5151 Seconds
