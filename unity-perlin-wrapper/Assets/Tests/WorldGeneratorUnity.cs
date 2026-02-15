@@ -42,7 +42,7 @@ namespace WorldZones.WorldGen
             float baseHeight = GetBaseHeight(worldX, worldZ);
             bool waterAlwaysOcean = distance >= 10000f;
             
-            if (waterAlwaysOcean && GetHeight(worldX, worldZ) <= 0.05f)
+            if (waterAlwaysOcean && GetBaseHeight(worldX, worldZ) <= 0.05f)
             {
                 return BiomeType.Ocean;
             }
