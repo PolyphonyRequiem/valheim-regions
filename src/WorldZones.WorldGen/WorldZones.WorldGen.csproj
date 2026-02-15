@@ -12,6 +12,14 @@
       <HintPath>$(ValheimInstallPath)\valheim_Data\Managed\assembly_utils.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="UnityPerlinNoise">
+      <HintPath>..\..\lib\UnityPerlinNoise.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>..\..\lib\UnityEngine.CoreModule.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
   </ItemGroup>
 
 </Project>

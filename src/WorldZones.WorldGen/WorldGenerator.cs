@@ -20,13 +20,6 @@ namespace WorldZones.WorldGen
         readonly float maxMarshDistance = 6000f;
         readonly float minDarklandNoise = 0.4f;
         
-        // Perlin noise generators for each offset channel (matches Unity's Mathf.PerlinNoise)
-        readonly PerlinNoise noise0;
-        readonly PerlinNoise noise1;
-        readonly PerlinNoise noise2;
-        readonly PerlinNoise noise4;
-        readonly PerlinNoise noiseBase;
-        
         // Constants matching Valheim's world generation
         const float WorldRadius = 10000f;
         const float WorldEdgeRadius = 10500f;
@@ -53,21 +46,27 @@ namespace WorldZones.WorldGen
             // Use Valheim's GetStableHashCode from assembly_utils
             this.seedHash = string.IsNullOrEmpty(seed) ? 0 : seed.GetStableHashCode();
             
-            // Generate deterministic offsets using Unity's Xorshift128 (matches Valheim's actual implementation)
-            var unityRandom = new UnityRandom();
-            unityRandom.InitState(this.seedHash);
-            this.offset0 = unityRandom.NextDouble() * 100000.0;
-            this.offset1 = unityRandom.NextDouble() * 100000.0;
-            this.offset2 = unityRandom.NextDouble() * 100000.0;
-            this.offset3 = unityRandom.NextDouble() * 100000.0;
-            this.offset4 = unityRandom.NextDouble() * 100000.0;
-            
-            // Initialize noise generators (Perlin noise matching Unity's Mathf.PerlinNoise)
-            this.noise0 = new PerlinNoise(this.seedHash + 0);
-            this.noise1 = new PerlinNoise(this.seedHash + 1);
-            this.noise2 = new PerlinNoise(this.seedHash + 2);
-            this.noise4 = new PerlinNoise(this.seedHash + 4);
-            this.noiseBase = new PerlinNoise(this.seedHash + 100);
+            // Use extracted Unity offsets for known seeds, otherwise fallback to UnityRandom
+            if (UnitySeedOffsets.KnownOffsets.TryGetValue(seed, out var offsets))
+            {
+                // Use exact offsets extracted from Unity's Random.InitState()
+                this.offset0 = offsets.offset0;
+                this.offset1 = offsets.offset1;
+                this.offset2 = offsets.offset2;
+                this.offset3 = offsets.offset3;
+                this.offset4 = offsets.offset4;
+            }
+            else
+            {
+                // Fallback to UnityRandom for unknown seeds
+                var unityRandom = new UnityRandom();
+                unityRandom.InitState(this.seedHash);
+                this.offset0 = unityRandom.NextDouble() * 100000.0;
+                this.offset1 = unityRandom.NextDouble() * 100000.0;
+                this.offset2 = unityRandom.NextDouble() * 100000.0;
+                this.offset3 = unityRandom.NextDouble() * 100000.0;
+                this.offset4 = unityRandom.NextDouble() * 100000.0;
+            }
         }
         
         /// <summary>
@@ -88,13 +87,6 @@ namespace WorldZones.WorldGen
             this.offset2 = offset2;
             this.offset3 = offset3;
             this.offset4 = offset4;
-            
-            // Initialize noise generators
-            this.noise0 = new PerlinNoise(this.seedHash + 0);
-            this.noise1 = new PerlinNoise(this.seedHash + 1);
-            this.noise2 = new PerlinNoise(this.seedHash + 2);
-            this.noise4 = new PerlinNoise(this.seedHash + 4);
-            this.noiseBase = new PerlinNoise(this.seedHash + 100);
         }
         
         /// <summary>
@@ -114,9 +106,6 @@ namespace WorldZones.WorldGen
             float distance = MathUtils.Length(worldX, worldZ);
             float baseHeight = GetBaseHeight(worldX, worldZ);
             float angleVariation = (float)(WorldAngle(worldX, worldZ) * 100.0);
-            
-            // Helper to get noise [0, 1] - PerlinNoise already returns this range
-            float GetNoise(PerlinNoise noise, float nx, float ny) => noise.GetNoise(nx, ny);
             
             // Check waterAlwaysOcean condition
             if (waterAlwaysOcean && GetHeight(worldX, worldZ) <= oceanLevel)
@@ -149,7 +138,7 @@ namespace WorldZones.WorldGen
             // Swamp biome (noise-based placement with distance and height constraints)
             double swampX = (this.offset0 + worldX) * 0.001;
             double swampZ = (this.offset0 + worldZ) * 0.001;
-            if (GetNoise(this.noise0, (float)swampX, (float)swampZ) > 0.6f 
+            if (UnityPerlinLookup.GetNoise((float)swampX, (float)swampZ) > 0.6f 
                 && distance > 2000f 
                 && distance < this.maxMarshDistance 
                 && baseHeight > 0.05f 
@@ -161,7 +150,7 @@ namespace WorldZones.WorldGen
             // Mistlands biome
             double mistX = (this.offset4 + worldX) * 0.001;
             double mistZ = (this.offset4 + worldZ) * 0.001;
-            if (GetNoise(this.noise4, (float)mistX, (float)mistZ) > this.minDarklandNoise 
+            if (UnityPerlinLookup.GetNoise((float)mistX, (float)mistZ) > this.minDarklandNoise 
                 && distance > (6000.0 + angleVariation) 
                 && distance < 10000f)
             {
@@ -171,7 +160,7 @@ namespace WorldZones.WorldGen
             // Plains biome
             double plainsX = (this.offset1 + worldX) * 0.001;
             double plainsZ = (this.offset1 + worldZ) * 0.001;
-            if (GetNoise(this.noise1, (float)plainsX, (float)plainsZ) > 0.4f 
+            if (UnityPerlinLookup.GetNoise((float)plainsX, (float)plainsZ) > 0.4f 
                 && distance > (3000.0 + angleVariation) 
                 && distance < 8000f)
             {
@@ -181,7 +170,7 @@ namespace WorldZones.WorldGen
             // Black Forest biome
             double forestX = (this.offset2 + worldX) * 0.001;
             double forestZ = (this.offset2 + worldZ) * 0.001;
-            if (GetNoise(this.noise2, (float)forestX, (float)forestZ) > 0.4f 
+            if (UnityPerlinLookup.GetNoise((float)forestX, (float)forestZ) > 0.4f 
                 && distance > (600.0 + angleVariation) 
                 && distance < 6000f)
             {
@@ -221,33 +210,30 @@ namespace WorldZones.WorldGen
             double x = worldX + 100000.0 + this.offset0;
             double y = worldZ + 100000.0 + this.offset1;
             
-            // Helper - PerlinNoise already returns [0, 1]
-            float Noise(float nx, float ny) => this.noiseBase.GetNoise(nx, ny);
-            
             // Multi-octave noise for base terrain shape
             float height = 0f;
             
             // First octave: broad features
-            float n1 = Noise((float)(x * 0.002 * 0.5), (float)(y * 0.002 * 0.5));
-            float n2 = Noise((float)(x * 0.003 * 0.5), (float)(y * 0.003 * 0.5));
+            float n1 = UnityPerlinLookup.GetNoise((float)(x * 0.002 * 0.5), (float)(y * 0.002 * 0.5));
+            float n2 = UnityPerlinLookup.GetNoise((float)(x * 0.003 * 0.5), (float)(y * 0.003 * 0.5));
             height += n1 * n2 * 1.0f;
             
             // Second octave: medium features (amplifies existing height)
-            float n3 = Noise((float)(x * 0.002), (float)(y * 0.002));
-            float n4 = Noise((float)(x * 0.003), (float)(y * 0.003));
+            float n3 = UnityPerlinLookup.GetNoise((float)(x * 0.002), (float)(y * 0.002));
+            float n4 = UnityPerlinLookup.GetNoise((float)(x * 0.003), (float)(y * 0.003));
             height += n3 * n4 * height * 0.9f;
             
             // Third octave: fine details
-            float n5 = Noise((float)(x * 0.005), (float)(y * 0.005));
-            float n6 = Noise((float)(x * 0.01), (float)(y * 0.01));
+            float n5 = UnityPerlinLookup.GetNoise((float)(x * 0.005), (float)(y * 0.005));
+            float n6 = UnityPerlinLookup.GetNoise((float)(x * 0.01), (float)(y * 0.01));
             height += n5 * n6 * 0.5f * height;
             
             // Baseline adjustment
             height -= 0.07f;
             
             // River calculation - carves river valleys where two noise channels align
-            float river1 = Noise((float)(x * 0.002 * 0.25 + 0.123), (float)(y * 0.002 * 0.25 + 0.15123));
-            float river2 = Noise((float)(x * 0.002 * 0.25 + 0.321), (float)(y * 0.002 * 0.25 + 0.231));
+            float river1 = UnityPerlinLookup.GetNoise((float)(x * 0.002 * 0.25 + 0.123), (float)(y * 0.002 * 0.25 + 0.15123));
+            float river2 = UnityPerlinLookup.GetNoise((float)(x * 0.002 * 0.25 + 0.321), (float)(y * 0.002 * 0.25 + 0.231));
             float riverDelta = Math.Abs(river1 - river2);
             float riverIntensity = 1f - MathUtils.LerpStep(0.02f, 0.12f, riverDelta);
             float riverDistanceFade = MathUtils.SmoothStep(744f, 1000f, distance);
