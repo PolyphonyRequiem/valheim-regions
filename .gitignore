@@ -50,9 +50,6 @@ Thumbs.db
 [Uu]ser[Ss]ettings/
 
 # Unity auto-generated .csproj and .sln files
-*.csproj
-*.unityproj
-*.sln
 *.suo
 *.tmp
 *.user
