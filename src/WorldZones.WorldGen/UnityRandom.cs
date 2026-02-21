@@ -58,5 +58,14 @@ namespace WorldZones.WorldGen
         {
             return Value();
         }
+        
+        /// <summary>
+        /// Returns a random integer in the range [min, max).
+        /// Matches UnityEngine.Random.Range(int, int) behavior.
+        /// </summary>
+        public int Range(int min, int max)
+        {
+            return min + (int)(Value() * (max - min));
+        }
     }
 }
