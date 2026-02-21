@@ -74,6 +74,15 @@ Thumbs.db
 TestResults.xml
 test-run.log
 
+# Temp/scratch files
+temp_*
+
+# Generated biome map outputs
+*_biome_map.png
+
+# Unity Plugins (DLLs copied by build scripts / Valheim assemblies)
+tests/unity/Assets/Plugins/
+
 # Exclude auto-generated files, but keep our source
 tests/unity/Library/
 tests/unity/Temp/
