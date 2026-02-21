@@ -59,17 +59,27 @@ welcomes constructive pushback - it's a feature, not a bug.
 
 **Rules**:
 - Core logic (region generation, naming algorithms, geography processing) MUST be implemented
-  as standalone C# libraries with ZERO Unity or BepInEx dependencies.
-- Unity-dependent code (biome detection, map integration, game hooks) MUST be isolated in
+  as C# libraries, structured as distinct projects by concern.
+- Core libraries MAY reference UnityEngine.CoreModule for math primitives (Vector2, Mathf,
+  Perlin noise, Random) since Valheim's algorithms depend on Unity's exact implementations.
+- Core libraries MUST NOT reference BepInEx, Harmony, or Valheim game assemblies (assembly_valheim).
+- Unity gameplay integration (map overlays, in-game hooks, UI) MUST be isolated in
   dedicated adapter/integration layers.
 - The BepInEx plugin acts as a thin integration layer that composes core libraries and game
   integration adapters.
-- No core library may reference UnityEngine, BepInEx, or Valheim game assemblies.
-- Core libraries MUST be testable without game runtime or Unity editor.
+- Core libraries MUST be testable via `dotnet test` without launching Valheim or the Unity editor
+  (UnityEngine.CoreModule.dll is referenced as a build-time assembly, not a runtime host).
 
-**Rationale**: Downstream modders depend on this library. Clean separation enables fast unit
-testing of complex algorithms, reduces coupling to game updates, and allows other projects to
-reuse core logic without Unity baggage.
+**Rationale**: Valheim's world generation is defined by Unity's Perlin noise and RNG
+implementations — matching the game's output requires using the same math primitives.
+Accepting UnityEngine.CoreModule as a build dependency while prohibiting gameplay/plugin
+assemblies strikes the right balance: algorithms are testable offline, but output matches
+the game exactly. BepInEx and game assembly isolation still protects against coupling to
+game updates.
+
+**Future direction**: The UnityEngine.CoreModule dependency may eventually be replaced with
+hand-spun implementations of the required math primitives (Perlin noise, RNG, Vector2, Mathf).
+This would eliminate the Unity build dependency entirely. Out of scope for now.
 
 ### III. Pragmatic Testing Strategy
 
@@ -229,9 +239,10 @@ Keeping artifacts current prevents confusion and ensures design decisions are tr
 - Unity 2019.4.x dependencies (via game runtime)
 
 **Project Structure**:
-- `WorldZones.Core/` - Pure C# core library (no Unity/BepInEx dependencies)
-- `WorldZones.Plugin/` - BepInEx plugin integration layer
-- `WorldZones.Tests/` - Test suite (NUnit or xUnit)
+- `WorldZones.WorldGen/` - World generation library (references UnityEngine.CoreModule)
+- `WorldZones.Regions/` - Region analysis library (references UnityEngine.CoreModule + WorldGen)
+- `WorldZones.Plugin/` - BepInEx plugin integration layer (future)
+- `WorldZones.*.Tests/` - Test suites (xUnit, run via `dotnet test`)
 
 **Testing Framework**:
 - NUnit 3.x or xUnit for core library tests
@@ -240,14 +251,15 @@ Keeping artifacts current prevents confusion and ensures design decisions are tr
 
 **Constraints**:
 - Must be compatible with Valheim's Unity 2019.4 runtime
-- Cannot use C# 8+ features (Unity 2019 limitation)
-- No external dependencies in core library (keep mod lightweight)
+- C# 9.0 language version (see docs/c-sharp-language-compatibility.md for runtime strategy)
+- Core libraries reference UnityEngine.CoreModule.dll (math primitives only)
+- No external NuGet dependencies in core libraries (keep mod lightweight)
 - BepInEx plugin may reference Harmony for patching (if needed)
 
 **Code Style Standards**:
 - **Immutability**: Default to `readonly` (structs, fields, properties); minimize mutable state
 - **Functional style**: Prefer expression-bodied members, pure functions, LINQ over loops (unless performance-critical)
-- **Modern C# patterns**: Use C# 7.3 features (tuples, pattern matching, local functions) where appropriate
+- **Modern C# patterns**: Use C# 9.0 features (tuples, pattern matching, local functions, records, init) where appropriate (see docs/c-sharp-language-compatibility.md)
 - **Naming conventions**:
   - Always use `this.` qualification for field access (clarity and safety)
   - Fields: lowercase (e.g., `worldSeed`, NOT `_worldSeed`)
@@ -314,4 +326,4 @@ Keeping artifacts current prevents confusion and ensures design decisions are tr
 - Follow plan-template.md for technical planning and constitution checks.
 - Follow tasks-template.md for implementation task organization.
 
-**Version**: 1.3.0 | **Ratified**: 2026-02-14 | **Last Amended**: 2026-02-14
+**Version**: 1.4.0 | **Ratified**: 2026-02-14 | **Last Amended**: 2026-02-21
