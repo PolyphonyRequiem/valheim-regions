@@ -12,8 +12,8 @@ namespace WorldZones.Regions.Tests
 
         private static readonly ZoneClassifierOptions Defaults = new ZoneClassifierOptions
         {
-            SeaLevelBaseHeight  = 0.05f,
-            ShallowDepthBelowSea = 0.02f
+            WaterLevel   = 0.05f,
+            ShallowDepth = 0.02f
         };
 
         // ── 1. Classification thresholds ──────────────────────────────
@@ -42,7 +42,7 @@ namespace WorldZones.Regions.Tests
         public void Height_just_below_sea_level_is_Shallow()
         {
             var grid = SmallGrid();
-            // 0.04 is below seaLevel (0.05) but above shallowThreshold (0.03)
+            // 0.04 is below WaterLevel (0.05) but above shallowThreshold (0.03)
             ZoneClassifier.Classify(grid, (_, __) => 0.04f, Defaults);
 
             foreach (var c in grid.AllCoords())
@@ -53,9 +53,8 @@ namespace WorldZones.Regions.Tests
         public void Height_at_shallow_threshold_is_Shallow()
         {
             var grid = SmallGrid();
-            // Use the same arithmetic the classifier uses to avoid float mismatch:
-            // shallowThreshold = SeaLevelBaseHeight - ShallowDepthBelowSea
-            float threshold = Defaults.SeaLevelBaseHeight - Defaults.ShallowDepthBelowSea;
+            // shallowThreshold = WaterLevel - ShallowDepth
+            float threshold = Defaults.WaterLevel - Defaults.ShallowDepth;
             ZoneClassifier.Classify(grid, (_, __) => threshold, Defaults);
 
             foreach (var c in grid.AllCoords())

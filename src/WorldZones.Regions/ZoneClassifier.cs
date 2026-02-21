@@ -9,32 +9,38 @@ namespace WorldZones.Regions
     public class ZoneClassifierOptions
     {
         /// <summary>
-        /// Base-height value at sea level. Zones at or above this are Land.
-        /// Valheim default ≈ 0.05.
+        /// Height value at the water surface, in the units returned by the sampler.
+        /// For base-height samplers this is ~0.05; for biome-height (world units) it is 30f.
+        /// Zones at or above this are Land.
         /// </summary>
-        public float SeaLevelBaseHeight { get; set; } = 0.05f;
+        public float WaterLevel { get; set; } = 30f;
 
         /// <summary>
-        /// How far below sea level counts as Shallow (rather than Deep),
-        /// in base-height units (not meters).
-        /// A zone with baseHeight &gt;= SeaLevelBaseHeight - ShallowDepthBelowSea is Shallow.
+        /// How far below <see cref="WaterLevel"/> a zone can be and still count as
+        /// Shallow (rather than Deep), in the same units as <see cref="WaterLevel"/>.
+        /// A zone with height &gt;= WaterLevel - ShallowDepth is Shallow.
+        /// Default 0 means there is no shallow band when using height thresholds alone.
         /// </summary>
-        public float ShallowDepthBelowSea { get; set; } = 0.02f;
+        public float ShallowDepth { get; set; } = 0f;
     }
 
     /// <summary>
-    /// Classifies every zone in a <see cref="ZoneGrid"/> as Land, Shallow, or Deep
-    /// by sampling <see cref="WorldGenerator.GetBaseHeight"/> at each zone center.
+    /// Classifies every zone in a <see cref="ZoneGrid"/> as Land, Shallow, or Deep.
+    /// The <see cref="WorldGenerator"/> overload mirrors the BiomeMapExporter logic:
+    /// Ocean biome → Deep, non-ocean with GetBiomeHeight &lt; 30 → Shallow, else → Land.
     /// </summary>
     public static class ZoneClassifier
     {
+        /// <summary>Water surface height in world units (metres).</summary>
+        public const float DefaultWaterLevel = 30f;
+
         /// <summary>
         /// Fills <paramref name="grid"/> with <see cref="DepthClass"/> values
         /// by sampling <paramref name="heightSampler"/> at each zone center.
-        /// Deterministic for a given sampler.
+        /// Useful for unit testing with synthetic height functions.
         /// </summary>
         /// <param name="grid">The zone grid to populate.</param>
-        /// <param name="heightSampler">Returns base height given (worldX, worldZ).</param>
+        /// <param name="heightSampler">Returns a height value given (worldX, worldZ).</param>
         /// <param name="options">Classification thresholds. Uses defaults when null.</param>
         public static void Classify(ZoneGrid grid, Func<float, float, float> heightSampler, ZoneClassifierOptions options = null)
         {
@@ -44,18 +50,18 @@ namespace WorldZones.Regions
                 throw new ArgumentNullException(nameof(heightSampler));
 
             var opts = options ?? new ZoneClassifierOptions();
-            float seaLevel = opts.SeaLevelBaseHeight;
-            float shallowThreshold = seaLevel - opts.ShallowDepthBelowSea;
+            float waterLevel = opts.WaterLevel;
+            float shallowThreshold = waterLevel - opts.ShallowDepth;
 
             foreach (var coord in grid.AllCoords())
             {
                 var center = ZoneGrid.ZoneCenter(coord);
-                float baseHeight = heightSampler(center.worldX, center.worldZ);
+                float height = heightSampler(center.worldX, center.worldZ);
 
                 DepthClass depth;
-                if (baseHeight >= seaLevel)
+                if (height >= waterLevel)
                     depth = DepthClass.Land;
-                else if (baseHeight >= shallowThreshold)
+                else if (height >= shallowThreshold)
                     depth = DepthClass.Shallow;
                 else
                     depth = DepthClass.Deep;
@@ -66,18 +72,42 @@ namespace WorldZones.Regions
 
         /// <summary>
         /// Fills <paramref name="grid"/> with <see cref="DepthClass"/> values
-        /// by sampling the world generator at each zone center.
-        /// Deterministic for a given seed.
+        /// using the same logic as BiomeMapExporter:
+        /// Ocean biome → Deep; non-ocean with GetBiomeHeight &lt; 30 → Shallow; else → Land.
         /// </summary>
         /// <param name="grid">The zone grid to populate.</param>
         /// <param name="worldGen">World generator initialised with the desired seed.</param>
-        /// <param name="options">Classification thresholds. Uses defaults when null.</param>
-        public static void Classify(ZoneGrid grid, WorldGenerator worldGen, ZoneClassifierOptions options = null)
+        public static void Classify(ZoneGrid grid, WorldGenerator worldGen)
         {
+            if (grid == null)
+                throw new ArgumentNullException(nameof(grid));
             if (worldGen == null)
                 throw new ArgumentNullException(nameof(worldGen));
 
-            Classify(grid, (wx, wz) => worldGen.GetBaseHeight(wx, wz), options);
+            foreach (var coord in grid.AllCoords())
+            {
+                var center = ZoneGrid.ZoneCenter(coord);
+                float wx = center.worldX;
+                float wz = center.worldZ;
+
+                var biome = worldGen.GetBiome(wx, wz);
+
+                DepthClass depth;
+                if (biome == BiomeType.Ocean)
+                {
+                    depth = DepthClass.Deep;
+                }
+                else if (worldGen.GetBiomeHeight(biome, wx, wz) < DefaultWaterLevel)
+                {
+                    depth = DepthClass.Shallow;
+                }
+                else
+                {
+                    depth = DepthClass.Land;
+                }
+
+                grid[coord] = depth;
+            }
         }
     }
 }

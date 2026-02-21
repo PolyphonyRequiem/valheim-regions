@@ -8,16 +8,19 @@ using WorldZones.WorldGen;
 using Debug = UnityEngine.Debug;
 
 /// <summary>
-/// Unity Editor tool that exports a land-component map PNG for a given seed.
+/// Unity Editor tool that exports land_components.png and shelf_components.png for a given seed.
 /// Run via command line:
 ///   Unity.exe -projectPath ... -executeMethod LandComponentExporter.Export -seed HHcLC5acQt [-output path.png]
 /// Or via menu: Tools > Export Land Component Map
+/// The shelf map is saved alongside the land map with "_shelf" suffix.
 /// </summary>
 public static class LandComponentExporter
 {
     // Non-land zones
     static readonly Color32 ColorDeep    = new Color32(20, 20, 40, 255);
     static readonly Color32 ColorShallow = new Color32(60, 60, 100, 255);
+    // Land zones rendered as mid-gray in the shelf view
+    static readonly Color32 ColorLandInShelfView = new Color32(100, 100, 100, 255);
 
     /// <summary>
     /// Command-line entry point. Called via -executeMethod LandComponentExporter.Export
@@ -155,17 +158,85 @@ public static class LandComponentExporter
         var fileInfo = new FileInfo(outputPath);
         Debug.Log($"PNG save: {swSave.ElapsedMilliseconds} ms ({fileInfo.Length / 1024} KB)");
 
+        // ── 7. Label shelf components ─────────────────────────────
+        var swShelfLabel = Stopwatch.StartNew();
+        var shelfComponents = ComponentLabeler.LabelShelf(grid, labelGrid, out int[,] shelfLabelGrid);
+        swShelfLabel.Stop();
+        Debug.Log($"Shelf labeling: {swShelfLabel.ElapsedMilliseconds} ms");
+        Debug.Log($"Shelf components: {shelfComponents.Count}");
+
+        for (int i = 0; i < Math.Min(shelfComponents.Count, 10); i++)
+        {
+            var sc = shelfComponents[i];
+            Debug.Log($"  #{i}: {sc.Zones.Count} zones, {sc.ContainedLandComponentIds.Count} land components (id={sc.Id})");
+        }
+        if (shelfComponents.Count > 10)
+            Debug.Log($"  ... and {shelfComponents.Count - 10} more");
+
+        // ── 8. Render shelf PNG ───────────────────────────────────
+        var swShelfRender = Stopwatch.StartNew();
+        byte[] shelfRgb = new byte[size * size * 3];
+
+        for (int gy = 0; gy < size; gy++)
+        {
+            for (int gx = 0; gx < size; gx++)
+            {
+                int zx = gx + grid.MinIndex;
+                int zy = gy + grid.MinIndex;
+                var depth = grid[zx, zy];
+
+                Color32 c;
+                if (depth == DepthClass.Land || depth == DepthClass.Shallow)
+                {
+                    int label = shelfLabelGrid[gy, gx];
+                    c = ComponentColor(label);
+                }
+                else
+                {
+                    c = ColorDeep;
+                }
+
+                int py = size - 1 - gy;
+                int offset = (py * size + gx) * 3;
+                shelfRgb[offset]     = c.r;
+                shelfRgb[offset + 1] = c.g;
+                shelfRgb[offset + 2] = c.b;
+            }
+        }
+
+        swShelfRender.Stop();
+        Debug.Log($"Shelf render: {swShelfRender.ElapsedMilliseconds} ms");
+
+        // ── 9. Save shelf PNG ─────────────────────────────────────
+        string shelfPath = outputPath.Replace("_land_components", "_shelf_components")
+                                     .Replace("land_components", "shelf_components");
+        if (shelfPath == outputPath)
+        {
+            // Fallback: insert _shelf before extension
+            string ext = Path.GetExtension(outputPath);
+            shelfPath = outputPath.Substring(0, outputPath.Length - ext.Length) + "_shelf" + ext;
+        }
+
+        var swShelfSave = Stopwatch.StartNew();
+        PngWriter.Write(shelfPath, size, size, shelfRgb);
+        swShelfSave.Stop();
+        var shelfFileInfo = new FileInfo(shelfPath);
+        Debug.Log($"Shelf PNG save: {swShelfSave.ElapsedMilliseconds} ms ({shelfFileInfo.Length / 1024} KB)");
+
         Debug.Log("=== Summary ===");
         Debug.Log($"WorldGen init:  {swInit.ElapsedMilliseconds} ms");
         Debug.Log($"Classification: {swClassify.ElapsedMilliseconds} ms");
-        Debug.Log($"Labeling:       {swLabel.ElapsedMilliseconds} ms");
-        Debug.Log($"Render:         {swRender.ElapsedMilliseconds} ms");
-        Debug.Log($"PNG save:       {swSave.ElapsedMilliseconds} ms");
+        Debug.Log($"Land labeling:  {swLabel.ElapsedMilliseconds} ms");
+        Debug.Log($"Shelf labeling: {swShelfLabel.ElapsedMilliseconds} ms");
+        Debug.Log($"Render:         {swRender.ElapsedMilliseconds + swShelfRender.ElapsedMilliseconds} ms");
+        Debug.Log($"PNG save:       {swSave.ElapsedMilliseconds + swShelfSave.ElapsedMilliseconds} ms");
         long totalMs = swInit.ElapsedMilliseconds + swClassify.ElapsedMilliseconds
-                     + swLabel.ElapsedMilliseconds + swRender.ElapsedMilliseconds
-                     + swSave.ElapsedMilliseconds;
+                     + swLabel.ElapsedMilliseconds + swShelfLabel.ElapsedMilliseconds
+                     + swRender.ElapsedMilliseconds + swShelfRender.ElapsedMilliseconds
+                     + swSave.ElapsedMilliseconds + swShelfSave.ElapsedMilliseconds;
         Debug.Log($"Total:          {totalMs} ms");
-        Debug.Log($"Output:         {outputPath}");
+        Debug.Log($"Land output:    {outputPath}");
+        Debug.Log($"Shelf output:   {shelfPath}");
     }
 
     /// <summary>
