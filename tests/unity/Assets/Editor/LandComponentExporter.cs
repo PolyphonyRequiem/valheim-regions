@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using UnityEngine;
@@ -8,11 +9,11 @@ using WorldZones.WorldGen;
 using Debug = UnityEngine.Debug;
 
 /// <summary>
-/// Unity Editor tool that exports land_components.png and shelf_components.png for a given seed.
+/// Unity Editor tool that exports land_components.png, shelf_components.png,
+/// and archipelago_candidates.png for a given seed.
 /// Run via command line:
 ///   Unity.exe -projectPath ... -executeMethod LandComponentExporter.Export -seed HHcLC5acQt [-output path.png]
 /// Or via menu: Tools > Export Land Component Map
-/// The shelf map is saved alongside the land map with "_shelf" suffix.
 /// </summary>
 public static class LandComponentExporter
 {
@@ -21,6 +22,8 @@ public static class LandComponentExporter
     static readonly Color32 ColorShallow = new Color32(60, 60, 100, 255);
     // Land zones rendered as mid-gray in the shelf view
     static readonly Color32 ColorLandInShelfView = new Color32(100, 100, 100, 255);
+    // Non-archipelago land in the archipelago view
+    static readonly Color32 ColorNeutralGray = new Color32(120, 120, 120, 255);
 
     /// <summary>
     /// Command-line entry point. Called via -executeMethod LandComponentExporter.Export
@@ -159,10 +162,11 @@ public static class LandComponentExporter
         Debug.Log($"PNG save: {swSave.ElapsedMilliseconds} ms ({fileInfo.Length / 1024} KB)");
 
         // ── 7. Label shelf components ─────────────────────────────
+        var shelfOptions = new ShelfLabelingOptions();   // K=3 default
         var swShelfLabel = Stopwatch.StartNew();
-        var shelfComponents = ComponentLabeler.LabelShelf(grid, labelGrid, out int[,] shelfLabelGrid);
+        var shelfComponents = ComponentLabeler.LabelShelf(grid, labelGrid, out int[,] shelfLabelGrid, shelfOptions);
         swShelfLabel.Stop();
-        Debug.Log($"Shelf labeling: {swShelfLabel.ElapsedMilliseconds} ms");
+        Debug.Log($"Shelf labeling (K={shelfOptions.MaxShallowDistanceFromLandZones}): {swShelfLabel.ElapsedMilliseconds} ms");
         Debug.Log($"Shelf components: {shelfComponents.Count}");
 
         for (int i = 0; i < Math.Min(shelfComponents.Count, 10); i++)
@@ -223,20 +227,108 @@ public static class LandComponentExporter
         var shelfFileInfo = new FileInfo(shelfPath);
         Debug.Log($"Shelf PNG save: {swShelfSave.ElapsedMilliseconds} ms ({shelfFileInfo.Length / 1024} KB)");
 
+        // ── 10. Detect archipelago candidates ─────────────────────
+        var swArchDetect = Stopwatch.StartNew();
+        var archCandidates = ArchipelagoDetector.Detect(shelfComponents, components);
+        swArchDetect.Stop();
+        Debug.Log($"Archipelago detection: {swArchDetect.ElapsedMilliseconds} ms");
+        Debug.Log($"Archipelago candidates: {archCandidates.Count}");
+
+        for (int i = 0; i < Math.Min(archCandidates.Count, 10); i++)
+        {
+            var ac = archCandidates[i];
+            Debug.Log($"  #{i}: shelf={ac.ShelfComponentId}, {ac.LandComponentIds.Count} islands, {ac.TotalLandZoneCount} land zones, dominant={ac.DominantLandShare:P1}");
+        }
+        if (archCandidates.Count > 10)
+            Debug.Log($"  ... and {archCandidates.Count - 10} more");
+
+        // ── 11. Render archipelago PNG ────────────────────────────
+        // Archipelago member islands: colored by their parent shelf (shared color per archipelago)
+        // Non-archipelago land: neutral gray
+        // Shallow: dark blue-gray; Deep: dark navy
+        var swArchRender = Stopwatch.StartNew();
+        byte[] archRgb = new byte[size * size * 3];
+
+        // Build lookup: land component ID → archipelago candidate (if any)
+        var landToArch = new Dictionary<int, ArchipelagoCandidate>();
+        foreach (var ac in archCandidates)
+            foreach (var landId in ac.LandComponentIds)
+                landToArch[landId] = ac;
+
+        for (int gy = 0; gy < size; gy++)
+        {
+            for (int gx = 0; gx < size; gx++)
+            {
+                int zx = gx + grid.MinIndex;
+                int zy = gy + grid.MinIndex;
+                var depth = grid[zx, zy];
+
+                Color32 c;
+                if (depth == DepthClass.Land)
+                {
+                    int landLabel = labelGrid[gy, gx];
+                    if (landToArch.TryGetValue(landLabel, out var ac))
+                    {
+                        // Color by archipelago's shelf ID so all islands in same
+                        // archipelago share a color
+                        c = ComponentColor(ac.ShelfComponentId);
+                    }
+                    else
+                    {
+                        c = ColorNeutralGray;
+                    }
+                }
+                else if (depth == DepthClass.Shallow)
+                {
+                    c = ColorShallow;
+                }
+                else
+                {
+                    c = ColorDeep;
+                }
+
+                int py = size - 1 - gy;
+                int offset = (py * size + gx) * 3;
+                archRgb[offset]     = c.r;
+                archRgb[offset + 1] = c.g;
+                archRgb[offset + 2] = c.b;
+            }
+        }
+
+        swArchRender.Stop();
+        Debug.Log($"Archipelago render: {swArchRender.ElapsedMilliseconds} ms");
+
+        // ── 12. Save archipelago PNG ──────────────────────────────
+        string archPath = outputPath.Replace("land_components", "archipelago_candidates");
+        if (archPath == outputPath)
+        {
+            string ext = Path.GetExtension(outputPath);
+            archPath = outputPath.Substring(0, outputPath.Length - ext.Length) + "_archipelago" + ext;
+        }
+
+        var swArchSave = Stopwatch.StartNew();
+        PngWriter.Write(archPath, size, size, archRgb);
+        swArchSave.Stop();
+        var archFileInfo = new FileInfo(archPath);
+        Debug.Log($"Archipelago PNG save: {swArchSave.ElapsedMilliseconds} ms ({archFileInfo.Length / 1024} KB)");
+
         Debug.Log("=== Summary ===");
-        Debug.Log($"WorldGen init:  {swInit.ElapsedMilliseconds} ms");
-        Debug.Log($"Classification: {swClassify.ElapsedMilliseconds} ms");
-        Debug.Log($"Land labeling:  {swLabel.ElapsedMilliseconds} ms");
-        Debug.Log($"Shelf labeling: {swShelfLabel.ElapsedMilliseconds} ms");
-        Debug.Log($"Render:         {swRender.ElapsedMilliseconds + swShelfRender.ElapsedMilliseconds} ms");
-        Debug.Log($"PNG save:       {swSave.ElapsedMilliseconds + swShelfSave.ElapsedMilliseconds} ms");
+        Debug.Log($"WorldGen init:     {swInit.ElapsedMilliseconds} ms");
+        Debug.Log($"Classification:    {swClassify.ElapsedMilliseconds} ms");
+        Debug.Log($"Land labeling:     {swLabel.ElapsedMilliseconds} ms");
+        Debug.Log($"Shelf labeling:    {swShelfLabel.ElapsedMilliseconds} ms");
+        Debug.Log($"Archip. detection: {swArchDetect.ElapsedMilliseconds} ms");
+        Debug.Log($"Render:            {swRender.ElapsedMilliseconds + swShelfRender.ElapsedMilliseconds + swArchRender.ElapsedMilliseconds} ms");
+        Debug.Log($"PNG save:          {swSave.ElapsedMilliseconds + swShelfSave.ElapsedMilliseconds + swArchSave.ElapsedMilliseconds} ms");
         long totalMs = swInit.ElapsedMilliseconds + swClassify.ElapsedMilliseconds
                      + swLabel.ElapsedMilliseconds + swShelfLabel.ElapsedMilliseconds
-                     + swRender.ElapsedMilliseconds + swShelfRender.ElapsedMilliseconds
-                     + swSave.ElapsedMilliseconds + swShelfSave.ElapsedMilliseconds;
-        Debug.Log($"Total:          {totalMs} ms");
-        Debug.Log($"Land output:    {outputPath}");
-        Debug.Log($"Shelf output:   {shelfPath}");
+                     + swArchDetect.ElapsedMilliseconds
+                     + swRender.ElapsedMilliseconds + swShelfRender.ElapsedMilliseconds + swArchRender.ElapsedMilliseconds
+                     + swSave.ElapsedMilliseconds + swShelfSave.ElapsedMilliseconds + swArchSave.ElapsedMilliseconds;
+        Debug.Log($"Total:             {totalMs} ms");
+        Debug.Log($"Land output:       {outputPath}");
+        Debug.Log($"Shelf output:      {shelfPath}");
+        Debug.Log($"Archipelago output:{archPath}");
     }
 
     /// <summary>
