@@ -93,3 +93,4 @@ unity-perlin-wrapper/Logs/
 unity-perlin-wrapper/UserSettings/
 unity-perlin-wrapper/obj/
 unity-perlin-wrapper/Builds/
+tests/unity/land-component-export.log

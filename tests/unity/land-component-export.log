@@ -1,11 +1,11 @@
 [Licensing::Module] Trying to connect to existing licensing client channel...
-[Licensing::IpcConnector] Successfully connected to: "LicenseClient-dangreen" at "2026-02-21T21:27:38.305911Z"
 Built from '6000.3/staging' branch; Version is '6000.3.8f1 (1c7db571dde0) revision 1867189'; Using compiler version '194234433'; Build Type 'Release'
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-dangreen" at "2026-02-21T21:48:46.3237465Z"
 OS: 'Windows 11  (10.0.26200) Enterprise' Language: 'en' Physical Memory: 65360 MB
 BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
 System  architecture: x64
 Process architecture: x64
-Date: 2026-02-21T21:27:38Z
+Date: 2026-02-21T21:48:46Z
 
 COMMAND LINE ARGUMENTS:
 C:\Program Files\Unity\Hub\Editor\6000.3.8f1\Editor\Unity.exe
@@ -59,31 +59,29 @@ C:/Users/dangreen/projects/valheim/worldzones/tests/unity
     "memorysetup-job-temp-allocator-block-size-background=1048576"
     "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
     "memorysetup-temp-allocator-size-cloud-worker=32768"
-Player connection [28872]  Target information:
+Player connection [42540]  Target information:
 
-Player connection [28872]  * "[IP] 172.17.240.1 [Port] 55504 [Flags] 2 [Guid] 3320953970 [EditorId] 3320953970 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-AQ1AU6E) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+Player connection [42540]  * "[IP] 172.17.240.1 [Port] 55504 [Flags] 2 [Guid] 1436507653 [EditorId] 1436507653 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-AQ1AU6E) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
 
-Player connection [28872]  * "[IP] 172.18.80.1 [Port] 55504 [Flags] 2 [Guid] 3320953970 [EditorId] 3320953970 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-AQ1AU6E) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+Player connection [42540]  * "[IP] 172.18.80.1 [Port] 55504 [Flags] 2 [Guid] 1436507653 [EditorId] 1436507653 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-AQ1AU6E) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
 
-Player connection [28872]  * "[IP] 100.65.192.19 [Port] 55504 [Flags] 2 [Guid] 3320953970 [EditorId] 3320953970 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-AQ1AU6E) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+Player connection [42540]  * "[IP] 100.65.192.19 [Port] 55504 [Flags] 2 [Guid] 1436507653 [EditorId] 1436507653 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-AQ1AU6E) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
 
-Player connection [28872]  * "[IP] 192.168.0.125 [Port] 55504 [Flags] 2 [Guid] 3320953970 [EditorId] 3320953970 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-AQ1AU6E) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+Player connection [42540]  * "[IP] 192.168.0.125 [Port] 55504 [Flags] 2 [Guid] 1436507653 [EditorId] 1436507653 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-AQ1AU6E) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
 
-Player connection [28872] Host joined multi-casting on [225.0.0.222:54997]...
-Player connection [28872] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Player connection [42540] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [42540] Host joined alternative multi-casting on [225.0.0.222:34997]...
 Input System module state changed to: Initialized.
 [Physics::Module] Initialized fallback backend.
 [Physics::Module] Id: 0xdecafbad
-[Package Manager] Connected to IPC stream "Upm-28692" after 0.2 seconds.
-[Licensing::Module] Licensing is not yet initialized.
 [Licensing::Client] Handshaking with LicensingClient:
   Version:                 1.17.4+4293ba1
-  Session Id:              3455eb45fa62401b988338f3621e99df
+  Session Id:              2b7fef262b6f431d8641555cd42adbbe
   Correlation Id:          c8b8ba5792d212314bdd8d77580d6491
-  External correlation Id: 1132207470264216562
+  External correlation Id: 7754300862738347028
   Machine Id:              fn9t0wrHQOY542YEBvMsTrpKnTc=
-[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-dangreen" (connect: 0.00s, validation: 0.00s, handshake: 0.87s)
-[Licensing::IpcConnector] Successfully connected to: "LicenseClient-dangreen-notifications" at "2026-02-21T21:27:39.1774745Z"
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-dangreen" (connect: 0.00s, validation: 0.00s, handshake: 0.81s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-dangreen-notifications" at "2026-02-21T21:48:47.1402899Z"
 [Licensing::Module] Error: Access token is unavailable; failed to update
 [Licensing::Client] Successfully resolved entitlement details
 [Licensing::Module] License group:
@@ -93,8 +91,8 @@ Input System module state changed to: Initialized.
   Expiration: Unlimited
 [Licensing::Client] Successfully updated license, isAsync: True, time: 0.00
 [Licensing::Client] Successfully resolved entitlement details
-[Licensing::Module] Licensing Background thread has ended after 0.89s
-[Licensing::Module] Licensing is initialized (took 0.04s).
+[Licensing::Module] Licensing Background thread has ended after 0.83s
+[Package Manager] Connected to IPC stream "Upm-59112" after 0.2 seconds.
 [Licensing::Client] Successfully resolved entitlement details
 Library Redirect Path: Library/
 [Physics::Module] Selected backend.
@@ -118,7 +116,7 @@ Initialize mono
 Mono path[0] = 'C:/Program Files/Unity/Hub/Editor/6000.3.8f1/Editor/Data/Managed'
 Mono path[1] = 'C:/Program Files/Unity/Hub/Editor/6000.3.8f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-win32'
 Mono config path = 'C:/Program Files/Unity/Hub/Editor/6000.3.8f1/Editor/Data/MonoBleedingEdge/etc'
-Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56692
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56112
 Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
 Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
 ImportWorker Server TCP listen port: 0
@@ -127,41 +125,41 @@ Begin MonoManager ReloadAssembly
 Registering precompiled unity dll's ...
 Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.3.8f1/Editor/Data/PlaybackEngines/WebGLSupport/UnityEditor.WebGL.Extensions.dll
 Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.3.8f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
-Registered in 0.002168 seconds.
-- Loaded All Assemblies, in  0.344 seconds
+Registered in 0.002708 seconds.
+- Loaded All Assemblies, in  0.355 seconds
 Native extension for WindowsStandalone target not found
 Native extension for WebGL target not found
 ScheduleIndexationOnStartup MainProcess:False IndexOnStartup:False
 Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.327 seconds
-Domain Reload Profiling: 670ms
-	BeginReloadAssembly (124ms)
+- Finished resetting the current domain, in  0.331 seconds
+Domain Reload Profiling: 684ms
+	BeginReloadAssembly (131ms)
 		ExecutionOrderSort (0ms)
 		DisableScriptedObjects (0ms)
 		BackupInstance (0ms)
 		ReleaseScriptingObjects (0ms)
-		CreateAndSetChildDomain (4ms)
-	RebuildCommonClasses (30ms)
-	RebuildNativeTypeToScriptingClass (10ms)
-	initialDomainReloadingComplete (38ms)
-	LoadAllAssembliesAndSetupDomain (140ms)
-		LoadAssemblies (118ms)
+		CreateAndSetChildDomain (13ms)
+	RebuildCommonClasses (31ms)
+	RebuildNativeTypeToScriptingClass (9ms)
+	initialDomainReloadingComplete (40ms)
+	LoadAllAssembliesAndSetupDomain (142ms)
+		LoadAssemblies (116ms)
 		RebuildTransferFunctionScriptingTraits (0ms)
-		AnalyzeDomain (136ms)
+		AnalyzeDomain (137ms)
 			TypeCache.Refresh (135ms)
-				TypeCache.ScanAssembly (124ms)
+				TypeCache.ScanAssembly (122ms)
 			BuildScriptInfoCaches (0ms)
 			ResolveRequiredComponents (0ms)
-	FinalizeReload (328ms)
+	FinalizeReload (332ms)
 		ReleaseScriptCaches (0ms)
 		RebuildScriptCaches (0ms)
-		SetupLoadedEditorAssemblies (295ms)
+		SetupLoadedEditorAssemblies (302ms)
 			LogAssemblyErrors (0ms)
 			InitializePlatformSupportModulesInManaged (39ms)
 			SetLoadedEditorAssemblies (3ms)
 			BeforeProcessingInitializeOnLoad (64ms)
-			ProcessInitializeOnLoadAttributes (125ms)
-			ProcessInitializeOnLoadMethodAttributes (63ms)
+			ProcessInitializeOnLoadAttributes (130ms)
+			ProcessInitializeOnLoadMethodAttributes (66ms)
 			AfterProcessingInitializeOnLoad (0ms)
 			EditorAssembliesLoaded (0ms)
 		ExecutionOrderSort2 (0ms)
@@ -213,98 +211,321 @@ Package Manager log level set to [2]
     com.unity.modules.hierarchycore@1.0.0 (location: C:\Users\dangreen\projects\valheim\worldzones\tests\unity\Library\PackageCache\com.unity.modules.hierarchycore)
     com.unity.ext.nunit@2.0.5 (location: C:\Users\dangreen\projects\valheim\worldzones\tests\unity\Library\PackageCache\com.unity.ext.nunit@d8c07649098d)
 [Subsystems] No new subsystems found in resolved package list.
-[Package Manager] Done registering packages in 0.06 seconds
+[Package Manager] Done registering packages in 0.05 seconds
+[API Updater] Processing imported assemblies took 86 ms (0/0 assembly(ies)).
+Assembly Updater Post Process Assets time: 0.088815s
+[ScriptCompilation] Requested script compilation because: Assetdatabase observed changes in script compilation related files
 Starting: C:\Program Files\Unity\Hub\Editor\6000.3.8f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
 WorkingDir: C:/Users/dangreen/projects/valheim/worldzones/tests/unity
+ExitCode: 4 Duration: 0s37ms
+[             ] Require frontend run.  Library/Bee/1900b0aE.dag couldn't be loaded
 DisplayProgressbar: Compiling Scripts
-ExitCode: 0 Duration: 0s76ms
-*** Tundra build success (0.04 seconds), 0 items updated, 206 evaluated
-Total cache size 9026224
-Total cache size after purge 9026224, took 00:00:00.0261810
-AssetDatabase: script compilation time: 0.483033s
+Starting: C:\Program Files\Unity\Hub\Editor\6000.3.8f1\Editor\Data\netcorerun\netcorerun.exe "C:\Program Files\Unity\Hub\Editor\6000.3.8f1\Editor\Data\Tools\BuildPipeline\ScriptCompilationBuildProgram.exe" "Library/Bee/1900b0aE.dag.json" "Library/Bee/1900b0aE-inputdata.json" "Library\Bee\buildprogram0.traceevents"
+WorkingDir: C:/Users/dangreen/projects/valheim/worldzones/tests/unity
+ExitCode: 0 Duration: 0s213ms
+Starting: C:\Program Files\Unity\Hub\Editor\6000.3.8f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --dagfilejson="Library\Bee\1900b0aE.dag.json" --profile="Library/Bee/backend2.traceevents" ScriptAssemblies
+WorkingDir: C:/Users/dangreen/projects/valheim/worldzones/tests/unity
+ExitCode: 0 Duration: 5s466ms
+Finished compiling graph: 209 nodes, 1364 flattened edges (1312 ToBuild, 12 ToUse), maximum node priority 58
+[  1/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.EmbreeModule.dll_6EAE6056F67F7CBA.mvfrm
+[  2/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.PresetsUIModule.dll_519E4273EEB59DAA.mvfrm
+[  3/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.QuickSearchModule.dll_6E4B363336DF83E7.mvfrm
+[  4/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.InAppPurchasingModule.dll_D6F0E879720C0A6C.mvfrm
+[  5/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.Physics2DModule.dll_FB7D84C282375FFB.mvfrm
+[  6/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.PropertiesModule.dll_3EDE9A60D50022A5.mvfrm
+[  7/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.GraphicsStateCollectionSerializerModule.dll_F982FF782BC86BE8.mvfrm
+[  8/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.MediaModule.dll_6101DF18DF2EC866.mvfrm
+[  9/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.UnityConnectModule.dll_C5AC2B4998D34832.mvfrm
+[ 10/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.GridAndSnapModule.dll_ECF49BA7616D447D.mvfrm
+[ 11/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.GridModule.dll_70F1CF69848C0648.mvfrm
+[ 12/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.MultiplayerModule.dll_2C16B6223FD3B5CC.mvfrm
+[ 13/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.PhysicsModule.dll_F00B47872236D5A9.mvfrm
+[ 14/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.GraphViewModule.dll_96380991EC5D45A5.mvfrm
+[ 15/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.PlayModeModule.dll_F62705C024726079.mvfrm
+[ 16/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.HierarchyModule.dll_83AC106DAA3C8467.mvfrm
+[ 17/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.GIModule.dll_3402FF3597F892D4.mvfrm
+[ 18/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.LevelPlayModule.dll_358D918212CF4CEA.mvfrm
+[ 19/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.EditorToolbarModule.dll_56FDE283D69FAB10.mvfrm
+[ 20/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.SafeModeModule.dll_B033140685A95112.mvfrm
+[ 21/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.AdaptivePerformanceModule.dll_622F2E5FDBE9408C.mvfrm
+[ 22/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.dll_9560AEFC2AE2E874.mvfrm
+[ 23/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.XRModule.dll_5B39CF6EEF02B707.mvfrm
+[ 24/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.DeviceSimulatorModule.dll_A0BBDD63C9E3A540.mvfrm
+[ 25/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.AssetComplianceModule.dll_D996ED52449F896D.mvfrm
+[ 26/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.CoreBusinessMetricsModule.dll_E21A27DA02306F86.mvfrm
+[ 27/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.GraphicsStateCollectionSerializerModule.dll_0276CC67F8C7B54D.mvfrm
+[ 28/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.BuildProfileModule.dll_DD1299C47967626D.mvfrm
+[ 29/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.ClothModule.dll_FC2A22823AFF1EBC.mvfrm
+[ 30/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.CoreModule.dll_9380B37B6C377051.mvfrm
+[ 31/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.WindModule.dll_2CF061F6A57359E5.mvfrm
+[ 32/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.VFXModule.dll_1170F6C08A478BAF.mvfrm
+[ 33/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.VectorGraphicsModule.dll_D4553C972935766B.mvfrm
+[ 34/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.VirtualTexturingModule.dll_0EECEC018EDFE31A.mvfrm
+[ 35/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.VRModule.dll_287B0C6A65C869A9.mvfrm
+[ 36/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.UnityWebRequestWWWModule.dll_8724304CC7930704.mvfrm
+[ 37/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.VideoModule.dll_8078065654F18C22.mvfrm
+[ 38/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.VehiclesModule.dll_230CD006839DF834.mvfrm
+[ 39/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.UnityWebRequestTextureModule.dll_DC3FF8EA9FF6B508.mvfrm
+[ 40/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.UnityWebRequestModule.dll_23F9A52FC6B80537.mvfrm
+[ 41/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.AccessibilityModule.dll_2101CCB15D09F9C0.mvfrm
+[ 42/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.UnityConsentModule.dll_9751C275A5DDDE82.mvfrm
+[ 43/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.UnityCurlModule.dll_97DA26EC36CE0C38.mvfrm
+[ 44/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.UnityWebRequestAudioModule.dll_63A8EA84F601B6D3.mvfrm
+[ 45/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.TLSModule.dll_90925E51B3DA2242.mvfrm
+[ 46/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.TextRenderingModule.dll_508167A4A0E189C6.mvfrm
+[ 47/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.UnityAnalyticsCommonModule.dll_86EB53EA897F8A99.mvfrm
+[ 48/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.TilemapModule.dll_9BC8E32174C0E6E5.mvfrm
+[ 49/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.UnityWebRequestAssetBundleModule.dll_203D9879758FDB6F.mvfrm
+[ 50/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.UnityAnalyticsModule.dll_5CAD772C4356521E.mvfrm
+[ 51/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.TerrainPhysicsModule.dll_3D88AF35B071FAAF.mvfrm
+[ 52/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.UIModule.dll_D5A8E5E4C40DE431.mvfrm
+[ 53/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.UIElementsModule.dll_6A6A02C4573C9138.mvfrm
+[ 54/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.TextCoreTextEngineModule.dll_BC61EAF0D7D34A98.mvfrm
+[ 55/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.UmbraModule.dll_D6432E041F861BF0.mvfrm
+[ 56/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.TextCoreFontEngineModule.dll_7479B47F484F917A.mvfrm
+[ 57/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.TerrainModule.dll_FCCC7BA05D0405DC.mvfrm
+[ 58/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.SubsystemsModule.dll_662BA15C54105541.mvfrm
+[ 59/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.StreamingModule.dll_1952730B1641D189.mvfrm
+[ 60/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.SubstanceModule.dll_F5FD87546194CF97.mvfrm
+[ 61/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.SpriteShapeModule.dll_CB95967F4EE870E3.mvfrm
+[ 62/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.SharedInternalsModule.dll_966BDC5B32F16608.mvfrm
+[ 63/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.ShaderVariantAnalyticsModule.dll_9CFA169B4BC2F083.mvfrm
+[ 64/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.ScreenCaptureModule.dll_2741F599E9AA09D1.mvfrm
+[ 65/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.ShaderRuntimeModule.dll_3D1A68072605E75A.mvfrm
+[ 66/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.SpriteMaskModule.dll_FB7E3AFA85C86D2E.mvfrm
+[ 67/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.RuntimeInitializeOnLoadManagerInitializerModule.dll_39B8C30AFC8042A9.mvfrm
+[ 68/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.PhysicsBackendPhysXModule.dll_FCD2AAA2F9EAD650.mvfrm
+[ 69/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.RenderAs2DModule.dll_80C4CA2EB69E8627.mvfrm
+[ 70/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.PhysicsModule.dll_E28600318745BCEE.mvfrm
+[ 71/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.Physics2DModule.dll_B16375AB67B711E0.mvfrm
+[ 72/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.ParticleSystemModule.dll_3D0E0662972F0022.mvfrm
+[ 73/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.PerformanceReportingModule.dll_EBAC96A66F96EC3B.mvfrm
+[ 74/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.MultiplayerModule.dll_31DC85B1520DC651.mvfrm
+[ 75/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.MarshallingModule.dll_5A9D07B97D6E662B.mvfrm
+[ 76/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.LocalizationModule.dll_9635E6A2E74F0D46.mvfrm
+[ 77/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.PropertiesModule.dll_3F8D07A8D7443BF0.mvfrm
+[ 78/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.InsightsModule.dll_45109F1793F17818.mvfrm
+[ 79/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.JSONSerializeModule.dll_0D5A4814D53DDD6F.mvfrm
+[ 80/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.InputModule.dll_C1E4499C08979521.mvfrm
+[ 81/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.HotReloadModule.dll_E60643C0A1ED35CD.mvfrm
+[ 82/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.IdentifiersModule.dll_8ABDF11A5BBF06F1.mvfrm
+[ 83/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.IMGUIModule.dll_93CE21525891045E.mvfrm
+[ 84/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.InputLegacyModule.dll_437984433137EECA.mvfrm
+[ 85/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.InputForUIModule.dll_15042283C4797470.mvfrm
+[ 86/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.GridModule.dll_9412A2BC2C917173.mvfrm
+[ 87/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.ImageConversionModule.dll_125A9D85BBC36AB8.mvfrm
+[ 88/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.HierarchyCoreModule.dll_245D5BB344AFD5DB.mvfrm
+[ 89/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.GIModule.dll_727190C50375C69F.mvfrm
+[ 90/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.DSPGraphModule.dll_B09B37F07BD4F9BA.mvfrm
+[ 91/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.GameCenterModule.dll_1251C86A6458D7B4.mvfrm
+[ 92/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.DirectorModule.dll_AB49D68709742899.mvfrm
+[ 93/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.CrashReportingModule.dll_E9FBBD16291D7494.mvfrm
+[ 94/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.dll_C804F5D489567559.mvfrm
+[ 95/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.DiagnosticsModule.dll_E33BB525DE08878E.mvfrm
+[ 96/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.ContentLoadModule.dll_4B4AC26567C8E0C6.mvfrm
+[ 97/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.CoreModule.dll_B6A186CE143CDB7C.mvfrm
+[ 98/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.ClusterRendererModule.dll_A6689FD5399EB2C4.mvfrm
+[ 99/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.ARModule.dll_93A80CBAC4E43D4E.mvfrm
+[100/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.AssetBundleModule.dll_B2346924994638D9.mvfrm
+[101/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.ClothModule.dll_C256DEE66C7C4F61.mvfrm
+[102/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.AudioModule.dll_5B6E81EB925F707D.mvfrm
+[103/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.ClusterInputModule.dll_57E91C504FD31A4D.mvfrm
+[104/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.AndroidJNIModule.dll_E8047E4F9E17E6C3.mvfrm
+[105/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.AnimationModule.dll_64BD85BAC6BA1A4B.mvfrm
+[106/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.AdaptivePerformanceModule.dll_22BEC316172E9391.mvfrm
+[107/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.AccessibilityModule.dll_AD42BED8D6027CE5.mvfrm
+[108/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.XRModule.dll_1CCB3DDF8385833C.mvfrm
+[109/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.VideoModule.dll_BA4B49F223745B7D.mvfrm
+[110/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.AIModule.dll_DA3547B767C6DE85.mvfrm
+[111/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.UnityConnectModule.dll_D84CA73A9E4B4787.mvfrm
+[112/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.VFXModule.dll_054F546D1A977DAA.mvfrm
+[113/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.VectorGraphicsModule.dll_1930DAFC0D48E260.mvfrm
+[114/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.UmbraModule.dll_1016719FEE08EB4B.mvfrm
+[115/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.UIBuilderModule.dll_EAC0B6AE5F15BED9.mvfrm
+[116/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.UIElementsSamplesModule.dll_77EEC9E3BE84E750.mvfrm
+[117/206    0s] WriteText Library/Bee/artifacts/1900b0aE.dag/UnityEngine.TestRunner.UnityAdditionalFile.txt
+[118/206    0s] WriteText Library/Bee/artifacts/1900b0aE.dag/UnityEngine.TestRunner.rsp2
+[119/206    0s] WriteText Library/Bee/artifacts/1900b0aE.dag/UnityEngine.TestRunner.dll.mvfrm.rsp
+[120/206    0s] WriteText Library/Bee/artifacts/1900b0aE.dag/UnityEngine.TestRunner.rsp
+[121/206    0s] WriteText Library/Bee/artifacts/1900b0aE.dag/UnityEditor.TestRunner.UnityAdditionalFile.txt
+[122/206    0s] WriteText Library/Bee/artifacts/1900b0aE.dag/UnityEditor.TestRunner.rsp2
+[123/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.UIElementsModule.dll_69BB957C54F877ED.mvfrm
+[124/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.UIToolkitAuthoringModule.dll_2970CDB953D8566F.mvfrm
+[125/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.TreeModule.dll_F12CA889F3FD0590.mvfrm
+[126/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.TextRenderingModule.dll_C440757D27E906A1.mvfrm
+[127/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.UIAutomationModule.dll_8DB388B515DB2B2D.mvfrm
+[128/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.TextCoreTextEngineModule.dll_3E026F9DC4D58BCD.mvfrm
+[129/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.TilemapModule.dll_A94E2A770FB1FFA0.mvfrm
+[130/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.TextCoreFontEngineModule.dll_F61A392C3551D2AF.mvfrm
+[131/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.SpriteShapeModule.dll_C5CFC6F03CAE605E.mvfrm
+[132/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.ShaderFoundryModule.dll_B97D2384F83BD1D6.mvfrm
+[133/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.SpriteMaskModule.dll_FACFCDB2838453E3.mvfrm
+[134/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.SubstanceModule.dll_4017966B7C151DB2.mvfrm
+[135/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.TerrainModule.dll_0A51C2F5F7F51E97.mvfrm
+[136/206    0s] WriteText Library/Bee/artifacts/1900b0aE.dag/Unity.Multiplayer.Center.Common.UnityAdditionalFile.txt
+[137/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.SketchUpModule.dll_9847F956D0DAED29.mvfrm
+[138/206    0s] WriteText Library/Bee/artifacts/1900b0aE.dag/Unity.Multiplayer.Center.Common.rsp2
+[139/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.ShaderCompilationModule.dll_83BD2C5BA188DC20.mvfrm
+[140/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.SceneViewModule.dll_D4E7EC99E18012B3.mvfrm
+[141/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.WebGL.Extensions.dll_4AC99D4214CFFDEF.mvfrm
+[142/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.SceneTemplateModule.dll_7A9D5341D58C5548.mvfrm
+[143/206    0s] WriteText Library/Bee/artifacts/1900b0aE.dag/UnityEditor.TestRunner.dll.mvfrm.rsp
+[144/206    0s] WriteText Library/Bee/artifacts/1900b0aE.dag/Unity.Multiplayer.Center.Common.dll.mvfrm.rsp
+[145/206    0s] WriteText Library/Bee/artifacts/1900b0aE.dag/UnityEditor.TestRunner.rsp
+[146/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.Graphs.dll_F0837ECFEE906983.mvfrm
+[147/206    0s] WriteText Library/Bee/artifacts/1900b0aE.dag/Unity.Multiplayer.Center.Common.rsp
+[148/206    0s] WriteText Library/Bee/artifacts/1900b0aE.dag/Unity.Multiplayer.Center.Editor.UnityAdditionalFile.txt
+[149/206    0s] WriteText Library/Bee/artifacts/1900b0aE.dag/Unity.Multiplayer.Center.Editor.rsp2
+[150/206    0s] WriteText Library/Bee/artifacts/1900b0aE.dag/Unity.Multiplayer.Center.Editor.dll.mvfrm.rsp
+[151/206    0s] WriteText Library/Bee/artifacts/1900b0aE.dag/Unity.Multiplayer.Center.Editor.rsp
+[152/206    0s] WriteText Library/Bee/artifacts/1900b0aE.dag/WorldZones.WorldGen.Tests.Unity.rsp2
+[153/206    0s] WriteText Library/Bee/artifacts/1900b0aE.dag/WorldZones.WorldGen.Tests.Unity.dll.mvfrm.rsp
+[154/206    0s] WriteText Library/Bee/artifacts/1900b0aE.dag/WorldZones.WorldGen.Tests.Unity.UnityAdditionalFile.txt
+[155/206    0s] WriteText Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.rsp2
+[156/206    0s] WriteText Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.UnityAdditionalFile.txt
+[157/206    0s] WriteText Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll.mvfrm.rsp
+[158/206    0s] WriteText Library/Bee/artifacts/1900b0aE.dag/WorldZones.WorldGen.Tests.Unity.rsp
+[159/206    0s] WriteText Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.rsp
+[160/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.ShaderBuildSettingsModule.dll_6A557508AEE871CE.mvfrm
+[161/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.WindowsStandalone.Extensions.dll_D8EE391275F34F5F.mvfrm
+[162/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.AMDModule.dll_92029AEC8CA9A6EF.mvfrm
+[163/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.HierarchyModule.dll_399201568FBC364C.mvfrm
+[164/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.NVIDIAModule.dll_C6BF783E541C9768.mvfrm
+[165/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/Unity.Mathematics.dll_8281EC6FDA6CF298.mvfrm
+[166/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/Unity.InputSystem.ForUI.dll_909179CF415316DA.mvfrm
+[167/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/Unity.InputSystem.dll_5E2943686566B70B.mvfrm
+[168/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/Unity.Collections.LowLevel.ILSupport.dll_D4FAFC648A4D4D21.mvfrm
+[169/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/Unity.Burst.Unsafe.dll_D829874A144C2E6E.mvfrm
+[170/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/Unity.Collections.dll_4618CF68F6610257.mvfrm
+[171/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/Unity.Formats.Fbx.Runtime.dll_BBBF9248362079C6.mvfrm
+[172/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/Unity.Burst.dll_A5C32B803F8BB492.mvfrm
+[173/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.UI.dll_05B411FCEDCC647C.mvfrm
+[174/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/Unity.AI.Navigation.dll_B68EE67ECC56953C.mvfrm
+[175/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/Unity.Timeline.dll_4CFD5BBED563A2EB.mvfrm
+[176/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/Unity.TextMeshPro.dll_D3EC956AE6FD32E5.mvfrm
+[177/206    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aE.dag/UnityEngine.TestRunner.dll.mvfrm
+[178/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/Unity.ScriptableBuildPipeline.dll_1CA2CC9E621CCA5D.mvfrm
+[179/206    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aE.dag/Unity.Multiplayer.Center.Common.dll.mvfrm
+[179/206    0s] Csc Library/Bee/artifacts/1900b0aE.dag/UnityEngine.TestRunner.dll (+2 others) [CacheHit a01ab509130ff607d161501f206f79b300000000000000000000000000000005]
+[180/206   1771710531s] Csc Library/Bee/artifacts/1900b0aE.dag/UnityEngine.TestRunner.dll (+2 others)
+[182/206    0s] CopyFiles Library/ScriptAssemblies/UnityEngine.TestRunner.pdb
+[183/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEngine.TestRunner.ref.dll_E55D0F7C63F01D9E.mvfrm
+[184/206    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aE.dag/UnityEditor.TestRunner.dll.mvfrm
+[185/206    0s] CopyFiles Library/ScriptAssemblies/UnityEngine.TestRunner.dll
+[184/206    0s] Csc Library/Bee/artifacts/1900b0aE.dag/UnityEditor.TestRunner.dll (+2 others) [CacheHit 1855fda0badd377d4f59b54dd76f445600000000000000000000000000000005]
+[186/206   1771710531s] Csc Library/Bee/artifacts/1900b0aE.dag/UnityEditor.TestRunner.dll (+2 others)
+[188/206    0s] CopyFiles Library/ScriptAssemblies/UnityEditor.TestRunner.pdb
+[189/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/UnityEditor.TestRunner.ref.dll_193EC4CE382CBFB3.mvfrm
+[190/206    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aE.dag/WorldZones.WorldGen.Tests.Unity.dll.mvfrm
+[191/206    0s] CopyFiles Library/ScriptAssemblies/UnityEditor.TestRunner.dll
+[192/206    1s] Csc Library/Bee/artifacts/1900b0aE.dag/Unity.Multiplayer.Center.Common.dll (+2 others)
+[193/206    1s] Csc Library/Bee/artifacts/1900b0aE.dag/WorldZones.WorldGen.Tests.Unity.dll (+2 others)
+[194/206    0s] CopyFiles Library/ScriptAssemblies/WorldZones.WorldGen.Tests.Unity.pdb
+[           0s] Csc Library/Bee/artifacts/1900b0aE.dag/Unity.Multiplayer.Center.Common.dll (+2 others) [CacheWrite 00000000000000000000000000000005]
+[195/206    0s] CopyFiles Library/ScriptAssemblies/Unity.Multiplayer.Center.Common.pdb
+[196/206    0s] CopyFiles Library/ScriptAssemblies/Unity.Multiplayer.Center.Common.dll
+[197/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/Unity.Multiplayer.Center.Common.ref.dll_EE36537354EA42C8.mvfrm
+[198/206    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aE.dag/Unity.Multiplayer.Center.Editor.dll.mvfrm
+[199/206    0s] CopyFiles Library/ScriptAssemblies/WorldZones.WorldGen.Tests.Unity.dll
+[200/206    0s] Csc Library/Bee/artifacts/1900b0aE.dag/Unity.Multiplayer.Center.Editor.dll (+2 others)
+[           0s] Csc Library/Bee/artifacts/1900b0aE.dag/Unity.Multiplayer.Center.Editor.dll (+2 others) [CacheWrite 00000000000000000000000000000005]
+[201/206    0s] CopyFiles Library/ScriptAssemblies/Unity.Multiplayer.Center.Editor.pdb
+[202/206    0s] MovedFromExtractor Library/Bee/artifacts/mvdfrm/Unity.Multiplayer.Center.Editor.ref.dll_EB1F4B6E56116D4A.mvfrm
+[203/206    0s] MovedFromExtractor-Combine Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll.mvfrm
+[204/206    0s] Csc Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll (+2 others)
+[205/206    0s] CopyFiles Library/ScriptAssemblies/Unity.Multiplayer.Center.Editor.dll
+[206/206    0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.pdb
+[207/206    0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.dll
+*** Tundra build success (5.43 seconds), 203 items updated, 206 evaluated
+AssetDatabase: script compilation time: 6.154576s
 Begin MonoManager ReloadAssembly
-- Loaded All Assemblies, in  0.441 seconds
+Total cache size 9502576
+Total cache size after purge 9502576, took 00:00:00.0364500
+- Loaded All Assemblies, in  2.430 seconds
 Refreshing native plugins compatible for Editor in 0.00 ms, found 0 plugins.
 Native extension for WindowsStandalone target not found
 Native extension for WebGL target not found
 ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:True
 Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.353 seconds
-Domain Reload Profiling: 792ms
-	BeginReloadAssembly (172ms)
+- Finished resetting the current domain, in  0.371 seconds
+Domain Reload Profiling: 2797ms
+	BeginReloadAssembly (241ms)
 		ExecutionOrderSort (0ms)
-		DisableScriptedObjects (9ms)
+		DisableScriptedObjects (10ms)
 		BackupInstance (0ms)
 		ReleaseScriptingObjects (0ms)
-		CreateAndSetChildDomain (45ms)
-	RebuildCommonClasses (29ms)
-	RebuildNativeTypeToScriptingClass (9ms)
-	initialDomainReloadingComplete (31ms)
-	LoadAllAssembliesAndSetupDomain (196ms)
-		LoadAssemblies (230ms)
+		CreateAndSetChildDomain (49ms)
+	RebuildCommonClasses (33ms)
+	RebuildNativeTypeToScriptingClass (12ms)
+	initialDomainReloadingComplete (41ms)
+	LoadAllAssembliesAndSetupDomain (2099ms)
+		LoadAssemblies (2181ms)
 		RebuildTransferFunctionScriptingTraits (0ms)
-		AnalyzeDomain (59ms)
-			TypeCache.Refresh (46ms)
-				TypeCache.ScanAssembly (38ms)
-			BuildScriptInfoCaches (5ms)
+		AnalyzeDomain (60ms)
+			TypeCache.Refresh (45ms)
+				TypeCache.ScanAssembly (39ms)
+			BuildScriptInfoCaches (7ms)
 			ResolveRequiredComponents (6ms)
-	FinalizeReload (354ms)
+	FinalizeReload (372ms)
 		ReleaseScriptCaches (0ms)
 		RebuildScriptCaches (0ms)
-		SetupLoadedEditorAssemblies (259ms)
+		SetupLoadedEditorAssemblies (273ms)
 			LogAssemblyErrors (0ms)
-			InitializePlatformSupportModulesInManaged (24ms)
+			InitializePlatformSupportModulesInManaged (25ms)
 			SetLoadedEditorAssemblies (2ms)
-			BeforeProcessingInitializeOnLoad (98ms)
-			ProcessInitializeOnLoadAttributes (96ms)
-			ProcessInitializeOnLoadMethodAttributes (33ms)
-			AfterProcessingInitializeOnLoad (4ms)
+			BeforeProcessingInitializeOnLoad (102ms)
+			ProcessInitializeOnLoadAttributes (102ms)
+			ProcessInitializeOnLoadMethodAttributes (36ms)
+			AfterProcessingInitializeOnLoad (5ms)
 			EditorAssembliesLoaded (0ms)
 		ExecutionOrderSort2 (0ms)
-		AwakeInstancesAfterBackupRestoration (7ms)
-Asset Pipeline Refresh (id=9b3d7b2fdea35674e87a96b8bc550553): Total: 1.523 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+		AwakeInstancesAfterBackupRestoration (8ms)
+Refreshing native plugins compatible for Editor in 0.00 ms, found 0 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=9fdb9141b1636e347b3c1fbdf25cbca8): Total: 9.422 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
 	Summary:
 		Imports: total=0 (actual=0, local cache=0, cache server=0)
-		Asset DB Process Time: managed=0 ms, native=506 ms
-		Asset DB Callback time: managed=11 ms, native=69 ms
-		Scripting: domain reloads=1, domain reload time=441 ms, compile time=486 ms, other=8 ms
+		Asset DB Process Time: managed=0 ms, native=618 ms
+		Asset DB Callback time: managed=57 ms, native=61 ms
+		Scripting: domain reloads=1, domain reload time=2430 ms, compile time=6245 ms, other=8 ms
 		Project Asset Count: scripts=173, non-scripts=89
-		Asset File Changes: new=0, changed=0, moved=0, deleted=0
+		Asset File Changes: new=0, changed=1, moved=0, deleted=0
 		Scan Filter Count: 0
 	InvokeCustomDependenciesCallbacks: 0.001ms
-	InvokePackagesCallback: 79.516ms
-	ApplyChangesToAssetFolders: 0.387ms
-	Scan: 25.496ms
-	OnSourceAssetsModified: 0.004ms
-	CategorizeAssetsWithTransientArtifact: 12.151ms
-	ProcessAssetsWithTransientArtifactChanges: 28.472ms
-	CategorizeAssets: 1.368ms
-	ImportOutOfDateAssets: 355.161ms (-130.683ms without children)
-		CompileScripts: 485.540ms
+	InvokePackagesCallback: 65.216ms
+	ApplyChangesToAssetFolders: 0.389ms
+	Scan: 123.489ms
+	OnSourceAssetsModified: 0.821ms
+	CategorizeAssetsWithTransientArtifact: 13.227ms
+	ProcessAssetsWithTransientArtifactChanges: 28.132ms
+	CategorizeAssets: 1.495ms
+	ImportOutOfDateAssets: 373.000ms (-5872.481ms without children)
+		CompileScripts: 6245.187ms
 		ReloadNativeAssets: 0.001ms
-		UnloadImportedAssets: 0.099ms
+		UnloadImportedAssets: 0.108ms
 		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 0.036ms
 		InitializingProgressBar: 0.001ms
-		PostProcessAllAssetNotificationsAddChangedAssets: 0.001ms
-		OnDemandSchedulerStart: 0.167ms
-	PostProcessAllAssets: 11.439ms
+		PostProcessAllAssetNotificationsAddChangedAssets: 0.000ms
+		OnDemandSchedulerStart: 0.149ms
+	PostProcessAllAssets: 59.622ms
+	Hotreload: 0.528ms
 	GatherAllCurrentPrimaryArtifactRevisions: 0.002ms
-	UnloadStreamsBegin: 1.196ms
+	UnloadStreamsBegin: 1.045ms
 	PersistCurrentRevisions: 0.007ms
-	UnloadStreamsEnd: 0.002ms
-	GenerateScriptTypeHashes: 0.176ms
-	Untracked: 1007.793ms
+	UnloadStreamsEnd: 0.001ms
+	GenerateScriptTypeHashes: 0.213ms
+	Untracked: 8755.008ms
 
 Application.AssetDatabase Initial Refresh End
-Scanning for USB devices : 8.243ms
+Scanning for USB devices : 8.506ms
 Initializing Unity extensions:
 [MODES] ModeService[none].Initialize
 [MODES] ModeService[none].LoadModes
 [MODES] Loading mode Default (0) for mode-current-id-WorldZones.WorldGen.Tests.Unity
 Unloading 3 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 512 unused Assets / (1.4 MB). Loaded Objects now: 1650.
-Memory consumption went from 98.7 MB to 97.3 MB.
-Total: 5.474700 ms (FindLiveObjects: 0.083100 ms CreateObjectMapping: 0.039900 ms MarkObjects: 4.765500 ms  DeleteObjects: 0.584900 ms)
+Unloading 512 unused Assets / (1.4 MB). Loaded Objects now: 1651.
+Memory consumption went from 98.8 MB to 97.4 MB.
+Total: 5.260400 ms (FindLiveObjects: 0.088100 ms CreateObjectMapping: 0.024600 ms MarkObjects: 4.534000 ms  DeleteObjects: 0.612700 ms)
 
 === Land Component Map Export ===
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -313,10 +534,10 @@ UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOpt
 UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
 UnityEngine.Logger:Log (UnityEngine.LogType,object)
 UnityEngine.Debug:Log (object)
-LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:61)
-LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:43)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:64)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
 
-(Filename: Assets/Editor/LandComponentExporter.cs Line: 61)
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 64)
 
 Seed: HHcLC5acQt
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -325,34 +546,34 @@ UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOpt
 UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
 UnityEngine.Logger:Log (UnityEngine.LogType,object)
 UnityEngine.Debug:Log (object)
-LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:62)
-LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:43)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:65)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
 
-(Filename: Assets/Editor/LandComponentExporter.cs Line: 62)
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 65)
 
-WorldGenerator init: 1987 ms
+WorldGenerator init: 1977 ms
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
 UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
 UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
 UnityEngine.Logger:Log (UnityEngine.LogType,object)
 UnityEngine.Debug:Log (object)
-LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:68)
-LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:43)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:71)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
 
-(Filename: Assets/Editor/LandComponentExporter.cs Line: 68)
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 71)
 
-Zone classification: 34 ms
+Zone classification: 133 ms
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
 UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
 UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
 UnityEngine.Logger:Log (UnityEngine.LogType,object)
 UnityEngine.Debug:Log (object)
-LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:75)
-LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:43)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:78)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
 
-(Filename: Assets/Editor/LandComponentExporter.cs Line: 75)
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 78)
 
 Grid: 313x313 = 97969 zones
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -361,108 +582,60 @@ UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOpt
 UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
 UnityEngine.Logger:Log (UnityEngine.LogType,object)
 UnityEngine.Debug:Log (object)
-LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:90)
-LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:43)
-
-(Filename: Assets/Editor/LandComponentExporter.cs Line: 90)
-
-  Land:    44779 (45.7%)
-UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
-UnityEngine.StackTraceUtility:ExtractStackTrace ()
-UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
-UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
-UnityEngine.Logger:Log (UnityEngine.LogType,object)
-UnityEngine.Debug:Log (object)
-LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:91)
-LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:43)
-
-(Filename: Assets/Editor/LandComponentExporter.cs Line: 91)
-
-  Shallow: 6824 (7.0%)
-UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
-UnityEngine.StackTraceUtility:ExtractStackTrace ()
-UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
-UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
-UnityEngine.Logger:Log (UnityEngine.LogType,object)
-UnityEngine.Debug:Log (object)
-LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:92)
-LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:43)
-
-(Filename: Assets/Editor/LandComponentExporter.cs Line: 92)
-
-  Deep:    46366 (47.3%)
-UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
-UnityEngine.StackTraceUtility:ExtractStackTrace ()
-UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
-UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
-UnityEngine.Logger:Log (UnityEngine.LogType,object)
-UnityEngine.Debug:Log (object)
 LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:93)
-LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:43)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
 
 (Filename: Assets/Editor/LandComponentExporter.cs Line: 93)
 
-Component labeling: 7 ms
+  Land:    27472 (28.0%)
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
 UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
 UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
 UnityEngine.Logger:Log (UnityEngine.LogType,object)
 UnityEngine.Debug:Log (object)
-LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:99)
-LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:43)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:94)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
 
-(Filename: Assets/Editor/LandComponentExporter.cs Line: 99)
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 94)
 
-Land components: 107
+  Shallow: 39898 (40.7%)
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
 UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
 UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
 UnityEngine.Logger:Log (UnityEngine.LogType,object)
 UnityEngine.Debug:Log (object)
-LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:100)
-LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:43)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:95)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
 
-(Filename: Assets/Editor/LandComponentExporter.cs Line: 100)
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 95)
 
-  #0: 2891 zones (id=33)
+  Deep:    30599 (31.2%)
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
 UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
 UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
 UnityEngine.Logger:Log (UnityEngine.LogType,object)
 UnityEngine.Debug:Log (object)
-LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:103)
-LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:43)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:96)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
 
-(Filename: Assets/Editor/LandComponentExporter.cs Line: 103)
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 96)
 
-  #1: 2555 zones (id=17)
+Component labeling: 4 ms
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
 UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
 UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
 UnityEngine.Logger:Log (UnityEngine.LogType,object)
 UnityEngine.Debug:Log (object)
-LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:103)
-LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:43)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:102)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
 
-(Filename: Assets/Editor/LandComponentExporter.cs Line: 103)
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 102)
 
-  #2: 2462 zones (id=14)
-UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
-UnityEngine.StackTraceUtility:ExtractStackTrace ()
-UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
-UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
-UnityEngine.Logger:Log (UnityEngine.LogType,object)
-UnityEngine.Debug:Log (object)
-LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:103)
-LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:43)
-
-(Filename: Assets/Editor/LandComponentExporter.cs Line: 103)
-
-  #3: 2456 zones (id=35)
+Land components: 1120
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
 UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
@@ -470,117 +643,345 @@ UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,st
 UnityEngine.Logger:Log (UnityEngine.LogType,object)
 UnityEngine.Debug:Log (object)
 LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:103)
-LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:43)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
 
 (Filename: Assets/Editor/LandComponentExporter.cs Line: 103)
 
-  #4: 2166 zones (id=70)
+  #0: 1961 zones (id=256)
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
 UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
 UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
 UnityEngine.Logger:Log (UnityEngine.LogType,object)
 UnityEngine.Debug:Log (object)
-LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:103)
-LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:43)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:106)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
 
-(Filename: Assets/Editor/LandComponentExporter.cs Line: 103)
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 106)
 
-  #5: 1675 zones (id=0)
+  #1: 1021 zones (id=0)
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
 UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
 UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
 UnityEngine.Logger:Log (UnityEngine.LogType,object)
 UnityEngine.Debug:Log (object)
-LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:103)
-LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:43)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:106)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
 
-(Filename: Assets/Editor/LandComponentExporter.cs Line: 103)
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 106)
 
-  #6: 1646 zones (id=15)
+  #2: 744 zones (id=682)
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
 UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
 UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
 UnityEngine.Logger:Log (UnityEngine.LogType,object)
 UnityEngine.Debug:Log (object)
-LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:103)
-LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:43)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:106)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
 
-(Filename: Assets/Editor/LandComponentExporter.cs Line: 103)
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 106)
 
-  #7: 1567 zones (id=25)
+  #3: 681 zones (id=104)
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
 UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
 UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
 UnityEngine.Logger:Log (UnityEngine.LogType,object)
 UnityEngine.Debug:Log (object)
-LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:103)
-LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:43)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:106)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
 
-(Filename: Assets/Editor/LandComponentExporter.cs Line: 103)
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 106)
 
-  #8: 1399 zones (id=90)
+  #4: 662 zones (id=514)
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
 UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
 UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
 UnityEngine.Logger:Log (UnityEngine.LogType,object)
 UnityEngine.Debug:Log (object)
-LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:103)
-LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:43)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:106)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
 
-(Filename: Assets/Editor/LandComponentExporter.cs Line: 103)
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 106)
 
-  #9: 1367 zones (id=9)
+  #5: 654 zones (id=137)
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
 UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
 UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
 UnityEngine.Logger:Log (UnityEngine.LogType,object)
 UnityEngine.Debug:Log (object)
-LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:103)
-LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:43)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:106)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
 
-(Filename: Assets/Editor/LandComponentExporter.cs Line: 103)
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 106)
 
-  ... and 97 more
+  #6: 652 zones (id=643)
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
 UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
 UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
 UnityEngine.Logger:Log (UnityEngine.LogType,object)
 UnityEngine.Debug:Log (object)
-LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:105)
-LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:43)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:106)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
 
-(Filename: Assets/Editor/LandComponentExporter.cs Line: 105)
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 106)
 
-Render: 2 ms
+  #7: 628 zones (id=336)
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
 UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
 UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
 UnityEngine.Logger:Log (UnityEngine.LogType,object)
 UnityEngine.Debug:Log (object)
-LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:145)
-LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:43)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:106)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
 
-(Filename: Assets/Editor/LandComponentExporter.cs Line: 145)
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 106)
 
-PNG save: 9 ms (14 KB)
+  #8: 598 zones (id=1072)
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
 UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
 UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
 UnityEngine.Logger:Log (UnityEngine.LogType,object)
 UnityEngine.Debug:Log (object)
-LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:156)
-LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:43)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:106)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
 
-(Filename: Assets/Editor/LandComponentExporter.cs Line: 156)
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 106)
+
+  #9: 589 zones (id=1050)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:106)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
+
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 106)
+
+  ... and 1110 more
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:108)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
+
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 108)
+
+Render: 1 ms
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:148)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
+
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 148)
+
+PNG save: 12 ms (20 KB)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:159)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
+
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 159)
+
+Shelf labeling: 7 ms
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:165)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
+
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 165)
+
+Shelf components: 45
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:166)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
+
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 166)
+
+  #0: 35625 zones, 414 land components (id=0)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:171)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
+
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 171)
+
+  #1: 5617 zones, 84 land components (id=6)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:171)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
+
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 171)
+
+  #2: 2768 zones, 28 land components (id=3)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:171)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
+
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 171)
+
+  #3: 2465 zones, 19 land components (id=29)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:171)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
+
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 171)
+
+  #4: 2357 zones, 95 land components (id=24)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:171)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
+
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 171)
+
+  #5: 2177 zones, 40 land components (id=30)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:171)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
+
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 171)
+
+  #6: 2081 zones, 28 land components (id=27)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:171)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
+
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 171)
+
+  #7: 1723 zones, 62 land components (id=19)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:171)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
+
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 171)
+
+  #8: 1593 zones, 20 land components (id=37)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:171)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
+
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 171)
+
+  #9: 1339 zones, 23 land components (id=20)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:171)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
+
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 171)
+
+  ... and 35 more
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:174)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
+
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 174)
+
+Shelf render: 9 ms
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:208)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
+
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 208)
+
+Shelf PNG save: 4 ms (8 KB)
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:224)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
+
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 224)
 
 === Summary ===
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -589,94 +990,118 @@ UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOpt
 UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
 UnityEngine.Logger:Log (UnityEngine.LogType,object)
 UnityEngine.Debug:Log (object)
-LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:158)
-LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:43)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:226)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
 
-(Filename: Assets/Editor/LandComponentExporter.cs Line: 158)
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 226)
 
-WorldGen init:  1987 ms
+WorldGen init:  1977 ms
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
 UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
 UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
 UnityEngine.Logger:Log (UnityEngine.LogType,object)
 UnityEngine.Debug:Log (object)
-LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:159)
-LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:43)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:227)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
 
-(Filename: Assets/Editor/LandComponentExporter.cs Line: 159)
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 227)
 
-Classification: 34 ms
+Classification: 133 ms
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
 UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
 UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
 UnityEngine.Logger:Log (UnityEngine.LogType,object)
 UnityEngine.Debug:Log (object)
-LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:160)
-LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:43)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:228)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
 
-(Filename: Assets/Editor/LandComponentExporter.cs Line: 160)
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 228)
 
-Labeling:       7 ms
+Land labeling:  4 ms
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
 UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
 UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
 UnityEngine.Logger:Log (UnityEngine.LogType,object)
 UnityEngine.Debug:Log (object)
-LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:161)
-LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:43)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:229)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
 
-(Filename: Assets/Editor/LandComponentExporter.cs Line: 161)
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 229)
 
-Render:         2 ms
+Shelf labeling: 7 ms
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
 UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
 UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
 UnityEngine.Logger:Log (UnityEngine.LogType,object)
 UnityEngine.Debug:Log (object)
-LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:162)
-LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:43)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:230)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
 
-(Filename: Assets/Editor/LandComponentExporter.cs Line: 162)
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 230)
 
-PNG save:       9 ms
+Render:         10 ms
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
 UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
 UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
 UnityEngine.Logger:Log (UnityEngine.LogType,object)
 UnityEngine.Debug:Log (object)
-LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:163)
-LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:43)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:231)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
 
-(Filename: Assets/Editor/LandComponentExporter.cs Line: 163)
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 231)
 
-Total:          2039 ms
+PNG save:       16 ms
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
 UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
 UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
 UnityEngine.Logger:Log (UnityEngine.LogType,object)
 UnityEngine.Debug:Log (object)
-LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:167)
-LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:43)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:232)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
 
-(Filename: Assets/Editor/LandComponentExporter.cs Line: 167)
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 232)
 
-Output:         C:\Users\dangreen\projects\valheim\worldzones\artifacts\land_components.png
+Total:          2147 ms
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace ()
 UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
 UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
 UnityEngine.Logger:Log (UnityEngine.LogType,object)
 UnityEngine.Debug:Log (object)
-LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:168)
-LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:43)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:237)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
 
-(Filename: Assets/Editor/LandComponentExporter.cs Line: 168)
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 237)
+
+Land output:    C:\Users\dangreen\projects\valheim\worldzones\artifacts\land_components.png
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:238)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
+
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 238)
+
+Shelf output:   C:\Users\dangreen\projects\valheim\worldzones\artifacts\shelf_components.png
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+LandComponentExporter:ExportMap (string,string) (at Assets/Editor/LandComponentExporter.cs:239)
+LandComponentExporter:Export () (at Assets/Editor/LandComponentExporter.cs:46)
+
+(Filename: Assets/Editor/LandComponentExporter.cs Line: 239)
 
 [Physics::Module] Cleanup current backend.
 [Physics::Module] Id: 0xf2b8ea05
@@ -690,4 +1115,4 @@ Cleanup mono
 Checking for leaked weakptr:
   Found no leaked weakptrs.
 [Package Manager] Server process was shutdown
-##utp:{"type":"MemoryLeaks","version":2,"phase":"Immediate","time":1771709264093,"processId":28692,"allocatedMemory":10329415,"memoryLabels":[{"Default":29313},{"Permanent":15236},{"NewDelete":67395},{"Thread":4230384},{"Manager":34973},{"VertexData":8},{"Geometry":816},{"Texture":160},{"Shader":79379},{"Material":24},{"GfxDevice":55257},{"Animation":392},{"Audio":2664},{"FreeType":8},{"FontEngine":736},{"Physics":2090},{"Physics2D":16},{"Serialization":656},{"Input":14984},{"JobScheduler":33024},{"TextLib":216},{"Mono":32},{"ScriptingNativeRuntime":155060},{"BaseObject":1620272},{"Resource":1336},{"Renderer":3000},{"Transform":4685},{"File":1016},{"WebCam":616},{"Culling":32},{"Terrain":11394},{"Wind":24},{"STL":40},{"String":15725},{"DynamicArray":143064},{"HashMap":66309},{"Utility":2661222},{"Curl":2559},{"PoolAlloc":2056},{"AI":80},{"TypeTree":5341},{"ScriptManager":512},{"RuntimeInitializeOnLoadManager":64},{"SpriteAtlas":112},{"GI":7792},{"Director":8240},{"CloudService":7344},{"WebRequest":845},{"VR":47994},{"SceneManager":504},{"Video":64},{"LazyScriptCache":32},{"Camera":17},{"Secure":2113},{"SerializationCache":1576},{"APIUpdating":10320},{"Subsystems":336},{"VirtualTexturing":57888},{"StaticSafetyDebugInfo":278528},{"Analytics":384},{"Hierarchy":608},{"CoreStats":13032},{"Identifiers":12960},{"Gui":96},{"EditorUtility":95748},{"VersionControl":4},{"Undo":947},{"AssetDatabase":474721},{"EditorGi":328},{"UnityConnect":29208},{"Upm":1896},{"AssetCompliance":64},{"DrivenProperties":72},{"LocalIPC":214},{"ProfilerEditor":9746},{"CoreBusinessMetrics":2888},{"Licensing":664},{"AssetReference":32},{"IPCStream":32}]}
+##utp:{"type":"MemoryLeaks","version":2,"phase":"Immediate","time":1771710540148,"processId":59112,"allocatedMemory":10329404,"memoryLabels":[{"Default":29313},{"Permanent":15236},{"NewDelete":67395},{"Thread":4230384},{"Manager":34973},{"VertexData":8},{"Geometry":816},{"Texture":160},{"Shader":79379},{"Material":24},{"GfxDevice":55257},{"Animation":392},{"Audio":2664},{"FreeType":8},{"FontEngine":736},{"Physics":2090},{"Physics2D":16},{"Serialization":656},{"Input":14984},{"JobScheduler":33024},{"TextLib":216},{"Mono":32},{"ScriptingNativeRuntime":155060},{"BaseObject":1620272},{"Resource":1336},{"Renderer":3000},{"Transform":4685},{"File":1016},{"WebCam":616},{"Culling":32},{"Terrain":11394},{"Wind":24},{"STL":40},{"String":15714},{"DynamicArray":143064},{"HashMap":66309},{"Utility":2661222},{"Curl":2559},{"PoolAlloc":2056},{"AI":80},{"TypeTree":5341},{"ScriptManager":512},{"RuntimeInitializeOnLoadManager":64},{"SpriteAtlas":112},{"GI":7792},{"Director":8240},{"CloudService":7344},{"WebRequest":845},{"VR":47994},{"SceneManager":504},{"Video":64},{"LazyScriptCache":32},{"Camera":17},{"Secure":2113},{"SerializationCache":1576},{"APIUpdating":10320},{"Subsystems":336},{"VirtualTexturing":57888},{"StaticSafetyDebugInfo":278528},{"Analytics":384},{"Hierarchy":608},{"CoreStats":13032},{"Identifiers":12960},{"Gui":96},{"EditorUtility":95748},{"VersionControl":4},{"Undo":947},{"AssetDatabase":474721},{"EditorGi":328},{"UnityConnect":29208},{"Upm":1896},{"AssetCompliance":64},{"DrivenProperties":72},{"LocalIPC":214},{"ProfilerEditor":9746},{"CoreBusinessMetrics":2888},{"Licensing":664},{"AssetReference":32},{"IPCStream":32}]}
