@@ -39,3 +39,51 @@ packages/
 # OS generated
 .DS_Store
 Thumbs.db
+
+# Unity generated files (tests/unity and unity-perlin-wrapper)
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+
+# Unity auto-generated .csproj and .sln files
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Unity3D generated meta files
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
+
+# Unity Test Results
+TestResults.xml
+test-run.log
+
+# Exclude auto-generated files, but keep our source
+tests/unity/Library/
+tests/unity/Temp/
+tests/unity/Logs/
+tests/unity/UserSettings/
+tests/unity/obj/
+tests/unity/Builds/
+unity-perlin-wrapper/Library/
+unity-perlin-wrapper/Temp/
+unity-perlin-wrapper/Logs/
+unity-perlin-wrapper/UserSettings/
+unity-perlin-wrapper/obj/
+unity-perlin-wrapper/Builds/
