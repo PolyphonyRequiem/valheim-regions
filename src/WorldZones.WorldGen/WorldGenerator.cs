@@ -46,7 +46,49 @@ namespace WorldZones.WorldGen
         public string Seed => this.seed;
         
         /// <summary>
-        /// Initializes a new WorldGenerator with the specified seed and random offsets.
+        /// Initializes a new WorldGenerator from a seed string.
+        /// Generates random offsets using UnityEngine.Random (requires Unity runtime).
+        /// Replicates Valheim's constructor behavior: InitState(seedHash), then
+        /// five Random.Range(-10000, 10000) calls for offsets 0-4.
+        /// </summary>
+        /// <param name="seed">World seed string. Empty string is valid (produces seed hash of 0).</param>
+        /// <exception cref="ArgumentNullException">Thrown if seed is null.</exception>
+        public WorldGenerator(string seed)
+            : this(seed, GenerateOffsets(seed ?? throw new ArgumentNullException(nameof(seed))))
+        {
+        }
+
+        /// <summary>Private chaining constructor that unpacks the offset tuple.</summary>
+        private WorldGenerator(string seed, (float o0, float o1, float o2, float o3, float o4) offsets)
+            : this(seed, offsets.o0, offsets.o1, offsets.o2, offsets.o3, offsets.o4)
+        {
+        }
+
+        /// <summary>
+        /// Generates the five random offsets from a seed string, exactly matching
+        /// the sequence Valheim uses in its WorldGenerator constructor.
+        /// Requires Unity runtime (UnityEngine.Random).
+        /// </summary>
+        private static (float, float, float, float, float) GenerateOffsets(string seed)
+        {
+            int hash = string.IsNullOrEmpty(seed) ? 0 : seed.GetStableHashCode();
+            var savedState = UnityEngine.Random.state;
+            UnityEngine.Random.InitState(hash);
+            float o0 = UnityEngine.Random.Range(-10000, 10000);
+            float o1 = UnityEngine.Random.Range(-10000, 10000);
+            float o2 = UnityEngine.Random.Range(-10000, 10000);
+            float o3 = UnityEngine.Random.Range(-10000, 10000);
+            // River/stream seeds are consumed at positions 5-6 by the 6-param ctor
+            UnityEngine.Random.Range(int.MinValue, int.MaxValue); // riverSeed slot
+            UnityEngine.Random.Range(int.MinValue, int.MaxValue); // streamSeed slot
+            float o4 = UnityEngine.Random.Range(-10000, 10000);
+            UnityEngine.Random.state = savedState;
+            return (o0, o1, o2, o3, o4);
+        }
+
+        /// <summary>
+        /// Initializes a new WorldGenerator with the specified seed and pre-computed random offsets.
+        /// Use <see cref="WorldGenerator(string)"/> unless you have pre-extracted offsets.
         /// </summary>
         /// <param name="seed">World seed string. Empty string is valid (produces seed hash of 0).</param>
         /// <param name="offset0">Random offset 0 (biome noise).</param>
