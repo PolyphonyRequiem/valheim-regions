@@ -162,7 +162,7 @@ public static class LandComponentExporter
         Debug.Log($"PNG save: {swSave.ElapsedMilliseconds} ms ({fileInfo.Length / 1024} KB)");
 
         // ── 7. Label shelf components ─────────────────────────────
-        var shelfOptions = new ShelfLabelingOptions();   // K=3 default
+        var shelfOptions = new ShelfLabelingOptions();   // K=2 default (≈128m consecutive shallow)
         var swShelfLabel = Stopwatch.StartNew();
         var shelfComponents = ComponentLabeler.LabelShelf(grid, labelGrid, out int[,] shelfLabelGrid, shelfOptions);
         swShelfLabel.Stop();
@@ -245,7 +245,7 @@ public static class LandComponentExporter
         // ── 11. Render archipelago PNG ────────────────────────────
         // Archipelago member islands: colored by their parent shelf (shared color per archipelago)
         // Non-archipelago land: neutral gray
-        // Shallow: dark blue-gray; Deep: dark navy
+        // Only archipelago islands are colored; everything else is dark background.
         var swArchRender = Stopwatch.StartNew();
         byte[] archRgb = new byte[size * size * 3];
 
@@ -275,12 +275,8 @@ public static class LandComponentExporter
                     }
                     else
                     {
-                        c = ColorNeutralGray;
+                        c = ColorDeep;
                     }
-                }
-                else if (depth == DepthClass.Shallow)
-                {
-                    c = ColorShallow;
                 }
                 else
                 {
@@ -312,23 +308,198 @@ public static class LandComponentExporter
         var archFileInfo = new FileInfo(archPath);
         Debug.Log($"Archipelago PNG save: {swArchSave.ElapsedMilliseconds} ms ({archFileInfo.Length / 1024} KB)");
 
+        // ── 13. Generate proto-regions ────────────────────────────
+        int targetZonesPerRegion = 200;
+        int protoSeedRng = seed.GetHashCode();
+        var swProto = Stopwatch.StartNew();
+        var protoResult = ProtoRegionGenerator.GenerateLand(
+            grid, targetZonesPerRegion, protoSeedRng,
+            out int[,] regionIdGrid, out List<WorldZones.WorldGen.Vector2i> protoSeeds);
+        swProto.Stop();
+        Debug.Log($"Proto-region generation: {swProto.ElapsedMilliseconds} ms");
+        Debug.Log($"  Seeds: {protoSeeds.Count}, Target: {targetZonesPerRegion} zones/region");
+        Debug.Log($"  Regions: {protoResult.RegionCount}");
+        Debug.Log($"  Land zones: {protoResult.LandZoneCount}");
+        Debug.Log($"  Unassigned: {protoResult.UnassignedLandCount}");
+        Debug.Log($"  Area min/avg/max: {protoResult.MinAreaZones}/{protoResult.AvgAreaZones:F1}/{protoResult.MaxAreaZones}");
+        for (int i = 0; i < Math.Min(protoResult.Regions.Count, 10); i++)
+        {
+            var pr = protoResult.Regions[i];
+            Debug.Log($"  #{i}: id={pr.Id}, seed=({pr.Seed.x},{pr.Seed.y}), area={pr.AreaZones}");
+        }
+        if (protoResult.Regions.Count > 10)
+            Debug.Log($"  ... and {protoResult.Regions.Count - 10} more");
+
+        // ── 14. Render proto_seeds.png ────────────────────────────
+        var swSeedRender = Stopwatch.StartNew();
+        byte[] seedRgb = new byte[size * size * 3];
+        var seedSet = new HashSet<(int, int)>();
+        foreach (var ps in protoSeeds)
+            seedSet.Add((ps.x, ps.y));
+
+        for (int gy = 0; gy < size; gy++)
+        {
+            for (int gx = 0; gx < size; gx++)
+            {
+                int zx = gx + grid.MinIndex;
+                int zy = gy + grid.MinIndex;
+                var depth = grid[zx, zy];
+
+                Color32 c;
+                if (seedSet.Contains((zx, zy)))
+                {
+                    c = new Color32(255, 0, 0, 255); // red dot for seeds
+                }
+                else if (depth == DepthClass.Land)
+                {
+                    c = new Color32(80, 100, 80, 255); // muted land
+                }
+                else if (depth == DepthClass.Shallow)
+                {
+                    c = ColorShallow;
+                }
+                else
+                {
+                    c = ColorDeep;
+                }
+
+                int py = size - 1 - gy;
+                int offset = (py * size + gx) * 3;
+                seedRgb[offset]     = c.r;
+                seedRgb[offset + 1] = c.g;
+                seedRgb[offset + 2] = c.b;
+            }
+        }
+        swSeedRender.Stop();
+
+        string seedsPath = outputPath.Replace("land_components", "proto_seeds");
+        if (seedsPath == outputPath)
+        {
+            string ext = Path.GetExtension(outputPath);
+            seedsPath = outputPath.Substring(0, outputPath.Length - ext.Length) + "_proto_seeds" + ext;
+        }
+        var swSeedSave = Stopwatch.StartNew();
+        PngWriter.Write(seedsPath, size, size, seedRgb);
+        swSeedSave.Stop();
+        var seedsFileInfo = new FileInfo(seedsPath);
+        Debug.Log($"Proto seeds PNG: {swSeedSave.ElapsedMilliseconds} ms ({seedsFileInfo.Length / 1024} KB)");
+
+        // ── 15. Render proto_regions.png ──────────────────────────
+        var swRegionRender = Stopwatch.StartNew();
+        byte[] regionRgb = new byte[size * size * 3];
+
+        // Pre-compute boundary set: land zones adjacent to a different region ID
+        var boundarySet = new HashSet<(int, int)>();
+        var bDirs = new (int, int)[] { (1, 0), (-1, 0), (0, 1), (0, -1) };
+        for (int gy = 0; gy < size; gy++)
+        {
+            for (int gx = 0; gx < size; gx++)
+            {
+                int rid = regionIdGrid[gy, gx];
+                if (rid < 0) continue;
+                int zx = gx + grid.MinIndex;
+                int zy = gy + grid.MinIndex;
+
+                foreach (var (dx, dy) in bDirs)
+                {
+                    int nx = zx + dx;
+                    int ny = zy + dy;
+                    if (nx < grid.MinIndex || nx > grid.MaxIndex ||
+                        ny < grid.MinIndex || ny > grid.MaxIndex)
+                    {
+                        boundarySet.Add((zx, zy));
+                        continue;
+                    }
+                    int ngy = ny - grid.MinIndex;
+                    int ngx = nx - grid.MinIndex;
+                    int nrid = regionIdGrid[ngy, ngx];
+                    if (nrid != rid)
+                    {
+                        boundarySet.Add((zx, zy));
+                        break;
+                    }
+                }
+            }
+        }
+
+        for (int gy = 0; gy < size; gy++)
+        {
+            for (int gx = 0; gx < size; gx++)
+            {
+                int zx = gx + grid.MinIndex;
+                int zy = gy + grid.MinIndex;
+                int rid = regionIdGrid[gy, gx];
+
+                Color32 c;
+                if (rid >= 0)
+                {
+                    if (boundarySet.Contains((zx, zy)))
+                    {
+                        // Darken boundary pixels
+                        var baseC = ComponentColor(rid);
+                        c = new Color32(
+                            (byte)(baseC.r / 3),
+                            (byte)(baseC.g / 3),
+                            (byte)(baseC.b / 3),
+                            255);
+                    }
+                    else
+                    {
+                        c = ComponentColor(rid);
+                    }
+                }
+                else if (grid[zx, zy] == DepthClass.Shallow)
+                {
+                    c = ColorShallow;
+                }
+                else
+                {
+                    c = ColorDeep;
+                }
+
+                int py = size - 1 - gy;
+                int offset = (py * size + gx) * 3;
+                regionRgb[offset]     = c.r;
+                regionRgb[offset + 1] = c.g;
+                regionRgb[offset + 2] = c.b;
+            }
+        }
+        swRegionRender.Stop();
+
+        string regionsPath = outputPath.Replace("land_components", "proto_regions");
+        if (regionsPath == outputPath)
+        {
+            string ext = Path.GetExtension(outputPath);
+            regionsPath = outputPath.Substring(0, outputPath.Length - ext.Length) + "_proto_regions" + ext;
+        }
+        var swRegionSave = Stopwatch.StartNew();
+        PngWriter.Write(regionsPath, size, size, regionRgb);
+        swRegionSave.Stop();
+        var regionsFileInfo = new FileInfo(regionsPath);
+        Debug.Log($"Proto regions PNG: {swRegionSave.ElapsedMilliseconds} ms ({regionsFileInfo.Length / 1024} KB)");
+
         Debug.Log("=== Summary ===");
         Debug.Log($"WorldGen init:     {swInit.ElapsedMilliseconds} ms");
         Debug.Log($"Classification:    {swClassify.ElapsedMilliseconds} ms");
         Debug.Log($"Land labeling:     {swLabel.ElapsedMilliseconds} ms");
         Debug.Log($"Shelf labeling:    {swShelfLabel.ElapsedMilliseconds} ms");
         Debug.Log($"Archip. detection: {swArchDetect.ElapsedMilliseconds} ms");
-        Debug.Log($"Render:            {swRender.ElapsedMilliseconds + swShelfRender.ElapsedMilliseconds + swArchRender.ElapsedMilliseconds} ms");
-        Debug.Log($"PNG save:          {swSave.ElapsedMilliseconds + swShelfSave.ElapsedMilliseconds + swArchSave.ElapsedMilliseconds} ms");
+        Debug.Log($"Proto-region gen:  {swProto.ElapsedMilliseconds} ms");
+        Debug.Log($"Render:            {swRender.ElapsedMilliseconds + swShelfRender.ElapsedMilliseconds + swArchRender.ElapsedMilliseconds + swSeedRender.ElapsedMilliseconds + swRegionRender.ElapsedMilliseconds} ms");
+        Debug.Log($"PNG save:          {swSave.ElapsedMilliseconds + swShelfSave.ElapsedMilliseconds + swArchSave.ElapsedMilliseconds + swSeedSave.ElapsedMilliseconds + swRegionSave.ElapsedMilliseconds} ms");
         long totalMs = swInit.ElapsedMilliseconds + swClassify.ElapsedMilliseconds
                      + swLabel.ElapsedMilliseconds + swShelfLabel.ElapsedMilliseconds
-                     + swArchDetect.ElapsedMilliseconds
+                     + swArchDetect.ElapsedMilliseconds + swProto.ElapsedMilliseconds
                      + swRender.ElapsedMilliseconds + swShelfRender.ElapsedMilliseconds + swArchRender.ElapsedMilliseconds
-                     + swSave.ElapsedMilliseconds + swShelfSave.ElapsedMilliseconds + swArchSave.ElapsedMilliseconds;
+                     + swSeedRender.ElapsedMilliseconds + swRegionRender.ElapsedMilliseconds
+                     + swSave.ElapsedMilliseconds + swShelfSave.ElapsedMilliseconds + swArchSave.ElapsedMilliseconds
+                     + swSeedSave.ElapsedMilliseconds + swRegionSave.ElapsedMilliseconds;
         Debug.Log($"Total:             {totalMs} ms");
         Debug.Log($"Land output:       {outputPath}");
         Debug.Log($"Shelf output:      {shelfPath}");
         Debug.Log($"Archipelago output:{archPath}");
+        Debug.Log($"Proto seeds:       {seedsPath}");
+        Debug.Log($"Proto regions:     {regionsPath}");
     }
 
     /// <summary>

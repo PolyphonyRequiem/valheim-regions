@@ -25,14 +25,22 @@ namespace WorldZones.Regions
     }
 
     /// <summary>
-    /// Classifies every zone in a <see cref="ZoneGrid"/> as Land, Shallow, or Deep.
-    /// The <see cref="WorldGenerator"/> overload mirrors the BiomeMapExporter logic:
-    /// Ocean biome → Deep, non-ocean with GetBiomeHeight &lt; 30 → Shallow, else → Land.
+    /// Classifies every zone in a <see cref="ZoneGrid"/> as Land, Shallow, or Deep
+    /// based on terrain height (depth below sea level).
+    /// No biome types are used — classification is purely depth-based.
     /// </summary>
     public static class ZoneClassifier
     {
         /// <summary>Water surface height in world units (metres).</summary>
         public const float DefaultWaterLevel = 30f;
+
+        /// <summary>
+        /// Maximum water depth (metres below <see cref="DefaultWaterLevel"/>) that
+        /// still counts as Shallow (continental shelf). Zones deeper than this are Deep.
+        /// depthMeters = max(0, SeaLevelY - terrainY);
+        /// Shallow when 0 &lt; depthMeters &lt;= ShelfMaxDepthMeters, Deep when depthMeters &gt; ShelfMaxDepthMeters.
+        /// </summary>
+        public const float DefaultShelfMaxDepth = 10f;
 
         /// <summary>
         /// Fills <paramref name="grid"/> with <see cref="DepthClass"/> values
@@ -72,8 +80,11 @@ namespace WorldZones.Regions
 
         /// <summary>
         /// Fills <paramref name="grid"/> with <see cref="DepthClass"/> values
-        /// using the same logic as BiomeMapExporter:
-        /// Ocean biome → Deep; non-ocean with GetBiomeHeight &lt; 30 → Shallow; else → Land.
+        /// using depth-based classification:
+        /// terrainY ≥ SeaLevel → Land;
+        /// terrainY ≥ SeaLevel − ShelfMaxDepth → Shallow;
+        /// otherwise → Deep.
+        /// Biome type is NOT used for classification — depth only.
         /// </summary>
         /// <param name="grid">The zone grid to populate.</param>
         /// <param name="worldGen">World generator initialised with the desired seed.</param>
@@ -84,6 +95,8 @@ namespace WorldZones.Regions
             if (worldGen == null)
                 throw new ArgumentNullException(nameof(worldGen));
 
+            float shelfThreshold = DefaultWaterLevel - DefaultShelfMaxDepth;
+
             foreach (var coord in grid.AllCoords())
             {
                 var center = ZoneGrid.ZoneCenter(coord);
@@ -91,19 +104,20 @@ namespace WorldZones.Regions
                 float wz = center.worldZ;
 
                 var biome = worldGen.GetBiome(wx, wz);
+                float terrainY = worldGen.GetBiomeHeight(biome, wx, wz);
 
                 DepthClass depth;
-                if (biome == BiomeType.Ocean)
+                if (terrainY >= DefaultWaterLevel)
                 {
-                    depth = DepthClass.Deep;
+                    depth = DepthClass.Land;
                 }
-                else if (worldGen.GetBiomeHeight(biome, wx, wz) < DefaultWaterLevel)
+                else if (terrainY >= shelfThreshold)
                 {
                     depth = DepthClass.Shallow;
                 }
                 else
                 {
-                    depth = DepthClass.Land;
+                    depth = DepthClass.Deep;
                 }
 
                 grid[coord] = depth;
