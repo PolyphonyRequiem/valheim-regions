@@ -24,13 +24,14 @@ namespace WorldZones.Regions
     public class ShelfLabelingOptions
     {
         /// <summary>
-        /// Maximum BFS distance (in zones) a Shallow zone may be from
-        /// the nearest Land zone and still be included in a shelf component.
-        /// Shallow zones farther than this are treated as impassable,
-        /// preventing long shallow-only "highway" connections.
-        /// Each zone is 64 m, so the default of 3 ≈ 192 m.
+        /// Maximum number of consecutive ShelfWater (Shallow) zones that may
+        /// be traversed between two Land zones within the same shelf component.
+        /// Gaps wider than this sever the connection, preventing long
+        /// coastal-shallow "highway" connections around deep channels.
+        /// Land resets the counter to 0; each Shallow zone increments by 1.
+        /// Each zone is 64 m, so the default of 2 ≈ 128 m.
         /// </summary>
-        public int MaxShallowDistanceFromLandZones { get; set; } = 3;
+        public int MaxShallowDistanceFromLandZones { get; set; } = 2;
     }
 
     /// <summary>
@@ -125,7 +126,8 @@ namespace WorldZones.Regions
         /// Computes multi-source BFS distance (in zones) from every Land or Shallow
         /// zone to the nearest Land zone. Land zones have distance 0. Shallow zones
         /// get their shortest 4-neighbor path distance through Land∪Shallow. Deep
-        /// zones are impassable and keep distance <see cref="int.MaxValue"/>.
+        /// zones (water deeper than ShelfMaxDepth) are impassable and keep distance
+        /// <see cref="int.MaxValue"/>.
         /// </summary>
         /// <returns>A 2D array [size, size] indexed by grid offsets (gy, gx).</returns>
         public static int[,] ComputeDistanceToLand(ZoneGrid grid)
@@ -177,7 +179,7 @@ namespace WorldZones.Regions
                     int ngy = ny - min;
                     int ngx = nx - min;
 
-                    // Only propagate through Land or Shallow
+                    // Only propagate through Land or Shallow (DeepWater blocks)
                     var ndc = grid[nx, ny];
                     if (ndc != DepthClass.Land && ndc != DepthClass.Shallow)
                         continue;
@@ -195,10 +197,18 @@ namespace WorldZones.Regions
         }
 
         /// <summary>
-        /// Labels all connected shelf components (DepthClass.Land ∪ DepthClass.Shallow)
-        /// in the grid using 4-neighbor adjacency.
-        /// Shallow zones are only included if their BFS distance to the nearest
-        /// Land zone is ≤ <see cref="ShelfLabelingOptions.MaxShallowDistanceFromLandZones"/>.
+        /// Labels all connected shelf components (Land ∪ ShelfWater) in the grid
+        /// using 4-neighbor adjacency and a 0-1 BFS that tracks
+        /// <em>consecutive shallow depth</em> — the number of Shallow zones
+        /// traversed since the last Land zone along the current path.
+        /// Stepping onto a Land zone resets the counter to 0; stepping onto a
+        /// Shallow zone increments it by 1.  If the counter would exceed
+        /// <see cref="ShelfLabelingOptions.MaxShallowDistanceFromLandZones"/>,
+        /// the zone is not included.  DeepWater zones (depth &gt; ShelfMaxDepth)
+        /// are impassable and always block traversal — no biome type is used.
+        /// <para>
+        /// Components are seeded only from unvisited Land zones.
+        /// </para>
         /// Each shelf is mapped to the <see cref="LandComponent"/>s it contains via
         /// <paramref name="landLabelGrid"/> (produced by <see cref="LabelLand"/>).
         /// Returns components sorted by descending zone count.
@@ -215,23 +225,27 @@ namespace WorldZones.Regions
                 throw new ArgumentNullException(nameof(landLabelGrid));
 
             var opts = options ?? new ShelfLabelingOptions();
-            int maxDist = opts.MaxShallowDistanceFromLandZones;
+            int maxShallowDepth = opts.MaxShallowDistanceFromLandZones;
 
             int size = grid.Size;
             int min = grid.MinIndex;
             int max = grid.MaxIndex;
 
-            // Pre-compute distance to land for shallow filtering
-            var distToLand = ComputeDistanceToLand(grid);
-
             shelfLabelGrid = new int[size, size];
+            var shallowDepth = new int[size, size];
+            var finalized = new bool[size, size];
+
             for (int y = 0; y < size; y++)
                 for (int x = 0; x < size; x++)
+                {
                     shelfLabelGrid[y, x] = -1;
+                    shallowDepth[y, x] = int.MaxValue;
+                }
 
             var components = new List<ShelfComponent>();
             int nextId = 0;
 
+            // Only seed components from Land zones (non-ocean biome).
             for (int zy = min; zy <= max; zy++)
             {
                 for (int zx = min; zx <= max; zx++)
@@ -239,29 +253,40 @@ namespace WorldZones.Regions
                     int gy = zy - min;
                     int gx = zx - min;
 
-                    if (!IsShelfEligible(grid[zx, zy], distToLand[gy, gx], maxDist))
+                    if (grid[zx, zy] != DepthClass.Land)
                         continue;
-                    if (shelfLabelGrid[gy, gx] >= 0)
+                    if (finalized[gy, gx])
                         continue;
 
-                    // BFS flood fill over eligible zones
+                    // 0-1 BFS: Land transitions cost 0 (deque front, depth resets),
+                    // Shallow transitions cost 1 (deque back, depth increments).
                     var component = new ShelfComponent(nextId);
                     var landIds = new HashSet<int>();
-                    var queue = new Queue<Vector2i>();
-                    queue.Enqueue(new Vector2i(zx, zy));
+                    var deque = new LinkedList<Vector2i>();
+
+                    shallowDepth[gy, gx] = 0;
                     shelfLabelGrid[gy, gx] = nextId;
+                    deque.AddFirst(new Vector2i(zx, zy));
 
-                    while (queue.Count > 0)
+                    while (deque.Count > 0)
                     {
-                        var cur = queue.Dequeue();
-                        component.Zones.Add(cur);
+                        var cur = deque.First.Value;
+                        deque.RemoveFirst();
 
-                        // Track which land components are inside this shelf
                         int cgy = cur.y - min;
                         int cgx = cur.x - min;
+
+                        if (finalized[cgy, cgx])
+                            continue;
+                        finalized[cgy, cgx] = true;
+
+                        component.Zones.Add(cur);
+
                         int landLabel = landLabelGrid[cgy, cgx];
                         if (landLabel >= 0)
                             landIds.Add(landLabel);
+
+                        int curDepth = shallowDepth[cgy, cgx];
 
                         foreach (var (dx, dy) in Neighbors)
                         {
@@ -274,14 +299,29 @@ namespace WorldZones.Regions
                             int ngy = ny - min;
                             int ngx = nx - min;
 
-                            if (shelfLabelGrid[ngy, ngx] >= 0)
+                            if (finalized[ngy, ngx])
                                 continue;
 
-                            if (!IsShelfEligible(grid[nx, ny], distToLand[ngy, ngx], maxDist))
+                            var ndc = grid[nx, ny];
+                            if (ndc == DepthClass.Deep)
                                 continue;
 
-                            shelfLabelGrid[ngy, ngx] = nextId;
-                            queue.Enqueue(new Vector2i(nx, ny));
+                            // Land resets depth to 0; Shallow increments from parent.
+                            int newDepth = (ndc == DepthClass.Land) ? 0 : curDepth + 1;
+
+                            if (newDepth > maxShallowDepth)
+                                continue;
+
+                            if (newDepth < shallowDepth[ngy, ngx])
+                            {
+                                shallowDepth[ngy, ngx] = newDepth;
+                                shelfLabelGrid[ngy, ngx] = nextId;
+
+                                if (ndc == DepthClass.Land)
+                                    deque.AddFirst(new Vector2i(nx, ny));
+                                else
+                                    deque.AddLast(new Vector2i(nx, ny));
+                            }
                         }
                     }
 
@@ -295,19 +335,6 @@ namespace WorldZones.Regions
             components.Sort((a, b) => b.Zones.Count.CompareTo(a.Zones.Count));
 
             return components;
-        }
-
-        /// <summary>
-        /// Returns true if a zone is eligible for shelf component membership.
-        /// Land is always eligible. Shallow is eligible only if within maxDist of land.
-        /// </summary>
-        private static bool IsShelfEligible(DepthClass dc, int distToLand, int maxDist)
-        {
-            if (dc == DepthClass.Land)
-                return true;
-            if (dc == DepthClass.Shallow && distToLand <= maxDist)
-                return true;
-            return false;
         }
     }
 }
