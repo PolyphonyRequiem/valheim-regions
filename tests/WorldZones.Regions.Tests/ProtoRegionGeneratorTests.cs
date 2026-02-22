@@ -31,21 +31,41 @@ namespace WorldZones.Regions.Tests
                     grid[x, y] = depth;
         }
 
-        // ── 1. Every land zone is assigned ────────────────────────────
+        /// <summary>Runs ComponentLabeler to get land components for the grid.</summary>
+        private static List<LandComponent> LabelLand(ZoneGrid grid)
+        {
+            return ComponentLabeler.LabelLand(grid, out _);
+        }
+
+        /// <summary>Shorthand for calling GenerateLand with component labeling.</summary>
+        private static ProtoRegionResult Generate(
+            ZoneGrid grid, int targetZonesPerRegion, int seedRng,
+            out int[,] regionIdGrid, out List<Vector2i> seeds,
+            int minRegionZones = ProtoRegionGenerator.DefaultMinRegionZones,
+            int minComponentZonesForProto = ProtoRegionGenerator.DefaultMinComponentZonesForProto)
+        {
+            var land = LabelLand(grid);
+            return ProtoRegionGenerator.GenerateLand(
+                grid, land, targetZonesPerRegion, seedRng,
+                out regionIdGrid, out seeds, minRegionZones, minComponentZonesForProto);
+        }
+
+        // ── 1. Every qualifying land zone is assigned ─────────────────
 
         [Fact]
-        public void All_land_zones_assigned()
+        public void All_qualifying_land_zones_assigned()
         {
             var grid = MediumGrid();
             FillAll(grid, DepthClass.Land);
 
-            var result = ProtoRegionGenerator.GenerateLand(
-                grid, targetZonesPerRegion: 10, seedRng: 42,
+            // 49 zones, all one component → well above threshold
+            var result = Generate(grid, targetZonesPerRegion: 10, seedRng: 42,
                 out int[,] regionIdGrid, out List<Vector2i> seeds);
 
-            Assert.Equal(0, result.UnassignedLandCount);
+            // No minor islets — single component is large
+            Assert.Equal(0, result.MinorIsletCount);
 
-            // Also verify via grid scan
+            // All land assigned to proto-regions
             foreach (var c in grid.AllCoords())
             {
                 int gy = c.y - grid.MinIndex;
@@ -62,17 +82,11 @@ namespace WorldZones.Regions.Tests
         {
             var grid = MediumGrid();
             FillAll(grid, DepthClass.Deep);
-            // Put a single land zone at origin
-            grid[0, 0] = DepthClass.Land;
+            // Put a 4×4 land block (16 zones, above default threshold of 12)
+            FillRect(grid, -2, -2, 1, 1, DepthClass.Land);
 
-            var result = ProtoRegionGenerator.GenerateLand(
-                grid, targetZonesPerRegion: 10, seedRng: 42,
+            var result = Generate(grid, targetZonesPerRegion: 10, seedRng: 42,
                 out int[,] regionIdGrid, out _);
-
-            // The land zone is assigned
-            int gy0 = 0 - grid.MinIndex;
-            int gx0 = 0 - grid.MinIndex;
-            Assert.True(regionIdGrid[gy0, gx0] >= 0);
 
             // All deep zones stay -1
             foreach (var c in grid.AllCoords())
@@ -91,11 +105,10 @@ namespace WorldZones.Regions.Tests
         {
             var grid = MediumGrid();
             FillAll(grid, DepthClass.Shallow);
-            // Single land zone
-            grid[0, 0] = DepthClass.Land;
+            // 4×4 land block
+            FillRect(grid, -2, -2, 1, 1, DepthClass.Land);
 
-            var result = ProtoRegionGenerator.GenerateLand(
-                grid, targetZonesPerRegion: 10, seedRng: 42,
+            var result = Generate(grid, targetZonesPerRegion: 10, seedRng: 42,
                 out int[,] regionIdGrid, out _);
 
             foreach (var c in grid.AllCoords())
@@ -117,16 +130,15 @@ namespace WorldZones.Regions.Tests
             var grid = MediumGrid();
             FillAll(grid, DepthClass.Deep);
 
-            // Island A: left side
-            FillRect(grid, -3, -1, -2, 1, DepthClass.Land);
-            // Island B: right side
-            FillRect(grid, 2, -1, 3, 1, DepthClass.Land);
+            // Island A: 3×3 = 9 land (below threshold, but we'll lower it)
+            FillRect(grid, -3, -1, -1, 1, DepthClass.Land);
+            // Island B: 3×3 = 9 land
+            FillRect(grid, 1, -1, 3, 1, DepthClass.Land);
 
-            var result = ProtoRegionGenerator.GenerateLand(
-                grid, targetZonesPerRegion: 3, seedRng: 42,
-                out int[,] regionIdGrid, out _);
-
-            Assert.Equal(0, result.UnassignedLandCount);
+            // Lower threshold so both islands qualify
+            var result = Generate(grid, targetZonesPerRegion: 5, seedRng: 42,
+                out int[,] regionIdGrid, out _,
+                minComponentZonesForProto: 5);
 
             // Collect region IDs for each island
             var idsA = new HashSet<int>();
@@ -134,9 +146,9 @@ namespace WorldZones.Regions.Tests
 
             for (int y = -1; y <= 1; y++)
             {
-                for (int x = -3; x <= -2; x++)
+                for (int x = -3; x <= -1; x++)
                     idsA.Add(regionIdGrid[y - grid.MinIndex, x - grid.MinIndex]);
-                for (int x = 2; x <= 3; x++)
+                for (int x = 1; x <= 3; x++)
                     idsB.Add(regionIdGrid[y - grid.MinIndex, x - grid.MinIndex]);
             }
 
@@ -152,10 +164,8 @@ namespace WorldZones.Regions.Tests
             var grid = MediumGrid();
             FillAll(grid, DepthClass.Land);
 
-            var r1 = ProtoRegionGenerator.GenerateLand(
-                grid, 10, 42, out int[,] g1, out List<Vector2i> s1);
-            var r2 = ProtoRegionGenerator.GenerateLand(
-                grid, 10, 42, out int[,] g2, out List<Vector2i> s2);
+            var r1 = Generate(grid, 10, 42, out int[,] g1, out List<Vector2i> s1);
+            var r2 = Generate(grid, 10, 42, out int[,] g2, out List<Vector2i> s2);
 
             Assert.Equal(r1.RegionCount, r2.RegionCount);
             Assert.Equal(s1.Count, s2.Count);
@@ -179,10 +189,8 @@ namespace WorldZones.Regions.Tests
             var grid = MediumGrid();
             FillAll(grid, DepthClass.Land);
 
-            ProtoRegionGenerator.GenerateLand(
-                grid, 10, 42, out _, out List<Vector2i> s1);
-            ProtoRegionGenerator.GenerateLand(
-                grid, 10, 99, out _, out List<Vector2i> s2);
+            Generate(grid, 10, 42, out _, out List<Vector2i> s1);
+            Generate(grid, 10, 99, out _, out List<Vector2i> s2);
 
             // At least one seed should differ
             bool anyDiff = false;
@@ -198,45 +206,26 @@ namespace WorldZones.Regions.Tests
             Assert.True(anyDiff, "Expected different seed placement for different RNG seed");
         }
 
-        // ── 6. Seed count scales with land area ───────────────────────
+        // ── 6. Single large component → one region ───────────────────
 
         [Fact]
-        public void Seed_count_matches_target_density()
+        public void Single_large_component_produces_one_region()
         {
             var grid = MediumGrid();
-            FillAll(grid, DepthClass.Land);
-            int landCount = grid.Size * grid.Size; // 49
-
-            var result = ProtoRegionGenerator.GenerateLand(
-                grid, targetZonesPerRegion: 10, seedRng: 42,
-                out _, out List<Vector2i> seeds);
-
-            int expectedSeeds = System.Math.Max(1, landCount / 10);
-            Assert.Equal(expectedSeeds, seeds.Count);
-            Assert.Equal(expectedSeeds, result.RegionCount);
-        }
-
-        // ── 7. Single land zone → single region ──────────────────────
-
-        [Fact]
-        public void Single_land_zone_produces_one_region()
-        {
-            var grid = SmallGrid();
             FillAll(grid, DepthClass.Deep);
-            grid[0, 0] = DepthClass.Land;
+            // 4×4 = 16 land zones (above 12 threshold)
+            FillRect(grid, -2, -2, 1, 1, DepthClass.Land);
 
-            var result = ProtoRegionGenerator.GenerateLand(
-                grid, targetZonesPerRegion: 100, seedRng: 42,
+            var result = Generate(grid, targetZonesPerRegion: 100, seedRng: 42,
                 out int[,] regionIdGrid, out List<Vector2i> seeds);
 
             Assert.Equal(1, result.RegionCount);
-            Assert.Equal(1, result.LandZoneCount);
+            Assert.Equal(16, result.LandZoneCount);
+            Assert.Equal(0, result.MinorIsletCount);
             Assert.Equal(0, result.UnassignedLandCount);
-            Assert.Equal(1, result.MinAreaZones);
-            Assert.Equal(1, result.MaxAreaZones);
         }
 
-        // ── 8. Stats are consistent ──────────────────────────────────
+        // ── 7. Stats are consistent ──────────────────────────────────
 
         [Fact]
         public void Stats_are_internally_consistent()
@@ -244,20 +233,23 @@ namespace WorldZones.Regions.Tests
             var grid = MediumGrid();
             FillAll(grid, DepthClass.Land);
 
-            var result = ProtoRegionGenerator.GenerateLand(
-                grid, 10, 42, out _, out _);
+            var result = Generate(grid, 10, 42, out _, out _);
 
-            // Sum of all region areas = land count
-            int totalArea = result.Regions.Sum(r => r.AreaZones);
-            Assert.Equal(result.LandZoneCount, totalArea);
-            Assert.Equal(0, result.UnassignedLandCount);
+            // Sum of region areas + minor islet area = land count
+            int totalRegionArea = result.Regions.Sum(r => r.AreaZones);
+            Assert.Equal(result.LandZoneCount,
+                totalRegionArea + result.MinorIsletTotalArea);
+
+            // UnassignedLandCount == MinorIsletTotalArea
+            Assert.Equal(result.MinorIsletTotalArea, result.UnassignedLandCount);
+
             Assert.True(result.MinAreaZones >= 1);
             Assert.True(result.MaxAreaZones >= result.MinAreaZones);
             Assert.True(result.AvgAreaZones >= result.MinAreaZones);
             Assert.True(result.AvgAreaZones <= result.MaxAreaZones);
         }
 
-        // ── 9. Contiguity check ──────────────────────────────────────
+        // ── 8. Contiguity check ──────────────────────────────────────
 
         [Fact]
         public void Each_region_is_contiguous()
@@ -265,8 +257,7 @@ namespace WorldZones.Regions.Tests
             var grid = MediumGrid();
             FillAll(grid, DepthClass.Land);
 
-            var result = ProtoRegionGenerator.GenerateLand(
-                grid, 10, 42, out int[,] regionIdGrid, out _);
+            var result = Generate(grid, 10, 42, out int[,] regionIdGrid, out _);
 
             // For each region, BFS from any zone should reach all zones of that region
             var regionZones = new Dictionary<int, List<Vector2i>>();
@@ -310,7 +301,7 @@ namespace WorldZones.Regions.Tests
             }
         }
 
-        // ── 10. No land → no regions ─────────────────────────────────
+        // ── 9. No land → no regions ─────────────────────────────────
 
         [Fact]
         public void No_land_produces_zero_regions()
@@ -318,13 +309,158 @@ namespace WorldZones.Regions.Tests
             var grid = SmallGrid();
             FillAll(grid, DepthClass.Deep);
 
-            var result = ProtoRegionGenerator.GenerateLand(
-                grid, 10, 42, out _, out List<Vector2i> seeds);
+            var result = Generate(grid, 10, 42, out _, out List<Vector2i> seeds);
 
             Assert.Equal(0, result.RegionCount);
             Assert.Empty(seeds);
             Assert.Empty(result.Regions);
             Assert.Equal(0, result.LandZoneCount);
+            Assert.Equal(0, result.MinorIsletCount);
+        }
+
+        // ── 10. Minor islets: small components do not get regions ─────
+
+        [Fact]
+        public void Small_component_becomes_minor_islet()
+        {
+            var grid = MediumGrid();
+            FillAll(grid, DepthClass.Deep);
+
+            // Small island: 2 land zones (well below default threshold of 12)
+            grid[0, 0] = DepthClass.Land;
+            grid[1, 0] = DepthClass.Land;
+
+            var result = Generate(grid, targetZonesPerRegion: 100, seedRng: 42,
+                out int[,] regionIdGrid, out List<Vector2i> seeds);
+
+            // No proto-regions created
+            Assert.Equal(0, result.RegionCount);
+            Assert.Empty(seeds);
+
+            // One minor islet with 2 zones
+            Assert.Equal(1, result.MinorIsletCount);
+            Assert.Equal(2, result.MinorIsletTotalArea);
+            Assert.Equal(2, result.UnassignedLandCount);
+
+            // Both zones unassigned in grid
+            Assert.Equal(-1, regionIdGrid[0 - grid.MinIndex, 0 - grid.MinIndex]);
+            Assert.Equal(-1, regionIdGrid[0 - grid.MinIndex, 1 - grid.MinIndex]);
+        }
+
+        // ── 11. Tiny region merge ────────────────────────────────────
+
+        [Fact]
+        public void Tiny_regions_are_merged()
+        {
+            var grid = new ZoneGrid(320f); // 11×11 grid = 121 zones
+            FillAll(grid, DepthClass.Land);
+
+            // 121 zones, 1 component, target=20 → 6 seeds
+            // minRegionZones=6 → no region should be < 6 after merge
+            var result = Generate(grid, targetZonesPerRegion: 20, seedRng: 42,
+                out _, out _, minRegionZones: 6, minComponentZonesForProto: 1);
+
+            Assert.Equal(0, result.UnassignedLandCount);
+            foreach (var region in result.Regions)
+            {
+                Assert.True(region.AreaZones >= 6 || result.RegionCount == 1,
+                    $"Region {region.Id} has area {region.AreaZones} < 6");
+            }
+        }
+
+        // ── 12. Merge disabled when minRegionZones=0 ─────────────────
+
+        [Fact]
+        public void No_merge_when_minRegionZones_zero()
+        {
+            var grid = new ZoneGrid(320f); // 11×11
+            FillAll(grid, DepthClass.Land);
+
+            var result = Generate(grid, targetZonesPerRegion: 20, seedRng: 42,
+                out _, out _, minRegionZones: 0, minComponentZonesForProto: 1);
+
+            Assert.Equal(0, result.MergedRegionCount);
+        }
+
+        // ── 13. Mixed: large component gets regions, small becomes islet ─
+
+        [Fact]
+        public void Mixed_large_and_small_components()
+        {
+            var grid = MediumGrid();
+            FillAll(grid, DepthClass.Deep);
+
+            // Large island: 5×5 = 25 zones (above threshold)
+            FillRect(grid, -3, -3, 1, 1, DepthClass.Land);
+            // Tiny island: 2 zones (below threshold)
+            grid[3, 3] = DepthClass.Land;
+            grid[3, 2] = DepthClass.Land;
+
+            var result = Generate(grid, targetZonesPerRegion: 50, seedRng: 42,
+                out int[,] regionIdGrid, out List<Vector2i> seeds);
+
+            // Large island gets 1+ regions
+            Assert.True(result.RegionCount >= 1);
+            Assert.Equal(1, result.SeededComponentCount);
+
+            // Small island is a minor islet
+            Assert.Equal(1, result.MinorIsletCount);
+            Assert.Equal(2, result.MinorIsletTotalArea);
+
+            // Tiny island zones are unassigned
+            Assert.Equal(-1, regionIdGrid[3 - grid.MinIndex, 3 - grid.MinIndex]);
+            Assert.Equal(-1, regionIdGrid[2 - grid.MinIndex, 3 - grid.MinIndex]);
+
+            // Large island zones are assigned
+            for (int y = -3; y <= 1; y++)
+                for (int x = -3; x <= 1; x++)
+                    Assert.True(regionIdGrid[y - grid.MinIndex, x - grid.MinIndex] >= 0);
+        }
+
+        // ── 14. UnassignedLandCount equals minor islet total area ────
+
+        [Fact]
+        public void Unassigned_equals_minor_islet_area()
+        {
+            var grid = MediumGrid();
+            FillAll(grid, DepthClass.Deep);
+
+            // Several small islands below threshold
+            grid[-3, -3] = DepthClass.Land;
+            grid[-3, -2] = DepthClass.Land;
+            grid[3, 3] = DepthClass.Land;
+            grid[2, 3] = DepthClass.Land;
+
+            var result = Generate(grid, targetZonesPerRegion: 100, seedRng: 42,
+                out _, out _);
+
+            Assert.Equal(result.MinorIsletTotalArea, result.UnassignedLandCount);
+            Assert.Equal(4, result.UnassignedLandCount);
+            Assert.Equal(0, result.RegionCount);
+        }
+
+        // ── 15. Custom minComponentZonesForProto threshold ───────────
+
+        [Fact]
+        public void Custom_threshold_controls_islet_classification()
+        {
+            var grid = MediumGrid();
+            FillAll(grid, DepthClass.Deep);
+
+            // 3×3 = 9 land zones
+            FillRect(grid, -1, -1, 1, 1, DepthClass.Land);
+
+            // With default threshold (12): this is a minor islet
+            var result1 = Generate(grid, 100, 42, out _, out _,
+                minComponentZonesForProto: 12);
+            Assert.Equal(1, result1.MinorIsletCount);
+            Assert.Equal(0, result1.RegionCount);
+
+            // With lower threshold (5): this gets a proto-region
+            var result2 = Generate(grid, 100, 42, out _, out _,
+                minComponentZonesForProto: 5);
+            Assert.Equal(0, result2.MinorIsletCount);
+            Assert.Equal(1, result2.RegionCount);
         }
     }
 }

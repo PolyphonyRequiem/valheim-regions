@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using WorldZones.WorldGen;
 
 namespace WorldZones.Regions
@@ -15,7 +16,7 @@ namespace WorldZones.Regions
         /// <summary>Total number of land zones in the grid.</summary>
         public int LandZoneCount { get; set; }
 
-        /// <summary>Number of proto-regions created.</summary>
+        /// <summary>Number of proto-regions created (after merge).</summary>
         public int RegionCount { get; set; }
 
         /// <summary>Smallest region area (zone count).</summary>
@@ -28,15 +29,43 @@ namespace WorldZones.Regions
         public int MaxAreaZones { get; set; }
 
         /// <summary>
-        /// Number of land zones not assigned to any region.
-        /// Must be 0 after successful generation.
+        /// Number of land zones not assigned to any proto-region.
+        /// This equals the total zone count of all minor islets.
         /// </summary>
         public int UnassignedLandCount { get; set; }
+
+        /// <summary>Number of regions merged in the tiny-region merge pass.</summary>
+        public int MergedRegionCount { get; set; }
+
+        /// <summary>
+        /// Land components too small to get proto-regions
+        /// (AreaZones &lt; MinComponentZonesForProto).
+        /// </summary>
+        public List<MinorIslet> MinorIslets { get; set; } = new List<MinorIslet>();
+
+        /// <summary>Number of minor islets.</summary>
+        public int MinorIsletCount { get; set; }
+
+        /// <summary>Total zone count across all minor islets.</summary>
+        public int MinorIsletTotalArea { get; set; }
+
+        /// <summary>Number of land components that received proto-region seeding.</summary>
+        public int SeededComponentCount { get; set; }
     }
 
     /// <summary>
     /// Partitions <see cref="DepthClass.Land"/> zones into proto-regions via
     /// multi-source BFS from deterministically placed seed zones.
+    /// <para>
+    /// Seeds are placed per land component. Only land components with
+    /// <c>AreaZones &gt;= MinComponentZonesForProto</c> receive seeds and
+    /// proto-regions. Smaller components are recorded as <see cref="MinorIslet"/>s
+    /// and left unassigned, keeping proto-region geometry strictly contiguous.
+    /// </para>
+    /// <para>
+    /// A post-pass merges regions smaller than <see cref="DefaultMinRegionZones"/>
+    /// into their longest-border neighbor.
+    /// </para>
     /// <para>
     /// v0 is land-only: shallow and deep zones are excluded from traversal
     /// and assignment.
@@ -44,15 +73,35 @@ namespace WorldZones.Regions
     /// </summary>
     public static class ProtoRegionGenerator
     {
+        /// <summary>
+        /// Default minimum region size in zones. Regions smaller than this
+        /// are merged into their longest-border neighbor.
+        /// </summary>
+        public const int DefaultMinRegionZones = 6;
+
+        /// <summary>
+        /// Default minimum land component size to receive proto-region seeds.
+        /// Components smaller than this become <see cref="MinorIslet"/>s.
+        /// </summary>
+        public const int DefaultMinComponentZonesForProto = 12;
+
         private static readonly (int dx, int dy)[] Neighbors = { (1, 0), (-1, 0), (0, -1), (0, 1) };
 
         /// <summary>
-        /// Generates proto-regions over land zones.
+        /// Generates proto-regions over land zones using per-component seeding.
+        /// <para>
+        /// Each land component with <c>AreaZones &gt;= minComponentZonesForProto</c>
+        /// receives <c>max(1, AreaZones / targetZonesPerRegion)</c> seeds placed
+        /// via farthest-point heuristic, followed by multi-source BFS assignment
+        /// restricted to that component's land zones only. Components below the
+        /// threshold are recorded as <see cref="MinorIslet"/>s.
+        /// </para>
         /// </summary>
         /// <param name="grid">Classified zone grid.</param>
+        /// <param name="landComponents">Land components from <see cref="ComponentLabeler.LabelLand"/>.</param>
         /// <param name="targetZonesPerRegion">
         /// Desired average region size in zones.
-        /// Seed count = max(1, landCount / targetZonesPerRegion).
+        /// Per-component seed count = max(1, component.AreaZones / targetZonesPerRegion).
         /// </param>
         /// <param name="seedRng">
         /// Seed for <see cref="System.Random"/> used during seed placement.
@@ -60,18 +109,30 @@ namespace WorldZones.Regions
         /// </param>
         /// <param name="regionIdGrid">
         /// Output [size, size] array indexed by (zy - grid.MinIndex, zx - grid.MinIndex).
-        /// Contains the region ID for each zone, or -1 for non-land zones.
+        /// Contains the region ID for assigned zones, or -1 for unassigned/non-land zones.
         /// </param>
         /// <param name="seeds">Output list of seed zone coordinates, in placement order.</param>
-        /// <returns>Summary statistics including all generated regions.</returns>
+        /// <param name="minRegionZones">
+        /// Minimum region size. Regions smaller than this are merged into their
+        /// longest-border neighbor. Pass 0 to disable merging.
+        /// </param>
+        /// <param name="minComponentZonesForProto">
+        /// Minimum land component size to receive proto-region seeds.
+        /// Components smaller than this become <see cref="MinorIslet"/>s.
+        /// </param>
+        /// <returns>Summary statistics including all generated regions and minor islets.</returns>
         public static ProtoRegionResult GenerateLand(
             ZoneGrid grid,
+            List<LandComponent> landComponents,
             int targetZonesPerRegion,
             int seedRng,
             out int[,] regionIdGrid,
-            out List<Vector2i> seeds)
+            out List<Vector2i> seeds,
+            int minRegionZones = DefaultMinRegionZones,
+            int minComponentZonesForProto = DefaultMinComponentZonesForProto)
         {
             if (grid == null) throw new ArgumentNullException(nameof(grid));
+            if (landComponents == null) throw new ArgumentNullException(nameof(landComponents));
             if (targetZonesPerRegion <= 0)
                 throw new ArgumentOutOfRangeException(nameof(targetZonesPerRegion), "Must be > 0");
 
@@ -79,19 +140,48 @@ namespace WorldZones.Regions
             int min = grid.MinIndex;
             int max = grid.MaxIndex;
 
-            // ── 1. Collect all land coords in deterministic order ──────
-            var landCoords = new List<Vector2i>();
-            for (int zy = min; zy <= max; zy++)
-                for (int zx = min; zx <= max; zx++)
-                    if (grid[zx, zy] == DepthClass.Land)
-                        landCoords.Add(new Vector2i(zx, zy));
+            // ── 1. Partition components into seeded vs minor islets ───
+            var seededComponents = new List<LandComponent>();
+            var minorIslets = new List<MinorIslet>();
+            int minorIsletTotalArea = 0;
 
-            int landCount = landCoords.Count;
+            // Sort by descending area for deterministic processing order
+            var sortedComponents = new List<LandComponent>(landComponents);
+            sortedComponents.Sort((a, b) =>
+            {
+                int cmp = b.Zones.Count.CompareTo(a.Zones.Count);
+                return cmp != 0 ? cmp : a.Id.CompareTo(b.Id);
+            });
 
-            // ── 2. Place seeds ────────────────────────────────────────
-            seeds = PlaceSeeds(landCoords, landCount, targetZonesPerRegion, seedRng);
+            foreach (var lc in sortedComponents)
+            {
+                if (lc.Zones.Count >= minComponentZonesForProto)
+                {
+                    seededComponents.Add(lc);
+                }
+                else
+                {
+                    minorIslets.Add(new MinorIslet(lc.Id, lc.Zones.Count));
+                    minorIsletTotalArea += lc.Zones.Count;
+                }
+            }
 
-            // ── 3. Multi-source BFS assignment ────────────────────────
+            // ── 2. Place seeds per qualifying component ──────────────
+            seeds = new List<Vector2i>();
+            var rng = new Random(seedRng);
+
+            int landCount = 0;
+            foreach (var lc in landComponents)
+                landCount += lc.Zones.Count;
+
+            foreach (var lc in seededComponents)
+            {
+                int componentSeedCount = Math.Max(1, lc.Zones.Count / targetZonesPerRegion);
+                var placed = PlaceSeeds(lc.Zones, lc.Zones.Count, componentSeedCount, rng);
+                seeds.AddRange(placed);
+            }
+
+            // ── 3. Multi-source BFS assignment (land-only) ───────────
             regionIdGrid = new int[size, size];
             for (int y = 0; y < size; y++)
                 for (int x = 0; x < size; x++)
@@ -134,61 +224,15 @@ namespace WorldZones.Regions
                 }
             }
 
-            // ── 3b. Mop up: any land zone not reached by BFS gets its own region ──
-            // This handles small isolated land components that received no seed.
-            for (int zy = min; zy <= max; zy++)
+            // ── 4. Merge tiny regions ─────────────────────────────────
+            int mergedCount = 0;
+            if (minRegionZones > 0 && seeds.Count > 1)
             {
-                for (int zx = min; zx <= max; zx++)
-                {
-                    if (grid[zx, zy] != DepthClass.Land)
-                        continue;
-
-                    int gy = zy - min;
-                    int gx = zx - min;
-
-                    if (regionIdGrid[gy, gx] >= 0)
-                        continue; // already assigned
-
-                    // New region seeded here
-                    int newId = seeds.Count;
-                    var newSeed = new Vector2i(zx, zy);
-                    seeds.Add(newSeed);
-                    regionIdGrid[gy, gx] = newId;
-                    queue.Enqueue(newSeed);
-
-                    // BFS fill from this new seed
-                    while (queue.Count > 0)
-                    {
-                        var cur2 = queue.Dequeue();
-                        int cgy2 = cur2.y - min;
-                        int cgx2 = cur2.x - min;
-
-                        foreach (var (dx, dy) in Neighbors)
-                        {
-                            int nx = cur2.x + dx;
-                            int ny = cur2.y + dy;
-
-                            if (nx < min || nx > max || ny < min || ny > max)
-                                continue;
-
-                            int ngy = ny - min;
-                            int ngx = nx - min;
-
-                            if (regionIdGrid[ngy, ngx] >= 0)
-                                continue;
-
-                            if (grid[nx, ny] != DepthClass.Land)
-                                continue;
-
-                            regionIdGrid[ngy, ngx] = newId;
-                            queue.Enqueue(new Vector2i(nx, ny));
-                        }
-                    }
-                }
+                mergedCount = MergeTinyRegions(grid, regionIdGrid, seeds, minRegionZones);
             }
 
-            // ── 4. Build result ───────────────────────────────────────
-            var regionAreas = new int[seeds.Count];
+            // ── 5. Build result ───────────────────────────────────────
+            var regionAreas = new Dictionary<int, int>();
             int unassigned = 0;
 
             for (int zy = min; zy <= max; zy++)
@@ -200,61 +244,195 @@ namespace WorldZones.Regions
 
                     int rid = regionIdGrid[zy - min, zx - min];
                     if (rid < 0)
+                    {
                         unassigned++;
+                    }
                     else
+                    {
+                        if (!regionAreas.ContainsKey(rid))
+                            regionAreas[rid] = 0;
                         regionAreas[rid]++;
+                    }
                 }
             }
 
-            var regions = new List<ProtoRegion>(seeds.Count);
+            var regions = new List<ProtoRegion>(regionAreas.Count);
             int minArea = int.MaxValue;
             int maxArea = 0;
             long totalArea = 0;
 
-            for (int i = 0; i < seeds.Count; i++)
+            foreach (var kv in regionAreas)
             {
-                var r = new ProtoRegion(i, seeds[i]);
-                r.AreaZones = regionAreas[i];
+                var r = new ProtoRegion(kv.Key, seeds[kv.Key]);
+                r.AreaZones = kv.Value;
                 regions.Add(r);
 
-                if (regionAreas[i] < minArea) minArea = regionAreas[i];
-                if (regionAreas[i] > maxArea) maxArea = regionAreas[i];
-                totalArea += regionAreas[i];
+                if (kv.Value < minArea) minArea = kv.Value;
+                if (kv.Value > maxArea) maxArea = kv.Value;
+                totalArea += kv.Value;
             }
 
             regions.Sort((a, b) => b.AreaZones.CompareTo(a.AreaZones));
+
+            int regionCount = regionAreas.Count;
 
             return new ProtoRegionResult
             {
                 Regions = regions,
                 LandZoneCount = landCount,
-                RegionCount = seeds.Count,
-                MinAreaZones = seeds.Count > 0 ? minArea : 0,
-                AvgAreaZones = seeds.Count > 0 ? (float)totalArea / seeds.Count : 0f,
+                RegionCount = regionCount,
+                MinAreaZones = regionCount > 0 ? minArea : 0,
+                AvgAreaZones = regionCount > 0 ? (float)totalArea / regionCount : 0f,
                 MaxAreaZones = maxArea,
-                UnassignedLandCount = unassigned
+                UnassignedLandCount = unassigned,
+                MergedRegionCount = mergedCount,
+                MinorIslets = minorIslets,
+                MinorIsletCount = minorIslets.Count,
+                MinorIsletTotalArea = minorIsletTotalArea,
+                SeededComponentCount = seededComponents.Count
             };
         }
 
         /// <summary>
-        /// Places seed zones using farthest-point heuristic:
-        /// first seed is random; each subsequent seed maximizes
-        /// minimum Manhattan distance to all existing seeds.
+        /// Merges regions with area &lt; minRegionZones into the neighboring region
+        /// sharing the longest 4-neighbor border. Deterministic tie-break: lower region ID wins.
+        /// Repeats until no more merges are possible.
+        /// </summary>
+        /// <returns>Number of regions merged away.</returns>
+        private static int MergeTinyRegions(
+            ZoneGrid grid, int[,] regionIdGrid, List<Vector2i> seeds, int minRegionZones)
+        {
+            int min = grid.MinIndex;
+            int max = grid.MaxIndex;
+            int size = grid.Size;
+            int totalMerged = 0;
+
+            // Iteratively merge until stable
+            bool changed = true;
+            while (changed)
+            {
+                changed = false;
+
+                // Recompute areas
+                var areas = new Dictionary<int, int>();
+                for (int gy = 0; gy < size; gy++)
+                {
+                    for (int gx = 0; gx < size; gx++)
+                    {
+                        int rid = regionIdGrid[gy, gx];
+                        if (rid < 0) continue;
+                        if (!areas.ContainsKey(rid))
+                            areas[rid] = 0;
+                        areas[rid]++;
+                    }
+                }
+
+                // Find tiny regions, sorted by area ascending then ID ascending for determinism
+                var tinyRegions = new List<int>();
+                foreach (var kv in areas)
+                {
+                    if (kv.Value < minRegionZones)
+                        tinyRegions.Add(kv.Key);
+                }
+
+                if (tinyRegions.Count == 0)
+                    break;
+
+                tinyRegions.Sort((a, b) =>
+                {
+                    int cmp = areas[a].CompareTo(areas[b]);
+                    return cmp != 0 ? cmp : a.CompareTo(b);
+                });
+
+                foreach (int tinyId in tinyRegions)
+                {
+                    // Re-check area — previous merges in this iteration may have changed it
+                    int currentArea = 0;
+                    for (int gy = 0; gy < size; gy++)
+                        for (int gx = 0; gx < size; gx++)
+                            if (regionIdGrid[gy, gx] == tinyId)
+                                currentArea++;
+
+                    if (currentArea >= minRegionZones || currentArea == 0)
+                        continue;
+
+                    // Count border length with each neighbor region
+                    var borderCounts = new Dictionary<int, int>();
+                    for (int gy = 0; gy < size; gy++)
+                    {
+                        for (int gx = 0; gx < size; gx++)
+                        {
+                            if (regionIdGrid[gy, gx] != tinyId)
+                                continue;
+
+                            int zx = gx + min;
+                            int zy = gy + min;
+
+                            foreach (var (dx, dy) in Neighbors)
+                            {
+                                int nx = zx + dx;
+                                int ny = zy + dy;
+                                if (nx < min || nx > max || ny < min || ny > max)
+                                    continue;
+
+                                int nrid = regionIdGrid[ny - min, nx - min];
+                                if (nrid >= 0 && nrid != tinyId)
+                                {
+                                    if (!borderCounts.ContainsKey(nrid))
+                                        borderCounts[nrid] = 0;
+                                    borderCounts[nrid]++;
+                                }
+                            }
+                        }
+                    }
+
+                    if (borderCounts.Count == 0)
+                        continue; // isolated, no neighbor to merge into
+
+                    // Find best neighbor: longest border, tie-break: lower ID
+                    int bestNeighbor = -1;
+                    int bestBorder = -1;
+                    foreach (var kv in borderCounts)
+                    {
+                        if (kv.Value > bestBorder ||
+                            (kv.Value == bestBorder && kv.Key < bestNeighbor))
+                        {
+                            bestBorder = kv.Value;
+                            bestNeighbor = kv.Key;
+                        }
+                    }
+
+                    // Merge: reassign all zones of tinyId to bestNeighbor
+                    for (int gy = 0; gy < size; gy++)
+                        for (int gx = 0; gx < size; gx++)
+                            if (regionIdGrid[gy, gx] == tinyId)
+                                regionIdGrid[gy, gx] = bestNeighbor;
+
+                    totalMerged++;
+                    changed = true;
+                }
+            }
+
+            return totalMerged;
+        }
+
+        /// <summary>
+        /// Places seed zones using farthest-point heuristic within a given
+        /// list of candidate coordinates. First seed is random; each subsequent
+        /// seed maximizes minimum Manhattan distance to all existing seeds.
         /// </summary>
         private static List<Vector2i> PlaceSeeds(
             List<Vector2i> landCoords,
             int landCount,
-            int targetZonesPerRegion,
-            int seedRng)
+            int seedCount,
+            Random rng)
         {
-            int seedCount = Math.Max(1, landCount / targetZonesPerRegion);
-            var rng = new Random(seedRng);
             var seeds = new List<Vector2i>(seedCount);
 
             if (landCount == 0)
                 return seeds;
 
-            // First seed: random land zone
+            // First seed: random land zone from this group
             seeds.Add(landCoords[rng.Next(landCount)]);
 
             // Subsequent seeds: farthest-point sampling with 256 candidates
@@ -265,7 +443,8 @@ namespace WorldZones.Regions
                 Vector2i best = landCoords[0];
                 int bestScore = -1;
 
-                for (int c = 0; c < CandidateCount; c++)
+                int candidatesThisRound = Math.Min(CandidateCount, landCount);
+                for (int c = 0; c < candidatesThisRound; c++)
                 {
                     var candidate = landCoords[rng.Next(landCount)];
                     int minDist = int.MaxValue;
