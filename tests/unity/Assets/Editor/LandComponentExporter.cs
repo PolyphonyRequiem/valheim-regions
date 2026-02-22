@@ -313,14 +313,18 @@ public static class LandComponentExporter
         int protoSeedRng = seed.GetHashCode();
         var swProto = Stopwatch.StartNew();
         var protoResult = ProtoRegionGenerator.GenerateLand(
-            grid, targetZonesPerRegion, protoSeedRng,
+            grid, components,
+            targetZonesPerRegion, protoSeedRng,
             out int[,] regionIdGrid, out List<WorldZones.WorldGen.Vector2i> protoSeeds);
         swProto.Stop();
         Debug.Log($"Proto-region generation: {swProto.ElapsedMilliseconds} ms");
         Debug.Log($"  Seeds: {protoSeeds.Count}, Target: {targetZonesPerRegion} zones/region");
-        Debug.Log($"  Regions: {protoResult.RegionCount}");
+        Debug.Log($"  Seeded components: {protoResult.SeededComponentCount}");
+        Debug.Log($"  Regions (after merge): {protoResult.RegionCount}");
+        Debug.Log($"  Merged away: {protoResult.MergedRegionCount}");
+        Debug.Log($"  Minor islets: {protoResult.MinorIsletCount} ({protoResult.MinorIsletTotalArea} zones)");
         Debug.Log($"  Land zones: {protoResult.LandZoneCount}");
-        Debug.Log($"  Unassigned: {protoResult.UnassignedLandCount}");
+        Debug.Log($"  Unassigned (minor islet zones): {protoResult.UnassignedLandCount}");
         Debug.Log($"  Area min/avg/max: {protoResult.MinAreaZones}/{protoResult.AvgAreaZones:F1}/{protoResult.MaxAreaZones}");
         for (int i = 0; i < Math.Min(protoResult.Regions.Count, 10); i++)
         {
@@ -384,81 +388,28 @@ public static class LandComponentExporter
         var seedsFileInfo = new FileInfo(seedsPath);
         Debug.Log($"Proto seeds PNG: {swSeedSave.ElapsedMilliseconds} ms ({seedsFileInfo.Length / 1024} KB)");
 
-        // ── 15. Render proto_regions.png ──────────────────────────
+        // ── 15. Render proto_regions.png (1:1, solid fills, no boundaries) ──
         var swRegionRender = Stopwatch.StartNew();
         byte[] regionRgb = new byte[size * size * 3];
 
-        // Pre-compute boundary set: land zones adjacent to a different region ID
-        var boundarySet = new HashSet<(int, int)>();
-        var bDirs = new (int, int)[] { (1, 0), (-1, 0), (0, 1), (0, -1) };
+        // Background: dark ocean
+        for (int i = 0; i < regionRgb.Length; i += 3)
+        {
+            regionRgb[i]     = 20;
+            regionRgb[i + 1] = 20;
+            regionRgb[i + 2] = 30;
+        }
+
+        // Fill each region zone with its color (north-up: flip Y)
         for (int gy = 0; gy < size; gy++)
         {
             for (int gx = 0; gx < size; gx++)
             {
                 int rid = regionIdGrid[gy, gx];
                 if (rid < 0) continue;
-                int zx = gx + grid.MinIndex;
-                int zy = gy + grid.MinIndex;
 
-                foreach (var (dx, dy) in bDirs)
-                {
-                    int nx = zx + dx;
-                    int ny = zy + dy;
-                    if (nx < grid.MinIndex || nx > grid.MaxIndex ||
-                        ny < grid.MinIndex || ny > grid.MaxIndex)
-                    {
-                        boundarySet.Add((zx, zy));
-                        continue;
-                    }
-                    int ngy = ny - grid.MinIndex;
-                    int ngx = nx - grid.MinIndex;
-                    int nrid = regionIdGrid[ngy, ngx];
-                    if (nrid != rid)
-                    {
-                        boundarySet.Add((zx, zy));
-                        break;
-                    }
-                }
-            }
-        }
-
-        for (int gy = 0; gy < size; gy++)
-        {
-            for (int gx = 0; gx < size; gx++)
-            {
-                int zx = gx + grid.MinIndex;
-                int zy = gy + grid.MinIndex;
-                int rid = regionIdGrid[gy, gx];
-
-                Color32 c;
-                if (rid >= 0)
-                {
-                    if (boundarySet.Contains((zx, zy)))
-                    {
-                        // Darken boundary pixels
-                        var baseC = ComponentColor(rid);
-                        c = new Color32(
-                            (byte)(baseC.r / 3),
-                            (byte)(baseC.g / 3),
-                            (byte)(baseC.b / 3),
-                            255);
-                    }
-                    else
-                    {
-                        c = ComponentColor(rid);
-                    }
-                }
-                else if (grid[zx, zy] == DepthClass.Shallow)
-                {
-                    c = ColorShallow;
-                }
-                else
-                {
-                    c = ColorDeep;
-                }
-
-                int py = size - 1 - gy;
-                int offset = (py * size + gx) * 3;
+                var c = ComponentColor(rid);
+                int offset = ((size - 1 - gy) * size + gx) * 3;
                 regionRgb[offset]     = c.r;
                 regionRgb[offset + 1] = c.g;
                 regionRgb[offset + 2] = c.b;
@@ -476,7 +427,7 @@ public static class LandComponentExporter
         PngWriter.Write(regionsPath, size, size, regionRgb);
         swRegionSave.Stop();
         var regionsFileInfo = new FileInfo(regionsPath);
-        Debug.Log($"Proto regions PNG: {swRegionSave.ElapsedMilliseconds} ms ({regionsFileInfo.Length / 1024} KB)");
+        Debug.Log($"Proto regions PNG: {swRegionSave.ElapsedMilliseconds} ms ({regionsFileInfo.Length / 1024} KB, {size}×{size}px)");
 
         Debug.Log("=== Summary ===");
         Debug.Log($"WorldGen init:     {swInit.ElapsedMilliseconds} ms");
