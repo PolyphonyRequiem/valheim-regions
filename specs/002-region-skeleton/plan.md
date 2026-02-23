@@ -58,33 +58,33 @@ src/
     ├── DepthClass.cs             # Land/Shallow/Deep enum
     ├── ZoneGrid.cs               # 64×64m zone grid over world
     ├── ZoneClassifier.cs         # Classifies zones by depth
-    ├── ComponentLabeler.cs       # Connected-component analysis
-    ├── LandComponent.cs          # Labeled land body
+    ├── ComponentLabeler.cs       # Connected-component analysis (includes LandComponent)
     ├── ShelfComponent.cs         # Labeled shelf (land∪shallow)
     ├── ArchipelagoDetector.cs    # Archipelago candidate detection
     ├── ArchipelagoCandidate.cs   # Archipelago metadata
-    ├── ProtoTerritoryGenerator.cs # Weighted adjacency Voronoi partitioning
-    ├── ProtoTerritory.cs         # Territory result
-    ├── WeightedZoneDistance.cs   # Weighted grid distance (Dijkstra over DepthClass costs)
-    └── DebugOverlayExporter.cs   # PNG overlay rendering
+    ├── ProtoRegionGenerator.cs   # Land-only BFS partitioning (per-component seeding)
+    ├── ProtoRegion.cs            # Region result (ID, seed, area)
+    └── MinorIslet.cs             # Small land components below proto-region threshold
 
 tests/
 ├── unity/                        # Existing — Unity test runner project
 │   └── Assets/
-│       ├── Plugins/
-│       │   ├── WorldZones.WorldGen.dll    # Existing precompiled reference
-│       │   └── WorldZones.Regions.dll     # NEW — copied after build
-│       └── Tests/
-│           └── WorldZones.WorldGen.Tests.Unity.asmdef  # Add Regions.dll ref
+│       ├── Editor/
+│       │   └── LandComponentExporter.cs  # PNG overlay export (runs in Unity batch mode)
+│       └── Plugins/
+│           ├── WorldZones.WorldGen.dll    # Existing precompiled reference
+│           └── WorldZones.Regions.dll     # NEW — copied after build
 └── WorldZones.Regions.Tests/     # NEW — xUnit tests for region skeleton
     ├── ZoneClassifierTests.cs
-    ├── ComponentLabelerTests.cs
     ├── ArchipelagoDetectorTests.cs
-    ├── ProtoTerritoryGeneratorTests.cs
-    └── DebugOverlayExporterTests.cs
+    └── ProtoRegionGeneratorTests.cs
 ```
 
-**Structure Decision**: New `WorldZones.Regions` project alongside existing `WorldZones.WorldGen`, following the same pattern: standalone .NET library → build DLL → copy to `tests/unity/Assets/Plugins/` → Unity `.asmdef` references it as precompiled. Region logic depends on WorldGen but has no reverse dependency. Existing build/sync scripts (e.g., `Run-UnityTestSuite.ps1`) will be extended to also build and copy `WorldZones.Regions.dll`.
+**Structure Decision**: New `WorldZones.Regions` project alongside existing `WorldZones.WorldGen`, following the same pattern: standalone .NET library → build DLL → copy to `tests/unity/Assets/Plugins/` → Unity Editor scripts auto-reference precompiled DLLs from Plugins. Region logic depends on WorldGen but has no reverse dependency. A dedicated `scripts/Export-LandComponents.ps1` handles building and deploying the DLL.
+
+**Naming Decision**: Original plan used "ProtoTerritory" terminology. During implementation, renamed to "ProtoRegion" to better reflect its purpose as a region precursor rather than a territory claim. "WeightedZoneDistance" (Dijkstra with shallow cost) was deferred; v0 uses land-only BFS.
+
+**Discovered Concepts**: `MinorIslet` emerged during implementation — small land components (< 12 zones) that are too tiny for their own proto-region. Tracked as metadata for future merging decisions. `EffectiveLandmass` (Union-Find grouping of land components via shallow bridging) was prototyped and abandoned — per-component seeding proved simpler and more effective.
 
 ## Complexity Tracking
 

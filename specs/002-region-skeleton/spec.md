@@ -71,15 +71,19 @@ A **Shelf Component** is flagged as an *archipelago candidate* if:
 
 Archipelago candidates influence later merging but do not create regions in v0.
 
-### Proto-Territory
-A preliminary territorial partition created by assigning zones to the nearest seed via weighted adjacency distance over zones.
+### Minor Islet
+A land component too small to warrant its own proto-region. Land components with fewer than `MinComponentZonesForProto` zones (default 12) are classified as minor islets. They are tracked as metadata but excluded from proto-region partitioning.
 
-Elevation is used only for DepthClass classification (land/shallow/deep) in v0. Proto-territory distance uses weighted zone adjacency (land vs shallow vs deep blocked) and does not incorporate slope, ridge, or elevation cost.
+### Proto-Region
+A preliminary territorial partition created by assigning land zones to the nearest seed via BFS over land-only adjacency.
 
-Proto-territories:
+In v0, proto-regions are **land-only**: shallow and deep zones are excluded from both seeding and traversal. Shallow zone traversal is deferred to a future iteration when weighted distance (Dijkstra with configurable shallow cost) is introduced.
+
+Proto-regions:
 - Always contain land
-- May include shallow zones
+- Never include shallow zones (v0)
 - Never include deep zones
+- Small land components below a configurable threshold become minor islets instead
 
 ---
 
@@ -113,24 +117,24 @@ so that archipelagos are not lost in later region processing.
 
 ---
 
-### User Story 3 — Generate Proto-Territories (P3)
+### User Story 3 — Generate Proto-Regions (P3)
 
 As a developer,  
 I need a first-pass territorial partition  
 to evaluate whether the geographic model produces plausible regions.
 
 **Rules**
-- Seeds are placed only on land zones
-- Distance is computed over zones:
-  - Land cost = 1
-  - Shallow cost > 1
-  - Deep = impassable
+- Seeds are placed only on land zones of qualifying components (≥ MinComponentZonesForProto)
+- Small land components become minor islets (metadata only, no proto-region)
+- BFS traversal is land-only in v0 (no shallow crossing)
+- Deep = impassable
 
 **Acceptance Criteria**
-1. Every land zone belongs to exactly one proto-territory
-2. Proto-territories never cross deep water
-3. Shallow zones are assigned only when attached to land
-4. Proto-territories are contiguous
+1. Every land zone in a qualifying component belongs to exactly one proto-region
+2. Proto-regions never cross deep water
+3. Shallow and deep zones are not assigned to any proto-region (v0)
+4. Proto-regions are contiguous
+5. Minor islets are tracked but not assigned to proto-regions
 
 ---
 
@@ -143,7 +147,8 @@ I need visual overlays to validate results by inspection.
 - `land_components.png`
 - `shelf_components.png`
 - `archipelago_candidates.png`
-- `proto_territories.png`
+- `proto_seeds.png`
+- `proto_regions.png`
 
 **Acceptance Criteria**
 - Overlays align with biome map coordinates
@@ -159,8 +164,9 @@ I need visual overlays to validate results by inspection.
 - **FR-003**: Land components MUST be computed via connected components
 - **FR-004**: Shelf components MUST be computed over Land ∪ Shallow
 - **FR-005**: Archipelago candidates MUST be derived from shelf components
-- **FR-006**: Proto-territories MUST be generated via weighted zone adjacency distance (not elevation-based geodesic)
-- **FR-007**: Deep zones MUST NOT be assigned to any proto-territory
+- **FR-006**: Proto-regions MUST be generated via land-only BFS from per-component seeds in v0 (weighted Dijkstra with shallow traversal deferred to future iteration)
+- **FR-006a**: Land components below `MinComponentZonesForProto` (default 12) MUST be classified as minor islets, not proto-regions
+- **FR-007**: Deep and shallow zones MUST NOT be assigned to any proto-region (v0)
 - **FR-008**: All results MUST be deterministic
 - **FR-009**: Debug overlays MUST be exportable as PNGs
 
@@ -168,8 +174,9 @@ I need visual overlays to validate results by inspection.
 
 ## Invariants
 
-- Every land zone belongs to exactly one proto-territory
-- No proto-territory contains deep zones
+- Every land zone in a qualifying component belongs to exactly one proto-region
+- Minor islet zones are unassigned (tracked as metadata)
+- No proto-region contains deep or shallow zones (v0)
 - Shallow zones never form a region by themselves
 - Outputs are identical for the same seed and parameters
 
@@ -177,8 +184,9 @@ I need visual overlays to validate results by inspection.
 
 ## Parameters (Configurable)
 
-- Shallow traversal cost
-- Seed count or density
+- Target zones per region (seed density)
+- Minimum region size (zones) for merge threshold
+- Minimum component size for proto-region qualification (minor islet threshold)
 - Archipelago thresholds:
   - Minimum land components
   - Maximum dominant land share
@@ -191,7 +199,7 @@ I need visual overlays to validate results by inspection.
 - Archipelagos remain coherent
 - Mainland regions do not balloon along coasts
 - Ashlands / Deep North naturally isolate without special casing
-- Full-world run completes in acceptable offline time
+- Full-world run completes in < 5 minutes (actual: < 1 second)
 
 ---
 
