@@ -1,5 +1,7 @@
 <Solution>
-  <Folder Name="/src/" />
+  <Folder Name="/src/">
+    <Project Path="src/WorldZones.Cli/WorldZones.Cli.csproj" />
+  </Folder>
   <Folder Name="/tests/" />
   <Properties Name="Configuration">
     <Property Name="Debug" />

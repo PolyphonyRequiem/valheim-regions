@@ -1,5 +1,5 @@
+using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace WorldZones.WorldGen
 {
@@ -85,8 +85,8 @@ namespace WorldZones.WorldGen
         public static BiomeType GetHeightmapBiome(WorldGenerator worldGen, Vector2 worldPos, int chunkSize, float scale)
         {
             // Find the heightmap chunk this position belongs to
-            float chunkWorldX = Mathf.Floor(worldPos.x / (chunkSize * scale)) * (chunkSize * scale);
-            float chunkWorldY = Mathf.Floor(worldPos.y / (chunkSize * scale)) * (chunkSize * scale);
+            float chunkWorldX = (float)Math.Floor(worldPos.x / (chunkSize * scale)) * (chunkSize * scale);
+            float chunkWorldY = (float)Math.Floor(worldPos.y / (chunkSize * scale)) * (chunkSize * scale);
             var chunkCenter = new Vector2(chunkWorldX + (chunkSize * scale) * 0.5f, chunkWorldY + (chunkSize * scale) * 0.5f);
             
             // Get corner biomes
@@ -145,12 +145,12 @@ namespace WorldZones.WorldGen
         {
             float dx = x - tx;
             float dy = y - ty;
-            return Mathf.Max(0f, 1f - Mathf.Sqrt(dx * dx + dy * dy));
+            return Math.Max(0f, 1f - (float)Math.Sqrt(dx * dx + dy * dy));
         }
         
         private static float SmoothStep(float min, float max, float value)
         {
-            float t = Mathf.Clamp01((value - min) / (max - min));
+            float t = MathUtils.Clamp01((value - min) / (max - min));
             return t * t * (3f - 2f * t);
         }
         

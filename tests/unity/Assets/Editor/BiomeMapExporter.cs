@@ -83,14 +83,14 @@ public static class BiomeMapExporter
 
         // Generate offsets from seed (matching Valheim's constructor)
         int seedHash = seed.GetStableHashCode();
-        UnityEngine.Random.InitState(seedHash);
-        float offset0 = UnityEngine.Random.Range(-10000, 10000);
-        float offset1 = UnityEngine.Random.Range(-10000, 10000);
-        float offset2 = UnityEngine.Random.Range(-10000, 10000);
-        float offset3 = UnityEngine.Random.Range(-10000, 10000);
-        UnityEngine.Random.Range(int.MinValue, int.MaxValue); // riverSeed
-        UnityEngine.Random.Range(int.MinValue, int.MaxValue); // streamSeed
-        float offset4 = UnityEngine.Random.Range(-10000, 10000);
+        var rng = new WorldZones.WorldGen.UnityRandom(seedHash);
+        float offset0 = rng.Range(-10000, 10000);
+        float offset1 = rng.Range(-10000, 10000);
+        float offset2 = rng.Range(-10000, 10000);
+        float offset3 = rng.Range(-10000, 10000);
+        rng.Range(int.MinValue, int.MaxValue); // riverSeed
+        rng.Range(int.MinValue, int.MaxValue); // streamSeed
+        float offset4 = rng.Range(-10000, 10000);
 
         var swInit = Stopwatch.StartNew();
         var wg = new WorldZones.WorldGen.WorldGenerator(seed, offset0, offset1, offset2, offset3, offset4);
