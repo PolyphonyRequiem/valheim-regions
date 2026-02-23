@@ -145,6 +145,26 @@ namespace WorldZones.WorldGen
         }
         
         /// <summary>
+        /// Double-precision smooth Hermite interpolation (smoothstep).
+        /// Matches DUtils.MathfLikeSmoothStep.
+        /// </summary>
+        public static double MathfLikeSmoothStep(double min, double max, double value)
+        {
+            double t = Clamp01((value - min) / (max - min));
+            return t * t * (3.0 - 2.0 * t);
+        }
+
+        /// <summary>
+        /// Clamps a value between min and max.
+        /// </summary>
+        public static float Clamp(float value, float min, float max)
+        {
+            if (value < min) return min;
+            if (value > max) return max;
+            return value;
+        }
+
+        /// <summary>
         /// Overlay blend mode. Matches DUtils.BlendOverlay.
         /// </summary>
         public static double BlendOverlay(double a, double b)
@@ -155,28 +175,20 @@ namespace WorldZones.WorldGen
         }
         
         /// <summary>
-        /// Fractal Brownian Motion using Unity's PerlinNoise. Matches DUtils.Fbm(Vector2, ...).
+        /// Fractal Brownian Motion using PerlinNoise. Matches DUtils.Fbm(Vector2, ...).
         /// </summary>
-        public static double Fbm(UnityEngine.Vector2 pos, int octaves, float lacunarity, float gain)
+        public static double Fbm(Vector2 pos, int octaves, float lacunarity, float gain)
         {
             float sum = 0f;
             float amp = 1f;
             float freq = 1f;
             for (int i = 0; i < octaves; i++)
             {
-                sum += amp * (UnityEngine.Mathf.PerlinNoise(pos.x * freq, pos.y * freq) * 2f - 1f);
+                sum += amp * (PerlinNoise.Noise(pos.x * freq, pos.y * freq) * 2f - 1f);
                 freq *= lacunarity;
                 amp *= gain;
             }
             return sum;
-        }
-        
-        /// <summary>
-        /// Fractal Brownian Motion using Vector3 (uses x,z). Matches DUtils.Fbm(Vector3, ...).
-        /// </summary>
-        public static double Fbm(UnityEngine.Vector3 pos, int octaves, float lacunarity, float gain)
-        {
-            return Fbm(new UnityEngine.Vector2(pos.x, pos.z), octaves, lacunarity, gain);
         }
         
         /// <summary>

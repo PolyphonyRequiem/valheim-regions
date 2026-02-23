@@ -156,7 +156,7 @@ namespace WorldZones.WorldGen.Tests
         
         (int biomeMatches, int heightMatches) TestOffsets(double[] offsets, (float x, float z)[] coords, string dataPath, MapMetadata metadata)
         {
-            var generator = new WorldGenerator("HHcLC5acQt", offsets[0], offsets[1], offsets[2], offsets[3], offsets[4], offsets[5]);
+            var generator = new WorldGenerator("HHcLC5acQt", (float)offsets[0], (float)offsets[1], (float)offsets[2], (float)offsets[3], (float)offsets[4]);
             
             int biomeMatches = 0;
             int heightMatches = 0;

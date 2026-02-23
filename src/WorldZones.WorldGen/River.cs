@@ -2,9 +2,9 @@ namespace WorldZones.WorldGen
 {
     public class River
     {
-        public UnityEngine.Vector2 p0;
-        public UnityEngine.Vector2 p1;
-        public UnityEngine.Vector2 center;
+        public Vector2 p0;
+        public Vector2 p1;
+        public Vector2 center;
         public float widthMin;
         public float widthMax;
         public float curveWidth;
@@ -13,11 +13,11 @@ namespace WorldZones.WorldGen
 
     public struct RiverPoint
     {
-        public UnityEngine.Vector2 p;
+        public Vector2 p;
         public float w;
         public float w2;
 
-        public RiverPoint(UnityEngine.Vector2 p, float w)
+        public RiverPoint(Vector2 p, float w)
         {
             this.p = p;
             this.w = w;

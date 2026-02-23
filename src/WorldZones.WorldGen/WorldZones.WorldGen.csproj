@@ -6,15 +6,4 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Reference Include="UnityEngine.CoreModule">
-      <HintPath>..\..\lib\UnityEngine.CoreModule.dll</HintPath>
-      <Private>true</Private>
-    </Reference>
-    <Reference Include="assembly_utils">
-      <HintPath>..\..\lib\assembly_utils.dll</HintPath>
-      <Private>true</Private>
-    </Reference>
-  </ItemGroup>
-
 </Project>
