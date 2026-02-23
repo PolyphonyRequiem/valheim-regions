@@ -73,21 +73,22 @@
 
 ---
 
-## Phase 5: User Story 3 — Generate Proto-Territories (Priority: P3)
+## Phase 5: User Story 3 — Generate Proto-Regions (Priority: P3)
 
-**Goal**: Partition land (and attached shallow) zones into proto-territories via weighted adjacency Voronoi.
+**Goal**: Partition qualifying land zones into proto-regions via per-component seeded BFS. Small land components become minor islets (metadata only).
 
-**Independent Test**: Generate a world, run territory generation, verify every land zone assigned to exactly one territory, no territory crosses deep water, export proto_territories.png.
+**Independent Test**: Generate a world, run proto-region generation, verify every qualifying land zone assigned to exactly one region, no region crosses deep water, minor islets tracked, export proto_seeds.png and proto_regions.png.
 
 ### Implementation for User Story 3
 
-- [ ] T017 [P] [US3] Create `ProtoTerritory` record/class in `src/WorldZones.Regions/ProtoTerritory.cs` — holds territory ID, seed zone coordinate, list of member zone coordinates, area, perimeter zone count, list of constituent LandComponent IDs
-- [ ] T018 [US3] Implement `WeightedZoneDistance` in `src/WorldZones.Regions/WeightedZoneDistance.cs` — Dijkstra over zone grid with configurable costs: land=1, shallow=configurable (>1), deep=impassable (infinity); returns distance map from a set of seed zones
-- [ ] T019 [US3] Implement `ProtoTerritoryGenerator` in `src/WorldZones.Regions/ProtoTerritoryGenerator.cs` — distributes seed points on land zones (count proportional to total land area, configurable density); runs multi-source Dijkstra via WeightedZoneDistance; assigns each reachable zone to nearest seed; produces List<ProtoTerritory>; enforces invariants: every land zone assigned, no deep zones assigned, shallow zones assigned only when reachable from land
-- [ ] T020 [US3] Test `ProtoTerritoryGenerator` in `tests/WorldZones.Regions.Tests/ProtoTerritoryGeneratorTests.cs` — synthetic grid tests: all land zones assigned; two islands separated by deep water → territories don't cross; shallow zones near land get assigned; deep zones never assigned; deterministic output for same seed
-- [ ] T021 [US3] Add `proto_territories.png` export to `DebugOverlayExporter` — each territory a distinct color fill with boundary lines drawn between adjacent territories
+- [x] T017 [P] [US3] Create `ProtoRegion` class in `src/WorldZones.Regions/ProtoRegion.cs` — holds region ID, seed coordinate (Vector2i), area (zone count, settable for merge updates)
+- [x] T017a [P] [US3] Create `MinorIslet` class in `src/WorldZones.Regions/MinorIslet.cs` — holds LandComponentId and AreaZones for components below proto-region threshold
+- [x] T018 [US3] ~~WeightedZoneDistance~~ **Deferred** — v0 uses land-only BFS (cost=1 uniform) instead of Dijkstra with configurable shallow cost. Weighted distance planned for future iteration when shallow traversal is introduced.
+- [x] T019 [US3] Implement `ProtoRegionGenerator` in `src/WorldZones.Regions/ProtoRegionGenerator.cs` — per-component seeding: partitions land components into qualifying (≥ MinComponentZonesForProto) vs minor islets (< threshold); distributes seeds per component via farthest-point heuristic; runs multi-source BFS land-only; merges tiny regions (< minRegionZones) into longest-border neighbor; produces ProtoRegionResult with regions, seeds, stats, and minor islet metadata
+- [x] T020 [US3] Test `ProtoRegionGenerator` in `tests/WorldZones.Regions.Tests/ProtoRegionGeneratorTests.cs` — 16 tests: all qualifying land zones assigned; deep/shallow zones excluded; two-island separation; determinism; contiguity; minor islet classification; merge behavior; stats consistency; custom thresholds
+- [x] T021 [US3] Add `proto_seeds.png` and `proto_regions.png` export to `LandComponentExporter` (Unity Editor) — seeds as red dots on muted land; regions as solid color fills per region
 
-**Checkpoint**: Proto-territories generated and visualized. All invariants hold.
+**Checkpoint**: Proto-regions generated and visualized. 164 regions, 993 minor islets. All invariants hold.
 
 ---
 
