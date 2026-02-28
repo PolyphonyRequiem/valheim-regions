@@ -1,8 +1,13 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/WorldZones.Cli/WorldZones.Cli.csproj" />
+    <Project Path="src/WorldZones.Regions/WorldZones.Regions.csproj" />
+    <Project Path="src/WorldZones.WorldGen/WorldZones.WorldGen.csproj" />
   </Folder>
-  <Folder Name="/tests/" />
+  <Folder Name="/tests/">
+    <Project Path="tests/WorldZones.Regions.Tests/WorldZones.Regions.Tests.csproj" />
+    <Project Path="tests/WorldZones.WorldGen.Tests/WorldZones.WorldGen.Tests.csproj" />
+  </Folder>
   <Properties Name="Configuration">
     <Property Name="Debug" />
     <Property Name="Release" />

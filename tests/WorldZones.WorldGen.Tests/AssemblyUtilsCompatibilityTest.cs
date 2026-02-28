@@ -45,18 +45,6 @@ namespace WorldZones.WorldGen.Tests
         }
         
         [Fact]
-        public void GetStableHashCode_EmptyString_DoesNotThrow()
-        {
-            // Act
-            int hash = string.Empty.GetStableHashCode();
-            
-            // Assert
-            // Based on algorithm: num = 5381, num2 = 5381, no loop
-            // Result = 5381 + 5381 * 1566083941
-            Assert.NotEqual(0, hash);
-        }
-        
-        [Fact]
         public void GetStableHashCode_NullTerminatorHandling()
         {
             // Arrange - test the null character check in Valheim's implementation

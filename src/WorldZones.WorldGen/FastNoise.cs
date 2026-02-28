@@ -1,4 +1,4 @@
-﻿// FastNoise.cs
+// FastNoise.cs
 //
 // MIT License
 //
@@ -38,6 +38,8 @@ using FN_DECIMAL = System.Single;
 using System;
 using System.Runtime.CompilerServices;
 
+namespace WorldZones.WorldGen
+{
 public class FastNoise
 {
 	private const Int16 FN_INLINE = 256; //(Int16)MethodImplOptions.AggressiveInlining;
@@ -2369,4 +2371,5 @@ public class FastNoise
 		y += Lerp(ly0x, ly1x, ys) * perturbAmp;
 	}
 
+}
 }

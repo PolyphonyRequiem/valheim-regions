@@ -7,15 +7,15 @@ using WorldZones.WorldGen;
 
 namespace WorldZones.Cli
 {
-    /// <summary>Simple r/g/b tuple replacing Unity's Color32.</summary>
-    struct Color32
-    {
-        public byte r, g, b;
-        public Color32(byte r, byte g, byte b) { this.r = r; this.g = g; this.b = b; }
-    }
-
     static class Program
     {
+        /// <summary>Simple r/g/b tuple replacing Unity's Color32.</summary>
+        struct Color32
+        {
+            public byte r, g, b;
+            public Color32(byte r, byte g, byte b) { this.r = r; this.g = g; this.b = b; }
+        }
+
         static int Main(string[] args)
         {
             if (args.Length == 0)
