@@ -1,0 +1,229 @@
+openapi: 3.1.0
+info:
+  title: WorldZones Region Overlay Local Contract
+  version: 0.1.0
+  summary: Local-facing contract for region overlay resolution, discovery tracking, and dev workflow automation.
+  description: |
+    This contract defines feature-level operations derived from the specification.
+    It models runtime and tooling interactions for validation and automation.
+servers:
+  - url: http://localhost:7071
+    description: Local development endpoint (tooling host)
+paths:
+  /v1/regions/current:
+    get:
+      summary: Resolve current player region for minimap display
+      operationId: resolveCurrentRegion
+      parameters:
+        - name: worldId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: x
+          in: query
+          required: true
+          schema:
+            type: number
+            format: float
+        - name: z
+          in: query
+          required: true
+          schema:
+            type: number
+            format: float
+      responses:
+        '200':
+          description: Region lookup response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegionLookupResponse'
+  /v1/regions/hover:
+    get:
+      summary: Resolve hovered world-map region for top-left display
+      operationId: resolveHoverRegion
+      parameters:
+        - name: worldId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: x
+          in: query
+          required: true
+          schema:
+            type: number
+            format: float
+        - name: z
+          in: query
+          required: true
+          schema:
+            type: number
+            format: float
+      responses:
+        '200':
+          description: Region lookup response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegionLookupResponse'
+  /v1/discovery/check:
+    post:
+      summary: Evaluate first-time region discovery and update state
+      operationId: checkAndRecordDiscovery
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DiscoveryCheckRequest'
+      responses:
+        '200':
+          description: Discovery decision
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiscoveryCheckResponse'
+  /v1/discovery/state:
+    get:
+      summary: Get discovered region GUIDs for player/world
+      operationId: getDiscoveryState
+      parameters:
+        - name: worldId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: playerId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Discovery state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiscoveryState'
+  /v1/dev/deploy:
+    post:
+      summary: Build and deploy mod artifacts to Valheim path
+      operationId: deployMod
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeployRequest'
+      responses:
+        '202':
+          description: Deploy accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationAccepted'
+  /v1/dev/launch:
+    post:
+      summary: Launch rapid local test session
+      operationId: launchTestSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LaunchRequest'
+      responses:
+        '202':
+          description: Launch accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationAccepted'
+components:
+  schemas:
+    RegionLookupResponse:
+      type: object
+      required: [hasRegion, resolutionReason]
+      properties:
+        hasRegion:
+          type: boolean
+        resolutionReason:
+          type: string
+          enum: [Resolved, Unassigned, OutOfBounds, DataUnavailable]
+        regionId:
+          type: integer
+          format: int32
+          minimum: 0
+          nullable: true
+        regionGuid:
+          type: string
+          format: uuid
+          nullable: true
+    DiscoveryCheckRequest:
+      type: object
+      required: [worldId, playerId, regionGuid]
+      properties:
+        worldId:
+          type: string
+        playerId:
+          type: string
+        regionGuid:
+          type: string
+          format: uuid
+    DiscoveryCheckResponse:
+      type: object
+      required: [isFirstDiscovery, showBanner]
+      properties:
+        isFirstDiscovery:
+          type: boolean
+        showBanner:
+          type: boolean
+    DiscoveryState:
+      type: object
+      required: [worldId, playerId, discoveredRegionGuids]
+      properties:
+        worldId:
+          type: string
+        playerId:
+          type: string
+        discoveredRegionGuids:
+          type: array
+          items:
+            type: string
+            format: uuid
+    DeployRequest:
+      type: object
+      required: [valheimInstallPath, pluginBuildConfiguration]
+      properties:
+        valheimInstallPath:
+          type: string
+        pluginBuildConfiguration:
+          type: string
+          enum: [Debug, Release]
+        validateBepInEx:
+          type: boolean
+          default: true
+    LaunchRequest:
+      type: object
+      required: [valheimInstallPath, testWorldName, testCharacterName]
+      properties:
+        valheimInstallPath:
+          type: string
+        testWorldName:
+          type: string
+        testCharacterName:
+          type: string
+        openConsole:
+          type: boolean
+          default: true
+    OperationAccepted:
+      type: object
+      required: [operationId, status]
+      properties:
+        operationId:
+          type: string
+        status:
+          type: string
+          enum: [Accepted]
