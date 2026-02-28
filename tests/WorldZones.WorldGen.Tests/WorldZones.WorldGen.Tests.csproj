@@ -21,12 +21,4 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\WorldZones.WorldGen\WorldZones.WorldGen.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="assembly_utils">
-      <HintPath>$(ValheimInstallPath)\valheim_Data\Managed\assembly_utils.dll</HintPath>
-      <Private>true</Private>
-    </Reference>
-  </ItemGroup>
-
 </Project>

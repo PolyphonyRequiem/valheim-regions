@@ -19,24 +19,4 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\WorldZones.WorldGen\WorldZones.WorldGen.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="assembly_valheim">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Valheim\valheim_Data\Managed\assembly_valheim.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="assembly_utils">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Valheim\valheim_Data\Managed\assembly_utils.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Valheim\unstripped_corlib\UnityEngine.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine.CoreModule">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Valheim\unstripped_corlib\UnityEngine.CoreModule.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-  </ItemGroup>
-
 </Project>

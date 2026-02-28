@@ -30,7 +30,7 @@ namespace WorldZones.WorldGen
         private System.Collections.Generic.Dictionary<Vector2i, RiverPoint[]> riverPoints = new System.Collections.Generic.Dictionary<Vector2i, RiverPoint[]>();
         
         // Cellular noise generator (matching Valheim's m_noiseGen)
-        private static FastNoise m_noiseGen;
+        private static FastNoise noiseGen;
         
         // Constants matching Valheim's world generation
         const float WorldRadius = 10000f;
@@ -111,15 +111,15 @@ namespace WorldZones.WorldGen
             this.offset4 = offset4;
             
             // Initialize FastNoise for cellular noise (matching Valheim constructor lines 178-186)
-            if (m_noiseGen == null)
+            if (noiseGen == null)
             {
-                m_noiseGen = new FastNoise(this.seedHash);
-                m_noiseGen.SetNoiseType(FastNoise.NoiseType.Cellular);
-                m_noiseGen.SetCellularDistanceFunction(FastNoise.CellularDistanceFunction.Euclidean);
-                m_noiseGen.SetCellularReturnType(FastNoise.CellularReturnType.Distance);
-                m_noiseGen.SetFractalOctaves(2);
+                noiseGen = new FastNoise(this.seedHash);
+                noiseGen.SetNoiseType(FastNoise.NoiseType.Cellular);
+                noiseGen.SetCellularDistanceFunction(FastNoise.CellularDistanceFunction.Euclidean);
+                noiseGen.SetCellularReturnType(FastNoise.CellularReturnType.Distance);
+                noiseGen.SetFractalOctaves(2);
             }
-            m_noiseGen.SetSeed(0);
+            noiseGen.SetSeed(0);
             
             // Initialize river seeds
             // Valheim consumes 4 Random values for offsets before pulling river seeds,
@@ -561,7 +561,7 @@ namespace WorldZones.WorldGen
             int num9 = 5;
             for (int i = 0; i < num9; i++)
             {
-                num6 += num7 * MathUtils.MathfLikeSmoothStep(0.0, 1.0, m_noiseGen.GetCellular((float)(num * num8), (float)(num2 * num8)));
+                num6 += num7 * MathUtils.MathfLikeSmoothStep(0.0, 1.0, noiseGen.GetCellular((float)(num * num8), (float)(num2 * num8)));
                 num8 *= 2.0;
                 num7 *= 0.5;
             }
@@ -579,13 +579,13 @@ namespace WorldZones.WorldGen
             int num17 = 3;
             for (int j = 0; j < num17; j++)
             {
-                num14 += num15 * m_noiseGen.GetCellular((float)(num * num16), (float)(num2 * num16));
+                num14 += num15 * noiseGen.GetCellular((float)(num * num16), (float)(num2 * num16));
                 num16 *= 2.0;
                 num15 *= 0.5;
             }
             num14 = MathUtils.Remap(num14, -1.0, 1.0, 0.0, 1.0);
             num14 = MathUtils.Clamp01(Math.Pow(num14, 4.0) * 2.0);
-            double simplexFractal = m_noiseGen.GetSimplexFractal((float)(num * 0.075), (float)(num2 * 0.075));
+            double simplexFractal = noiseGen.GetSimplexFractal((float)(num * 0.075), (float)(num2 * 0.075));
             simplexFractal = MathUtils.Remap(simplexFractal, -1.0, 1.0, 0.0, 1.0);
             simplexFractal = Math.Pow(simplexFractal, 1.399999976158142);
             num12 *= simplexFractal;
