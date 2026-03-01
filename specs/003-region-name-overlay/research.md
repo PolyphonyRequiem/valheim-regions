@@ -1,113 +1,104 @@
 # Research: Valheim Region Name Overlay
 
 **Phase 0 Output** | **Date**: 2026-02-28  
-**Purpose**: Resolve all technical unknowns from `plan.md` and record final decisions.
+**Purpose**: Resolve design decisions for deterministic region naming using a fixed 500-name testing catalog.
 
 ---
 
-## 1) Runtime Hook Strategy with Minimal Patches
+## 1) Deterministic Name Mapping Model
 
-**Decision**: Use two primary Harmony patches: `Minimap.UpdateBiome(Player)` for minimap/full-map label updates and `Player.UpdateBiome(float)` for discovery detection.
+**Decision**: Replace GUID display with deterministic name selection from a fixed catalog of 500 literal names stored in source.
 
 **Rationale**:
-- Covers all required UX paths with minimal patch surface.
-- Aligns with existing Valheim update cadence for biome/map context.
-- Reduces maintenance burden versus many narrow hooks.
+- Provides easier visual verification during in-game testing than GUID strings.
+- Keeps deterministic behavior required by world/region reproducibility.
+- Avoids runtime content loading and keeps behavior fully testable offline.
 
 **Alternatives considered**:
-- Patch `Minimap.Update()` and poll continuously (rejected: higher overhead and less semantic alignment).
-- Patch `MessageHud` only (rejected: cannot drive minimap/full-map labels).
-- Multiple micro-patches for each UI branch (rejected: violates patch-minimization goal).
+- Continue GUID display (rejected: poor readability for rapid field testing).
+- Random runtime name selection (rejected: nondeterministic and breaks reproducibility).
+- External file-based name source (rejected: introduces deployment/file integrity complexity not needed for test scope).
 
 ---
 
-## 2) Region Logic Placement and Dependency Split
+## 2) Catalog Overflow Behavior (>500 Regions)
 
-**Decision**: Keep as much region logic as possible in `WorldZones.Regions`; introduce provider abstractions so `WorldZones.Regions` does not require `WorldZones.WorldGen` for mod use.
+**Decision**: Use deterministic modular indexing for catalog reuse when region count exceeds 500.
 
 **Rationale**:
-- Satisfies requirement that mod must not reference hand-spun worldgen directly or indirectly.
-- Enables dual-provider model: CLI path uses hand-spun provider, mod path uses Valheim runtime provider.
-- Preserves library-first architecture and testability.
+- Guarantees total coverage for any region count without failure or missing names.
+- Keeps lookup constant-time and simple.
+- Preserves stable mapping across sessions for a fixed world and region identity.
 
 **Alternatives considered**:
-- Keep current direct `WorldZones.Regions -> WorldZones.WorldGen` dependency (rejected: violates mod dependency constraint).
-- Duplicate region logic in mod project (rejected: drift risk, lower testability).
-- Move all logic to mod plugin (rejected: violates library-first principle).
+- Fail on overflow (rejected: unacceptable UX and invalid for larger maps).
+- Append numeric suffixes dynamically (rejected: unnecessary complexity for test-focused release).
+- Expand catalog at runtime (rejected: nondeterministic unless carefully constrained and persisted).
 
 ---
 
-## 3) Deterministic Region GUID Naming
+## 3) Placement of Naming Logic
 
-**Decision**: Generate deterministic GUID strings from world identity + region identity using a stable hash-to-guid mapping in `WorldZones.Regions`.
+**Decision**: Keep catalog and deterministic mapping in `WorldZones.Regions` so all consumers (mod and CLI) resolve display names consistently.
 
 **Rationale**:
-- Meets v1 requirement for GUID names.
-- Guarantees repeatability for identical world/region inputs.
-- Keeps naming implementation independent of UI/integration concerns.
+- Aligns with library-first constitution requirements.
+- Prevents duplicated naming logic across integration layers.
+- Enables direct unit testing of mapping and determinism.
 
 **Alternatives considered**:
-- Random GUID at discovery time (rejected: nondeterministic and unstable).
-- Persisted generated GUID only (rejected: requires pre-seeding storage and complicates recovery).
-- Human-readable names in v1 (rejected: explicitly out of scope).
+- Implement in mod project only (rejected: violates shared-library intent and creates drift).
+- Keep mapping in UI layer (rejected: mixes domain identity rules with rendering concerns).
 
 ---
 
-## 4) Discovery State Persistence
+## 4) Discovery Persistence Keying
 
-**Decision**: Store discovered region GUID set per player in a local file (plugin-scoped path under BepInEx config/data).
+**Decision**: Discovery persistence should key on stable region identity and/or resolved deterministic region name while maintaining once-per-region semantics.
 
 **Rationale**:
-- Supports once-per-region-per-player banner rule across sessions.
-- Simple, inspectable format with low runtime overhead.
-- Keeps persistence implementation isolated from core region library.
+- Preserves behavior when visible representation changes from GUIDs to names.
+- Keeps persisted behavior deterministic and migration-friendly.
 
 **Alternatives considered**:
-- In-memory only session state (rejected: fails persistence requirement).
-- Embed in world save via game internals (rejected: invasive and brittle).
-- External database (rejected: unnecessary complexity).
+- Keep GUID-only discovery keys forever (rejected: mismatch with visible name model).
+- Key only by transient UI text (rejected: fragile if display formatting evolves).
 
 ---
 
-## 5) Deployment and Rapid Test Execution Workflow
+## 5) UI Coexistence with Biome Text
 
-**Decision**: Add two scripts: one for build/deploy (`Deploy-RegionOverlayMod.ps1`) and one for fast launch preparation (`Launch-Valheim-TestSession.ps1`) using configured Valheim path and known test assets.
+**Decision**: Continue using dedicated region label elements and avoid writing into vanilla biome text fields directly.
 
 **Rationale**:
-- Delivers repeatable local workflow for rapid iteration.
-- Makes dependency validation explicit (BepInEx presence, plugin copy targets).
-- Reduces manual setup errors between code changes and in-game validation.
+- Prevents regression where region text overwrites biome information.
+- Keeps independent control for placement and autosizing.
 
 **Alternatives considered**:
-- Manual copy + manual game launch (rejected: slow and error-prone).
-- Full external mod manager integration (rejected: over-scoped for v1).
-- Auto-install third-party dependencies from internet (rejected: reliability/security concerns).
+- Reuse biome text object for region name (rejected: causes UI conflicts and mode coupling).
 
 ---
 
-## 6) Unity Dev Console Testing Scope
+## 6) Runtime Hook Strategy
 
-**Decision**: Treat Unity dev-console checks as optional diagnostics, not required acceptance gates.
+**Decision**: Keep existing minimal patch strategy (`Minimap.UpdateBiome(Player)` and `Player.UpdateBiome(float)`) with naming resolution swapped to test-name catalog.
 
 **Rationale**:
-- Matches explicit requirement (“permitted but not required”).
-- Keeps required validation focused on deterministic library tests and reproducible in-game checks.
+- Maintains low patch surface.
+- Limits behavior changes to naming model rather than hook architecture.
 
 **Alternatives considered**:
-- Require dev-console tests for all changes (rejected: higher friction with limited additional value).
-- Prohibit dev-console tests (rejected: removes useful debugging aid).
+- Introduce additional map polling hooks (rejected: unnecessary complexity for naming-only change).
 
 ---
 
 ## 7) Multiplayer Scope Handling
 
-**Decision**: Explicitly defer multiplayer authority/sync semantics in this feature.
+**Decision**: Keep multiplayer authority/synchronization deferred.
 
 **Rationale**:
-- Already declared in feature spec.
-- Avoids premature protocol and ownership design.
-- Keeps first delivery focused and testable.
+- Naming model change does not require multiplayer design expansion.
+- Avoids scope creep during test-name transition.
 
 **Alternatives considered**:
-- Define provisional multiplayer sync now (rejected: high uncertainty and expanded scope).
-- Block feature until multiplayer finalized (rejected: prevents incremental delivery).
+- Introduce multiplayer naming authority now (rejected: out of current feature scope).

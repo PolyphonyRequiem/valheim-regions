@@ -87,7 +87,7 @@ paths:
                 $ref: '#/components/schemas/DiscoveryCheckResponse'
   /v1/discovery/state:
     get:
-      summary: Get discovered region GUIDs for player/world
+      summary: Get discovered region names for player/world
       operationId: getDiscoveryState
       parameters:
         - name: worldId
@@ -157,21 +157,19 @@ components:
           format: int32
           minimum: 0
           nullable: true
-        regionGuid:
+        regionName:
           type: string
-          format: uuid
           nullable: true
     DiscoveryCheckRequest:
       type: object
-      required: [worldId, playerId, regionGuid]
+      required: [worldId, playerId, regionName]
       properties:
         worldId:
           type: string
         playerId:
           type: string
-        regionGuid:
+        regionName:
           type: string
-          format: uuid
     DiscoveryCheckResponse:
       type: object
       required: [isFirstDiscovery, showBanner]
@@ -182,17 +180,16 @@ components:
           type: boolean
     DiscoveryState:
       type: object
-      required: [worldId, playerId, discoveredRegionGuids]
+      required: [worldId, playerId, discoveredRegionNames]
       properties:
         worldId:
           type: string
         playerId:
           type: string
-        discoveredRegionGuids:
+        discoveredRegionNames:
           type: array
           items:
             type: string
-            format: uuid
     DeployRequest:
       type: object
       required: [valheimInstallPath, pluginBuildConfiguration]

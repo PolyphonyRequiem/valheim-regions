@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Xunit;
 using WorldZones.Regions;
-using WorldZones.WorldGen;
 
 namespace WorldZones.Regions.Tests
 {

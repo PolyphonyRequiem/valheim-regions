@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using WorldZones.WorldGen;
 
 namespace WorldZones.Regions
 {
@@ -19,12 +18,25 @@ namespace WorldZones.Regions
     /// into their longest-border neighbor.
     /// </para>
     /// <para>
-    /// v0 is land-only: shallow and deep zones are excluded from traversal
-    /// and assignment.
+    /// Region growth is land-only. After land assignment/merge, a one-zone
+    /// non-cascading shallow fringe is assigned from adjacent land regions.
+    /// Deep zones remain unassigned.
     /// </para>
     /// </summary>
     public static class ProtoRegionGenerator
     {
+        public static ZoneGrid CreateClassifiedGrid(IWorldDataProvider provider, float worldRadiusMeters = ZoneGrid.WorldRadius)
+        {
+            if (provider == null)
+            {
+                throw new ArgumentNullException(nameof(provider));
+            }
+
+            var grid = new ZoneGrid(worldRadiusMeters);
+            ZoneClassifier.Classify(grid, provider);
+            return grid;
+        }
+
         /// <summary>
         /// Default minimum region size in zones. Regions smaller than this
         /// are merged into their longest-border neighbor.
@@ -183,7 +195,10 @@ namespace WorldZones.Regions
                 mergedCount = MergeTinyRegions(grid, regionIdGrid, seeds, minRegionZones);
             }
 
-            // ── 5. Build result ───────────────────────────────────────
+            // ── 5. One-zone shallow fringe assignment ───────────────
+            ExpandRegionsIntoAdjacentShallowZones(grid, regionIdGrid);
+
+            // ── 6. Build result ───────────────────────────────────────
             var regionAreas = new Dictionary<int, int>();
             int unassigned = 0;
 
@@ -243,6 +258,66 @@ namespace WorldZones.Regions
                 MinorIsletTotalArea = minorIsletTotalArea,
                 SeededComponentCount = seededComponents.Count
             };
+        }
+
+        private static void ExpandRegionsIntoAdjacentShallowZones(ZoneGrid grid, int[,] regionIdGrid)
+        {
+            int size = grid.Size;
+            var original = (int[,])regionIdGrid.Clone();
+
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    if (original[y, x] >= 0)
+                    {
+                        continue;
+                    }
+
+                    int zoneX = x + grid.MinIndex;
+                    int zoneY = y + grid.MinIndex;
+                    if (grid[zoneX, zoneY] != DepthClass.Shallow)
+                    {
+                        continue;
+                    }
+
+                    int chosen = ChooseAdjacentAssignedRegionId(original, x, y, size);
+                    if (chosen >= 0)
+                    {
+                        regionIdGrid[y, x] = chosen;
+                    }
+                }
+            }
+        }
+
+        private static int ChooseAdjacentAssignedRegionId(int[,] original, int x, int y, int size)
+        {
+            int left = x > 0 ? original[y, x - 1] : -1;
+            int right = x < size - 1 ? original[y, x + 1] : -1;
+            int down = y > 0 ? original[y - 1, x] : -1;
+            int up = y < size - 1 ? original[y + 1, x] : -1;
+
+            if (left >= 0)
+            {
+                return left;
+            }
+
+            if (right >= 0)
+            {
+                return right;
+            }
+
+            if (down >= 0)
+            {
+                return down;
+            }
+
+            if (up >= 0)
+            {
+                return up;
+            }
+
+            return -1;
         }
 
         /// <summary>

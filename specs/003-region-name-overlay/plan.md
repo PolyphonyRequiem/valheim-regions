@@ -5,19 +5,19 @@
 
 ## Summary
 
-Deliver a minimal Valheim mod that shows deterministic region GUID names in three places: minimap bottom label, full-map hover top-left label, and one-time discovery banner per region per player. Keep patch count minimal by centering runtime integration on `Minimap.UpdateBiome(Player)` and `Player.UpdateBiome(float)`, while moving region logic into `WorldZones.Regions` and isolating Unity/BepInEx-specific code in a new mod integration project. Add a deploy-and-run developer workflow to build the plugin, copy artifacts/dependencies into the Valheim path, and launch a repeatable test session quickly.
+Deliver region labels using a deterministic testing-name model instead of GUID strings. Names come from a fixed 500-name literal catalog owned by `WorldZones.Regions`, with deterministic mapping from `(worldId, regionId)` to one catalog entry. Preserve existing UI locations and discovery behavior, keep biome UI untouched, and keep the library/integration boundary intact.
 
 ## Technical Context
 
 **Language/Version**: C# 9.0 targeting .NET Framework 4.7.2  
-**Primary Dependencies**: BepInEx 5.x, HarmonyX, Valheim `Assembly-CSharp` + Unity runtime assemblies, `WorldZones.Regions` (core region logic)  
-**Storage**: Local file-based persistence for per-player discovered regions (under BepInEx/plugin-managed config path)  
-**Testing**: `dotnet test` for library logic; manual in-game validation for UI and patch behavior; Unity dev-console tests permitted but optional  
-**Target Platform**: Windows Valheim client with BepInEx installed
+**Primary Dependencies**: `WorldZones.Regions`, BepInEx 5.x, HarmonyX, Valheim `assembly_valheim`, Unity runtime assemblies (including TextMeshPro for minimap-native text rendering)  
+**Storage**: Local file-based discovery persistence in plugin-managed path; static in-code 500-name catalog literals in `WorldZones.Regions`  
+**Testing**: `dotnet test` for library behavior and deterministic naming; manual in-game validation for minimap/full-map UI and discovery banner behavior  
+**Target Platform**: Windows Valheim client with BepInEx installed  
 **Project Type**: Multi-project library + game integration plugin  
-**Performance Goals**: Region lookup/update path under 1 ms on zone changes; no player-observable UI stutter during movement/map hover  
-**Constraints**: Keep Harmony patch count minimal (target two primary patches); mod project MUST NOT reference `WorldZones.WorldGen` directly or indirectly; CLI MUST continue using hand-spun worldgen pipeline  
-**Scale/Scope**: Single-player/local-first behavior for v1; multiplayer authority/sync explicitly deferred
+**Performance Goals**: Region lookup and name resolution remains effectively O(1) per UI update; no user-observable minimap/map stutter  
+**Constraints**: Keep Harmony patch surface minimal; mod project must not reference `WorldZones.WorldGen` directly or indirectly; visible names must come only from fixed 500-name literal catalog  
+**Scale/Scope**: Single-player/local-first behavior for v1; multiplayer authority/sync remains deferred
 
 ## Constitution Check
 
@@ -25,13 +25,13 @@ Deliver a minimal Valheim mod that shows deterministic region GUID names in thre
 
 | Principle | Status | Notes |
 |-----------|--------|-------|
-| I. Critical Collaboration | ✅ PASS | Design challenges existing dependency shape and introduces provider abstraction to satisfy mod/runtime separation requirements |
-| II. Library-First Architecture | ✅ PASS | Region logic remains in `WorldZones.Regions`; BepInEx/Harmony/Unity gameplay hooks isolated to new mod integration project |
-| III. Pragmatic Testing Strategy | ✅ PASS | Core deterministic mapping and naming covered by `dotnet test`; UI patches validated manually in-game |
-| IV. Stable Public API | ✅ PASS | New region-provider abstractions and naming APIs are additive; no breaking changes to existing external APIs planned |
-| V. Simplicity Bias | ✅ PASS | Patch count intentionally constrained; concrete adapter pattern selected over framework-heavy indirection |
-| VI. Clear Contracts | ✅ PASS | Planning includes explicit contracts for region resolution, discovery state, deployment workflow, and deferred multiplayer concerns |
-| VII. Iterative Development Process | ✅ PASS | Work decomposed into independent slices: refactor dependencies, overlay rendering, discovery state, deploy/run workflow |
+| I. Critical Collaboration Partnership | ✅ PASS | Feature direction challenged and revised from GUIDs to test-name catalog to improve UX testing fidelity |
+| II. Library-First Architecture | ✅ PASS | Naming algorithm and catalog remain in `WorldZones.Regions`; mod remains integration layer |
+| III. Pragmatic Testing Strategy | ✅ PASS | Deterministic mapping validated via `dotnet test`; UI behavior validated manually in-game |
+| IV. Stable Public API | ✅ PASS | Existing lookup model remains additive; display-value semantics shift is feature-scoped and documented |
+| V. Simplicity Bias | ✅ PASS | Static literal catalog + deterministic selector avoids external services or runtime content pipelines |
+| VI. Clear Contracts | ✅ PASS | Data model and API contract explicitly define `regionName` and 500-catalog behavior |
+| VII. Iterative Development Process | ✅ PASS | Change handled as spec/plan update before further implementation |
 
 **Gate result (pre-research): PASS — proceed to Phase 0 research.**
 
@@ -47,51 +47,48 @@ specs/003-region-name-overlay/
 ├── quickstart.md
 ├── contracts/
 │   └── region-overlay-api.yaml
-└── tasks.md             # Created by /speckit.tasks
+└── tasks.md
 ```
 
 ### Source Code (repository root)
+
 ```text
 src/
-├── WorldZones.WorldGen/                         # Existing hand-spun worldgen (CLI/testing only)
-├── WorldZones.Regions/                          # Core region logic + deterministic naming + provider abstractions
-├── WorldZones.Cli/                              # Existing CLI (continues to use hand-spun worldgen via adapter)
-└── WorldZones.Mod.RegionOverlay/                # New BepInEx/Harmony integration layer
+├── WorldZones.Regions/
+│   ├── IRegionLookupService.cs
+│   ├── RegionLookupService.cs
+│   ├── RegionGuidNameService.cs              # Renamed/repurposed by follow-up tasks for test-name mapping
+│   └── ProtoRegionGenerator.cs
+├── WorldZones.Cli/
+│   └── Program.cs
+└── WorldZones.Mod.RegionOverlay/
     ├── RegionOverlayPlugin.cs
-    ├── Patches/
-    │   ├── MinimapUpdateBiomePatch.cs
-    │   └── PlayerUpdateBiomePatch.cs
     ├── Integration/
-    │   ├── ValheimWorldDataProvider.cs
     │   └── MinimapLabelController.cs
-    └── Persistence/
-        └── DiscoveryStore.cs
-
-scripts/
-├── Deploy-RegionOverlayMod.ps1                  # Build + copy plugin/dependencies to game path
-└── Launch-Valheim-TestSession.ps1               # Rapid local launch with predefined test profile assets
+    └── Patches/
+        ├── MinimapUpdateBiomePatch.cs
+        └── PlayerUpdateBiomePatch.cs
 
 tests/
-├── WorldZones.Regions.Tests/                    # Deterministic naming/provider tests
-└── WorldZones.Mod.RegionOverlay.Tests/          # Optional plugin-level non-Unity tests (if feasible)
+└── WorldZones.Regions.Tests/
 ```
 
-**Structure Decision**: Use a strict library/integration split. `WorldZones.Regions` becomes independent of `WorldZones.WorldGen` through provider abstractions so the mod can consume real Valheim world data while CLI remains on hand-spun worldgen via a separate adapter path.
+**Structure Decision**: Keep the existing architecture and shift naming responsibility entirely into `WorldZones.Regions` with a static 500-name catalog, while UI adapters consume resolved display names unchanged.
 
 ## Complexity Tracking
 
-No constitution violations require exception handling for this plan.
+No constitution violations requiring justification.
 
 ## Post-Design Constitution Check
 
 | Principle | Status | Notes |
 |-----------|--------|-------|
-| I. Critical Collaboration | ✅ PASS | Plan explicitly rejected direct/indirect mod dependency on hand-spun worldgen and introduced safer separation approach |
-| II. Library-First Architecture | ✅ PASS | Core region logic and naming remain in library; plugin remains thin integration layer |
-| III. Pragmatic Testing Strategy | ✅ PASS | High-value deterministic and boundary tests prioritized; Unity manual checks retained for integration-only behavior |
-| IV. Stable Public API | ✅ PASS | Provider abstraction introduced as additive contract with backward compatibility strategy for CLI |
-| V. Simplicity Bias | ✅ PASS | Limited patch surface and concrete adapters; no DI framework or speculative abstractions |
-| VI. Clear Contracts | ✅ PASS | Data model and OpenAPI contract capture runtime/deployment boundaries and state rules |
-| VII. Iterative Development Process | ✅ PASS | Tasks naturally phase into refactor, overlay UI, discovery, and deploy/run automation |
+| I. Critical Collaboration Partnership | ✅ PASS | Requirement change incorporated before coding continuation |
+| II. Library-First Architecture | ✅ PASS | Catalog and mapping model are library-owned and reusable across mod/CLI |
+| III. Pragmatic Testing Strategy | ✅ PASS | Determinism and bounds behavior are testable offline in region tests |
+| IV. Stable Public API | ✅ PASS | Contracts updated to `regionName` while preserving response structure shape |
+| V. Simplicity Bias | ✅ PASS | Literal source-file catalog avoids external assets/parsers/network concerns |
+| VI. Clear Contracts | ✅ PASS | Updated contracts and quickstart describe catalog size, determinism, and overflow behavior |
+| VII. Iterative Development Process | ✅ PASS | Phase outputs refreshed prior to task execution |
 
 **Gate result (post-design): PASS — ready for `/speckit.tasks`.**

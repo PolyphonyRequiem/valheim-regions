@@ -28,11 +28,14 @@
 
 **Fields**:
 - `regionKey: RegionKey`
-- `guidText: string` - deterministic GUID format string.
+- `catalogIndex: int` - index in fixed testing-name catalog (`0..499`).
+- `displayName: string` - deterministic human-readable test name.
 
 **Validation Rules**:
-- `guidText` MUST parse as GUID.
-- `guidText` MUST be deterministic for identical `regionKey`.
+- `catalogIndex` MUST be between `0` and `499` inclusive.
+- `displayName` MUST be non-empty.
+- `displayName` MUST come from the fixed catalog literals.
+- `(worldId, regionId)` MUST map deterministically to the same `catalogIndex` and `displayName`.
 
 **State**:
 - Immutable after creation.
@@ -77,17 +80,17 @@
 **Fields**:
 - `playerId: string`
 - `worldId: string`
-- `discoveredRegionGuids: Set<string>`
+- `discoveredRegionNames: Set<string>`
 - `lastUpdatedUtc: DateTime`
 
 **Validation Rules**:
 - `playerId` and `worldId` MUST be non-empty.
-- All entries in `discoveredRegionGuids` MUST parse as GUID strings.
-- Duplicate GUID entries are not allowed.
+- All entries in `discoveredRegionNames` MUST be non-empty and belong to the fixed catalog.
+- Duplicate name entries are not allowed.
 
 **State Transitions**:
-- `Empty -> Discovered(guid)` on first entry into region.
-- `Discovered(guid) -> Discovered(guid)` on re-entry (no banner).
+- `Empty -> Discovered(name)` on first entry into region.
+- `Discovered(name) -> Discovered(name)` on re-entry (no banner).
 - Persisted and reloaded unchanged across sessions unless file reset/corruption recovery occurs.
 
 ---
@@ -99,17 +102,32 @@
 **Fields**:
 - `minimapVisible: bool`
 - `fullMapVisible: bool`
-- `currentRegionGuidText: string?`
-- `hoverRegionGuidText: string?`
+- `currentRegionNameText: string?`
+- `hoverRegionNameText: string?`
 - `lastRenderedRegionKey: RegionKey?`
 
 **Validation Rules**:
-- `currentRegionGuidText` and `hoverRegionGuidText` MUST be null when corresponding view is hidden.
+- `currentRegionNameText` and `hoverRegionNameText` MUST be null when corresponding view is hidden.
 - Rendered text MUST match latest `RegionLookupResult` for active context.
 
 ---
 
-## 7) WorldDataProviderContract
+## 7) TestingNameCatalog
+
+**Purpose**: Fixed catalog of test-friendly names used for deterministic display.
+
+**Fields**:
+- `names: string[500]` - literal source-file array of exactly 500 entries.
+
+**Validation Rules**:
+- Catalog length MUST be exactly 500.
+- All names MUST be non-empty.
+- Duplicate names SHOULD be avoided to maximize test clarity.
+- Catalog content MUST be static at runtime.
+
+---
+
+## 8) WorldDataProviderContract
 
 **Purpose**: Abstraction boundary that allows region logic to consume either hand-spun worldgen (CLI) or Valheim runtime worldgen (mod).
 
@@ -128,7 +146,7 @@
 
 - `RegionLookupContext -> RegionLookupResult` via region resolver.
 - `RegionLookupResult.regionKey -> RegionName` via deterministic naming function.
-- `RegionName.guidText` feeds both `OverlayRenderState` and `DiscoveryState`.
+- `RegionName.displayName` feeds both `OverlayRenderState` and `DiscoveryState`.
 - `DiscoveryState` gates whether discovery banner is emitted for a resolved region.
 
 ---
@@ -137,7 +155,8 @@
 
 1. Discovery banner emits only when:
    - `hasRegion = true`, and
-   - `regionName.guidText` not present in `DiscoveryState.discoveredRegionGuids`.
+   - `regionName.displayName` not present in `DiscoveryState.discoveredRegionNames`.
 2. Minimap label renders only when minimap is visible and `hasRegion = true`.
 3. Full-map hover label renders only when full map is visible, hover context is valid, and `hasRegion = true`.
-4. Missing region data never renders placeholder fake IDs; UI remains blank for that context.
+4. Missing region data never renders placeholder fake names; UI remains blank for that context.
+5. If two regions map to the same catalog name via overflow reuse, mapping remains deterministic and stable across sessions.

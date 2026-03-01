@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 using WorldZones.Regions;
-using WorldZones.WorldGen;
 
 namespace WorldZones.Regions.Tests
 {
@@ -101,7 +100,7 @@ namespace WorldZones.Regions.Tests
         }
 
         [Fact]
-        public void Shallow_zones_not_assigned_in_v0()
+        public void Adjacent_shallow_zones_are_assigned_one_zone_from_land()
         {
             var grid = MediumGrid();
             FillAll(grid, DepthClass.Shallow);
@@ -117,9 +116,45 @@ namespace WorldZones.Regions.Tests
                 {
                     int gy = c.y - grid.MinIndex;
                     int gx = c.x - grid.MinIndex;
-                    Assert.Equal(-1, regionIdGrid[gy, gx]);
+
+                    bool isAdjacentToLand =
+                        (c.x - 1 >= grid.MinIndex && grid[c.x - 1, c.y] == DepthClass.Land) ||
+                        (c.x + 1 <= grid.MaxIndex && grid[c.x + 1, c.y] == DepthClass.Land) ||
+                        (c.y - 1 >= grid.MinIndex && grid[c.x, c.y - 1] == DepthClass.Land) ||
+                        (c.y + 1 <= grid.MaxIndex && grid[c.x, c.y + 1] == DepthClass.Land);
+
+                    if (isAdjacentToLand)
+                    {
+                        Assert.True(regionIdGrid[gy, gx] >= 0);
+                    }
+                    else
+                    {
+                        Assert.Equal(-1, regionIdGrid[gy, gx]);
+                    }
                 }
             }
+        }
+
+        [Fact]
+        public void Shallow_fill_does_not_cascade_beyond_one_zone()
+        {
+            var grid = SmallGrid(); // 3x3
+            FillAll(grid, DepthClass.Deep);
+
+            grid[-1, 0] = DepthClass.Land;
+            grid[0, 0] = DepthClass.Shallow;
+            grid[1, 0] = DepthClass.Shallow;
+
+            var result = Generate(grid, targetZonesPerRegion: 1, seedRng: 42,
+                out int[,] regionIdGrid, out _, minComponentZonesForProto: 1);
+
+            Assert.Equal(1, result.RegionCount);
+
+            int firstShallowId = regionIdGrid[0 - grid.MinIndex, 0 - grid.MinIndex];
+            int secondShallowId = regionIdGrid[0 - grid.MinIndex, 1 - grid.MinIndex];
+
+            Assert.True(firstShallowId >= 0);
+            Assert.Equal(-1, secondShallowId);
         }
 
         // ── 3. Deep water blocks connectivity ─────────────────────────
