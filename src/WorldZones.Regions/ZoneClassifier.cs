@@ -1,5 +1,4 @@
 using System;
-using WorldZones.WorldGen;
 
 namespace WorldZones.Regions
 {
@@ -87,15 +86,16 @@ namespace WorldZones.Regions
         /// Biome type is NOT used for classification — depth only.
         /// </summary>
         /// <param name="grid">The zone grid to populate.</param>
-        /// <param name="worldGen">World generator initialised with the desired seed.</param>
-        public static void Classify(ZoneGrid grid, WorldGenerator worldGen)
+        /// <param name="provider">World data provider.</param>
+        public static void Classify(ZoneGrid grid, IWorldDataProvider provider)
         {
             if (grid == null)
                 throw new ArgumentNullException(nameof(grid));
-            if (worldGen == null)
-                throw new ArgumentNullException(nameof(worldGen));
+            if (provider == null)
+                throw new ArgumentNullException(nameof(provider));
 
-            float shelfThreshold = DefaultWaterLevel - DefaultShelfMaxDepth;
+            float waterLevel = provider.WaterLevel;
+            float shelfThreshold = waterLevel - DefaultShelfMaxDepth;
 
             foreach (var coord in grid.AllCoords())
             {
@@ -103,11 +103,10 @@ namespace WorldZones.Regions
                 float wx = center.worldX;
                 float wz = center.worldZ;
 
-                var biome = worldGen.GetBiome(wx, wz);
-                float terrainY = worldGen.GetBiomeHeight(biome, wx, wz);
+                float terrainY = provider.GetTerrainHeight(wx, wz);
 
                 DepthClass depth;
-                if (terrainY >= DefaultWaterLevel)
+                if (terrainY >= waterLevel)
                 {
                     depth = DepthClass.Land;
                 }

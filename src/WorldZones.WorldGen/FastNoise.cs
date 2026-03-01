@@ -65,7 +65,7 @@ public class FastNoise
 
 	private CellularDistanceFunction m_cellularDistanceFunction = CellularDistanceFunction.Euclidean;
 	private CellularReturnType m_cellularReturnType = CellularReturnType.CellValue;
-	private FastNoise m_cellularNoiseLookup = null;
+	 private FastNoise? m_cellularNoiseLookup = null;
 	private int m_cellularDistanceIndex0 = 0;
 	private int m_cellularDistanceIndex1 = 1;
 	private float m_cellularJitter = 0.45f;
@@ -1916,6 +1916,10 @@ public class FastNoise
 				return ValCoord3D(m_seed, xc, yc, zc);
 
 			case CellularReturnType.NoiseLookup:
+					if (m_cellularNoiseLookup == null)
+					{
+						return 0;
+					}
 				Float3 vec = CELL_3D[Hash3D(m_seed, xc, yc, zc) & 255];
 				return m_cellularNoiseLookup.GetNoise(xc + vec.x * m_cellularJitter, yc + vec.y * m_cellularJitter, zc + vec.z * m_cellularJitter);
 
@@ -2121,6 +2125,10 @@ public class FastNoise
 				return ValCoord2D(m_seed, xc, yc);
 
 			case CellularReturnType.NoiseLookup:
+				if (m_cellularNoiseLookup == null)
+				{
+					return 0;
+				}
 				Float2 vec = CELL_2D[Hash2D(m_seed, xc, yc) & 255];
 				return m_cellularNoiseLookup.GetNoise(xc + vec.x * m_cellularJitter, yc + vec.y * m_cellularJitter);
 

@@ -2,6 +2,14 @@
 
 ## Valheim Assembly References
 
+## Modded Client Workflow
+
+- Keep Steam install clean at `VALHEIM_INSTALL_PATH`.
+- Use a dedicated modded copy at `VALHEIM_MODDED_PATH`.
+- Initialize/update modded copy with `scripts/Initialize-ModdedValheimClient.ps1`.
+- Install BepInEx into `VALHEIM_MODDED_PATH`.
+- Use deployment and launch scripts against `VALHEIM_MODDED_PATH` only.
+
 **Experiment Result (2026-02-14):** Some Valheim assemblies CAN be referenced without Unity runtime!
 
 ### What Works ✅

@@ -214,7 +214,8 @@ namespace WorldZones.Cli
             // ── 2. Classify zones ─────────────────────────────────
             var swClassify = Stopwatch.StartNew();
             var grid = new ZoneGrid();
-            ZoneClassifier.Classify(grid, worldGen);
+            var provider = new StandaloneWorldDataProvider(seed, worldGen);
+            ZoneClassifier.Classify(grid, provider);
             swClassify.Stop();
             Console.WriteLine($"Zone classification: {swClassify.ElapsedMilliseconds} ms");
 
@@ -234,6 +235,10 @@ namespace WorldZones.Cli
             Console.WriteLine($"  Land:    {landCount} ({100.0 * landCount / totalZones:F1}%)");
             Console.WriteLine($"  Shallow: {shallowCount} ({100.0 * shallowCount / totalZones:F1}%)");
             Console.WriteLine($"  Deep:    {deepCount} ({100.0 * deepCount / totalZones:F1}%)");
+            PrintZoneSnapshot(grid, provider, 2, 5);
+            PrintZoneSnapshot(grid, provider, 2, 6);
+            PrintZoneSnapshot(grid, provider, 3, 6);
+            PrintZoneSnapshot(grid, provider, -2, 4);
 
             // ── 4. Label land components ──────────────────────────
             var swLabel = Stopwatch.StartNew();
@@ -247,6 +252,8 @@ namespace WorldZones.Cli
                 Console.WriteLine($"  ... and {components.Count - 10} more");
 
             int size = grid.Size;
+            int markerX = 0 - grid.MinIndex;
+            int markerY = size - 1 - (0 - grid.MinIndex);
 
             // ── 5. Render & save land_components.png ──────────────
             Console.WriteLine("Rendering land_components...");
@@ -276,6 +283,10 @@ namespace WorldZones.Cli
                 }
             }
             swRender.Stop();
+
+            DrawZoneMarker(landRgb, size, size, grid, 0, 0, new Color32(255, 255, 255));
+            DrawZonePixel(landRgb, size, size, grid, 2, 5, new Color32(160, 160, 160));
+            DrawZonePixel(landRgb, size, size, grid, 3, 6, new Color32(160, 160, 160));
 
             string landPath = Path.Combine(dir, $"{seed}_land_components.png");
             var swSave = Stopwatch.StartNew();
@@ -324,6 +335,10 @@ namespace WorldZones.Cli
                 }
             }
             swShelfRender.Stop();
+
+            DrawZoneMarker(shelfRgb, size, size, grid, 0, 0, new Color32(255, 255, 255));
+            DrawZonePixel(shelfRgb, size, size, grid, 2, 5, new Color32(160, 160, 160));
+            DrawZonePixel(shelfRgb, size, size, grid, 3, 6, new Color32(160, 160, 160));
 
             string shelfPath = Path.Combine(dir, $"{seed}_shelf_components.png");
             var swShelfSave = Stopwatch.StartNew();
@@ -386,6 +401,10 @@ namespace WorldZones.Cli
             }
             swArchRender.Stop();
 
+            DrawZoneMarker(archRgb, size, size, grid, 0, 0, new Color32(255, 255, 255));
+            DrawZonePixel(archRgb, size, size, grid, 2, 5, new Color32(160, 160, 160));
+            DrawZonePixel(archRgb, size, size, grid, 3, 6, new Color32(160, 160, 160));
+
             string archPath = Path.Combine(dir, $"{seed}_archipelago_candidates.png");
             var swArchSave = Stopwatch.StartNew();
             PngWriter.Write(archPath, size, size, archRgb);
@@ -394,12 +413,12 @@ namespace WorldZones.Cli
 
             // ── 10. Generate proto-regions ────────────────────────
             int targetZonesPerRegion = 200;
-            int protoSeedRng = seed.GetHashCode();
+            int protoSeedRng = seed.GetStableHashCode();
             var swProto = Stopwatch.StartNew();
             var protoResult = ProtoRegionGenerator.GenerateLand(
                 grid, components,
                 targetZonesPerRegion, protoSeedRng,
-                out int[,] regionIdGrid, out List<Vector2i> protoSeeds);
+                out int[,] regionIdGrid, out List<WorldZones.Regions.Vector2i> protoSeeds);
             swProto.Stop();
             Console.WriteLine($"Proto-region generation: {swProto.ElapsedMilliseconds} ms");
             Console.WriteLine($"  Seeds: {protoSeeds.Count}, Target: {targetZonesPerRegion} zones/region");
@@ -453,6 +472,10 @@ namespace WorldZones.Cli
             }
             swSeedRender.Stop();
 
+            DrawZoneMarker(seedRgb, size, size, grid, 0, 0, new Color32(255, 255, 255));
+            DrawZonePixel(seedRgb, size, size, grid, 2, 5, new Color32(160, 160, 160));
+            DrawZonePixel(seedRgb, size, size, grid, 3, 6, new Color32(160, 160, 160));
+
             string seedsPath = Path.Combine(dir, $"{seed}_proto_seeds.png");
             var swSeedSave = Stopwatch.StartNew();
             PngWriter.Write(seedsPath, size, size, seedRgb);
@@ -489,6 +512,10 @@ namespace WorldZones.Cli
             }
             swRegionRender.Stop();
 
+            DrawZoneMarker(regionRgb, size, size, grid, 0, 0, new Color32(255, 255, 255));
+            DrawZonePixel(regionRgb, size, size, grid, 2, 5, new Color32(160, 160, 160));
+            DrawZonePixel(regionRgb, size, size, grid, 3, 6, new Color32(160, 160, 160));
+
             string regionsPath = Path.Combine(dir, $"{seed}_proto_regions.png");
             var swRegionSave = Stopwatch.StartNew();
             PngWriter.Write(regionsPath, size, size, regionRgb);
@@ -522,6 +549,8 @@ namespace WorldZones.Cli
             Console.WriteLine($"  {archPath}");
             Console.WriteLine($"  {seedsPath}");
             Console.WriteLine($"  {regionsPath}");
+            Console.WriteLine($"Marker: zone (0,0) at pixel ({markerX},{markerY}) (top-left origin)");
+            Console.WriteLine("Gray markers: zones (2,5) and (3,6)");
             return 0;
         }
 
@@ -560,6 +589,78 @@ namespace WorldZones.Cli
                 (byte)((r + m) * 255),
                 (byte)((g + m) * 255),
                 (byte)((b + m) * 255));
+        }
+
+        static void DrawZoneMarker(byte[] rgbData, int width, int height, ZoneGrid grid, int zoneX, int zoneY, Color32 color)
+        {
+            int gx = zoneX - grid.MinIndex;
+            int gy = zoneY - grid.MinIndex;
+
+            if (gx < 0 || gx >= width || gy < 0 || gy >= height)
+            {
+                return;
+            }
+
+            int py = height - 1 - gy;
+            DrawCross(rgbData, width, height, gx, py, 3, color);
+        }
+
+        static void DrawZonePixel(byte[] rgbData, int width, int height, ZoneGrid grid, int zoneX, int zoneY, Color32 color)
+        {
+            int gx = zoneX - grid.MinIndex;
+            int gy = zoneY - grid.MinIndex;
+
+            if (gx < 0 || gx >= width || gy < 0 || gy >= height)
+            {
+                return;
+            }
+
+            int py = height - 1 - gy;
+            SetPixel(rgbData, width, height, gx, py, color);
+        }
+
+        static void DrawCross(byte[] rgbData, int width, int height, int x, int y, int armLength, Color32 color)
+        {
+            for (int d = -armLength; d <= armLength; d++)
+            {
+                SetPixel(rgbData, width, height, x + d, y, color);
+                SetPixel(rgbData, width, height, x, y + d, color);
+            }
+        }
+
+        static void SetPixel(byte[] rgbData, int width, int height, int x, int y, Color32 color)
+        {
+            if (x < 0 || x >= width || y < 0 || y >= height)
+            {
+                return;
+            }
+
+            int offset = (y * width + x) * 3;
+            rgbData[offset] = color.r;
+            rgbData[offset + 1] = color.g;
+            rgbData[offset + 2] = color.b;
+        }
+
+        static void PrintZoneSnapshot(ZoneGrid grid, IWorldDataProvider provider, int zoneX, int zoneY)
+        {
+            var coord = new WorldZones.Regions.Vector2i(zoneX, zoneY);
+            if (!grid.InBounds(coord))
+            {
+                Console.WriteLine($"Zone snapshot z({zoneX},{zoneY}): out-of-bounds");
+                return;
+            }
+
+            var center = ZoneGrid.ZoneCenter(coord);
+            float waterLevel = provider.WaterLevel;
+            float offset = ZoneGrid.ZoneSize * 0.25f;
+            float hCenter = provider.GetTerrainHeight(center.worldX, center.worldZ);
+            float hNW = provider.GetTerrainHeight(center.worldX - offset, center.worldZ + offset);
+            float hNE = provider.GetTerrainHeight(center.worldX + offset, center.worldZ + offset);
+            float hSW = provider.GetTerrainHeight(center.worldX - offset, center.worldZ - offset);
+            float hSE = provider.GetTerrainHeight(center.worldX + offset, center.worldZ - offset);
+            var depth = grid[coord];
+
+            Console.WriteLine($"Zone snapshot z({zoneX},{zoneY}): depth={depth} waterLevel={waterLevel:F2} hCenter={hCenter:F3} hNW={hNW:F3} hNE={hNE:F3} hSW={hSW:F3} hSE={hSE:F3}");
         }
     }
 }
