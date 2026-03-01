@@ -1,6 +1,5 @@
 using System;
 using System.Reflection;
-using BepInEx.Logging;
 using HarmonyLib;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,8 +11,6 @@ namespace WorldZones.Mod.RegionOverlay.Patches
     [HarmonyPatch]
     public static class MinimapUpdateBiomePatch
     {
-        internal static ManualLogSource Log { get; set; }
-
         public static event Action<float, float, bool, bool, float, float> BiomeUpdated;
 
         public static MethodBase TargetMethod()
@@ -42,7 +39,6 @@ namespace WorldZones.Mod.RegionOverlay.Patches
                 hoverWorldZ = float.NaN;
             }
 
-            Log?.LogDebug($"[MinimapUpdateBiomePatch] Postfix fired. Player pos: ({position.x:F0}, {position.z:F0}), minimapVisible={minimapVisible}, fullMapVisible={fullMapVisible}, hasHoverPosition={hasHoverPosition}");
             BiomeUpdated?.Invoke(position.x, position.z, minimapVisible, fullMapVisible, hoverWorldX, hoverWorldZ);
         }
 
