@@ -1,5 +1,3 @@
-using WorldZones.WorldGen;
-
 namespace WorldZones.Regions
 {
     /// <summary>

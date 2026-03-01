@@ -7,8 +7,4 @@
     <AssemblyName>WorldZones.Regions</AssemblyName>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\WorldZones.WorldGen\WorldZones.WorldGen.csproj" />
-  </ItemGroup>
-
 </Project>

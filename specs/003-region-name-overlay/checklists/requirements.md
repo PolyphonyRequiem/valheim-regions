@@ -32,5 +32,6 @@
 ## Notes
 
 - Validation iteration 1: all checklist items pass.
+- Validation iteration 2: spec revised from GUID display to deterministic 500-name testing catalog; checklist items remain passing.
 - Deferred decision intentionally retained: multiplayer authority and synchronization policy.
 - Items marked incomplete require spec updates before `/speckit.clarify` or `/speckit.plan`.
