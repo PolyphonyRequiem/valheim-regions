@@ -73,6 +73,9 @@ test-run.log
 
 # Temp/scratch files
 temp_*
+*.log
+.env*
+node_modules/
 
 # Generated biome map outputs
 *_biome_map.png

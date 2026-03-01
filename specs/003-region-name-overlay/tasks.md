@@ -57,11 +57,11 @@
 
 **Independent Test**: Open full map, hover explored locations, and verify top-left region name updates while vanilla biome text remains intact.
 
-- [ ] T020 [US2] Extend label controller with full-map hover name display state in `src/WorldZones.Mod.RegionOverlay/Integration/MinimapLabelController.cs`
-- [ ] T021 [P] [US2] Implement hover-position region-name resolution in minimap patch flow in `src/WorldZones.Mod.RegionOverlay/Patches/MinimapUpdateBiomePatch.cs`
-- [ ] T022 [P] [US2] Render hover region names in map top-left UI location in `src/WorldZones.Mod.RegionOverlay/Integration/MinimapLabelController.cs`
-- [ ] T023 [US2] Handle out-of-bounds/unassigned hover contexts with blank name output in `src/WorldZones.Mod.RegionOverlay/Patches/MinimapUpdateBiomePatch.cs`
-- [ ] T024 [US2] Add US2 hover-name validation steps and expected results in `specs/003-region-name-overlay/quickstart.md`
+- [X] T020 [US2] Extend label controller with full-map hover name display state in `src/WorldZones.Mod.RegionOverlay/Integration/MinimapLabelController.cs`
+- [X] T021 [P] [US2] Implement hover-position region-name resolution in minimap patch flow in `src/WorldZones.Mod.RegionOverlay/Patches/MinimapUpdateBiomePatch.cs`
+- [X] T022 [P] [US2] Render hover region names in map top-left UI location in `src/WorldZones.Mod.RegionOverlay/Integration/MinimapLabelController.cs`
+- [X] T023 [US2] Handle out-of-bounds/unassigned hover contexts with blank name output in `src/WorldZones.Mod.RegionOverlay/Patches/MinimapUpdateBiomePatch.cs`
+- [X] T024 [US2] Add US2 hover-name validation steps and expected results in `specs/003-region-name-overlay/quickstart.md`
 
 **Checkpoint**: User Stories 1 and 2 both work independently.
 
@@ -73,12 +73,12 @@
 
 **Independent Test**: Enter undiscovered region once (banner appears with test name), re-enter same region (no banner), restart and verify suppression persists.
 
-- [ ] T025 [P] [US3] Refactor discovery state model to store region names/identity-safe keys in `src/WorldZones.Mod.RegionOverlay/Persistence/DiscoveryState.cs`
-- [ ] T026 [P] [US3] Update discovery store serialization fields from GUID keys to name-based keys in `src/WorldZones.Mod.RegionOverlay/Persistence/DiscoveryStore.cs`
-- [ ] T027 [US3] Update discovery trigger patch to emit name-based discovery payload in `src/WorldZones.Mod.RegionOverlay/Patches/PlayerUpdateBiomePatch.cs`
-- [ ] T028 [US3] Integrate name-based check-and-record flow in `src/WorldZones.Mod.RegionOverlay/RegionOverlayPlugin.cs`
-- [ ] T029 [US3] Add persistence migration/fallback handling for pre-existing GUID discovery files in `src/WorldZones.Mod.RegionOverlay/Persistence/DiscoveryStore.cs`
-- [ ] T030 [US3] Add US3 name-banner validation steps and expected results in `specs/003-region-name-overlay/quickstart.md`
+- [X] T025 [P] [US3] Refactor discovery state model to store region names/identity-safe keys in `src/WorldZones.Mod.RegionOverlay/Persistence/DiscoveryState.cs`
+- [X] T026 [P] [US3] Update discovery store serialization fields from GUID keys to name-based keys in `src/WorldZones.Mod.RegionOverlay/Persistence/DiscoveryStore.cs`
+- [X] T027 [US3] Update discovery trigger patch to emit name-based discovery payload in `src/WorldZones.Mod.RegionOverlay/Patches/PlayerUpdateBiomePatch.cs`
+- [X] T028 [US3] Integrate name-based check-and-record flow in `src/WorldZones.Mod.RegionOverlay/RegionOverlayPlugin.cs`
+- [X] T029 [US3] Add persistence migration/fallback handling for pre-existing GUID discovery files in `src/WorldZones.Mod.RegionOverlay/Persistence/DiscoveryStore.cs`
+- [X] T030 [US3] Add US3 name-banner validation steps and expected results in `specs/003-region-name-overlay/quickstart.md`
 
 **Checkpoint**: All user stories are independently functional.
 

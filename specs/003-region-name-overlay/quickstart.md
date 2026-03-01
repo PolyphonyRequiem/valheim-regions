@@ -90,10 +90,21 @@ Expected results:
 - Hover explored locations and verify top-left region name updates with cursor position.
 - Verify vanilla biome text remains intact.
 
+Expected results:
+- Region hover name is rendered in top-left while full map is open.
+- Hovering unexplored, out-of-bounds, or unresolved locations shows a blank region hover name.
+- Existing biome-name text behavior remains unchanged.
+
 ### C. Discovery Banner
 - Enter an undiscovered region and verify one discovery banner appears.
 - Leave and re-enter same region; verify banner does not reappear.
 - Restart game and re-enter previously discovered region; verify suppression still holds.
+
+Expected results:
+- Discovery banner text uses the resolved deterministic region name (`Discovered: <RegionName>`).
+- First entry to a region name/key for the active player+world shows exactly one banner.
+- Re-entry into the same discovered region does not show another banner in the same session.
+- After restarting game, previously discovered regions remain suppressed for that player+world state.
 
 ### D. Catalog Determinism & Overflow
 - Confirm the source catalog contains exactly 500 literal names.
