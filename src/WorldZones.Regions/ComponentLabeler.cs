@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using WorldZones.WorldGen;
 
 namespace WorldZones.Regions
 {

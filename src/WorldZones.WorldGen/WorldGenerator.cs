@@ -24,13 +24,13 @@ namespace WorldZones.WorldGen
         readonly float minDarklandNoise = 0.4f;
         
         // River generation data
-        private System.Collections.Generic.List<Vector2> lakes;
+        private System.Collections.Generic.List<Vector2> lakes = new System.Collections.Generic.List<Vector2>();
         private System.Collections.Generic.List<River> rivers = new System.Collections.Generic.List<River>();
         private System.Collections.Generic.List<River> streams = new System.Collections.Generic.List<River>();
         private System.Collections.Generic.Dictionary<Vector2i, RiverPoint[]> riverPoints = new System.Collections.Generic.Dictionary<Vector2i, RiverPoint[]>();
         
         // Cellular noise generator (matching Valheim's m_noiseGen)
-        private static FastNoise noiseGen;
+        private static FastNoise? noiseGen;
         
         // Constants matching Valheim's world generation
         const float WorldRadius = 10000f;
@@ -540,6 +540,8 @@ namespace WorldZones.WorldGen
         
         private float GetAshlandsHeight(float wx, float wy)
         {
+            FastNoise ashlandsNoise = noiseGen ?? throw new InvalidOperationException("Noise generator was not initialized.");
+
             double num = wx;
             double num2 = wy;
             double a = GetBaseHeight((float)num, (float)num2);
@@ -561,7 +563,7 @@ namespace WorldZones.WorldGen
             int num9 = 5;
             for (int i = 0; i < num9; i++)
             {
-                num6 += num7 * MathUtils.MathfLikeSmoothStep(0.0, 1.0, noiseGen.GetCellular((float)(num * num8), (float)(num2 * num8)));
+                num6 += num7 * MathUtils.MathfLikeSmoothStep(0.0, 1.0, ashlandsNoise.GetCellular((float)(num * num8), (float)(num2 * num8)));
                 num8 *= 2.0;
                 num7 *= 0.5;
             }
@@ -579,13 +581,13 @@ namespace WorldZones.WorldGen
             int num17 = 3;
             for (int j = 0; j < num17; j++)
             {
-                num14 += num15 * noiseGen.GetCellular((float)(num * num16), (float)(num2 * num16));
+                num14 += num15 * ashlandsNoise.GetCellular((float)(num * num16), (float)(num2 * num16));
                 num16 *= 2.0;
                 num15 *= 0.5;
             }
             num14 = MathUtils.Remap(num14, -1.0, 1.0, 0.0, 1.0);
             num14 = MathUtils.Clamp01(Math.Pow(num14, 4.0) * 2.0);
-            double simplexFractal = noiseGen.GetSimplexFractal((float)(num * 0.075), (float)(num2 * 0.075));
+            double simplexFractal = ashlandsNoise.GetSimplexFractal((float)(num * 0.075), (float)(num2 * 0.075));
             simplexFractal = MathUtils.Remap(simplexFractal, -1.0, 1.0, 0.0, 1.0);
             simplexFractal = Math.Pow(simplexFractal, 1.399999976158142);
             num12 *= simplexFractal;
