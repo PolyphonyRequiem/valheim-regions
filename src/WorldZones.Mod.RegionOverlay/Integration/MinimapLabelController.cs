@@ -6,9 +6,9 @@ namespace WorldZones.Mod.RegionOverlay.Integration
 {
     public sealed class MinimapLabelController
     {
-        private Minimap boundMinimap;
-        private TMP_Text regionLabelSmall;
-        private TMP_Text regionLabelLarge;
+        private Minimap? boundMinimap;
+        private TMP_Text? regionLabelSmall;
+        private TMP_Text? regionLabelLarge;
 
         public bool IsVisible { get; private set; }
         public bool IsHoverVisible { get; private set; }
@@ -16,7 +16,7 @@ namespace WorldZones.Mod.RegionOverlay.Integration
         public string CurrentRegionNameText { get; private set; } = string.Empty;
         public string HoverRegionNameText { get; private set; } = string.Empty;
 
-        public void UpdateCurrentRegionLabel(bool minimapVisible, RegionLookupResult lookupResult)
+        public void UpdateCurrentRegionLabel(bool minimapVisible, RegionLookupResult? lookupResult)
         {
             if (!this.EnsureSmallLabel())
             {
@@ -25,11 +25,13 @@ namespace WorldZones.Mod.RegionOverlay.Integration
                 return;
             }
 
+            TMP_Text label = this.regionLabelSmall!;
+
             if (!minimapVisible)
             {
                 this.IsVisible = false;
                 this.CurrentRegionNameText = string.Empty;
-                this.regionLabelSmall.gameObject.SetActive(false);
+                label.gameObject.SetActive(false);
                 return;
             }
 
@@ -37,17 +39,17 @@ namespace WorldZones.Mod.RegionOverlay.Integration
             {
                 this.IsVisible = false;
                 this.CurrentRegionNameText = string.Empty;
-                this.regionLabelSmall.gameObject.SetActive(false);
+                label.gameObject.SetActive(false);
                 return;
             }
 
             this.IsVisible = true;
             this.CurrentRegionNameText = lookupResult.RegionName;
-            this.regionLabelSmall.gameObject.SetActive(true);
-            this.regionLabelSmall.text = this.CurrentRegionNameText;
+            label.gameObject.SetActive(true);
+            label.text = this.CurrentRegionNameText;
         }
 
-        public void UpdateHoverRegionLabel(bool fullMapVisible, RegionLookupResult lookupResult)
+        public void UpdateHoverRegionLabel(bool fullMapVisible, RegionLookupResult? lookupResult)
         {
             if (!this.EnsureLargeLabel())
             {
@@ -56,11 +58,13 @@ namespace WorldZones.Mod.RegionOverlay.Integration
                 return;
             }
 
+            TMP_Text label = this.regionLabelLarge!;
+
             if (!fullMapVisible)
             {
                 this.IsHoverVisible = false;
                 this.HoverRegionNameText = string.Empty;
-                this.regionLabelLarge.gameObject.SetActive(false);
+                label.gameObject.SetActive(false);
                 return;
             }
 
@@ -68,19 +72,19 @@ namespace WorldZones.Mod.RegionOverlay.Integration
             {
                 this.IsHoverVisible = false;
                 this.HoverRegionNameText = string.Empty;
-                this.regionLabelLarge.gameObject.SetActive(false);
+                label.gameObject.SetActive(false);
                 return;
             }
 
             this.IsHoverVisible = true;
             this.HoverRegionNameText = lookupResult.RegionName;
-            this.regionLabelLarge.gameObject.SetActive(true);
-            this.regionLabelLarge.text = this.HoverRegionNameText;
+            label.gameObject.SetActive(true);
+            label.text = this.HoverRegionNameText;
         }
 
         private bool EnsureSmallLabel()
         {
-            Minimap minimap = Minimap.instance;
+            Minimap? minimap = Minimap.instance;
             if (minimap == null || minimap.m_smallRoot == null || minimap.m_biomeNameSmall == null)
             {
                 this.regionLabelSmall = null;
@@ -131,7 +135,7 @@ namespace WorldZones.Mod.RegionOverlay.Integration
 
         private bool EnsureLargeLabel()
         {
-            Minimap minimap = Minimap.instance;
+            Minimap? minimap = Minimap.instance;
             if (minimap == null || minimap.m_largeRoot == null || minimap.m_biomeNameLarge == null)
             {
                 this.regionLabelLarge = null;

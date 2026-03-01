@@ -7,7 +7,7 @@ namespace WorldZones.Mod.RegionOverlay.Patches
     [HarmonyPatch]
     public static class PlayerUpdateBiomePatch
     {
-        public static event Action<float, float, long, string> BiomeUpdated;
+        public static event Action<float, float, long, string>? BiomeUpdated;
 
         public static MethodBase TargetMethod()
         {

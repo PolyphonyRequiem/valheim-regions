@@ -37,7 +37,7 @@ namespace WorldZones.Mod.RegionOverlay.Persistence
             }
 
             string cacheKey = BuildCacheKey(worldId, playerId);
-            if (!this.stateCache.TryGetValue(cacheKey, out DiscoveryState state))
+            if (!this.stateCache.TryGetValue(cacheKey, out DiscoveryState? state))
             {
                 state = this.Load(worldId, playerId) ?? new DiscoveryState(worldId, playerId);
                 this.stateCache[cacheKey] = state;
@@ -55,7 +55,7 @@ namespace WorldZones.Mod.RegionOverlay.Persistence
         public DiscoveryState LoadOrCreate(string worldId, string playerId)
         {
             string cacheKey = BuildCacheKey(worldId, playerId);
-            if (this.stateCache.TryGetValue(cacheKey, out DiscoveryState cachedState))
+            if (this.stateCache.TryGetValue(cacheKey, out DiscoveryState? cachedState) && cachedState != null)
             {
                 return cachedState;
             }
@@ -65,7 +65,7 @@ namespace WorldZones.Mod.RegionOverlay.Persistence
             return loadedState;
         }
 
-        private DiscoveryState Load(string worldId, string playerId)
+        private DiscoveryState? Load(string worldId, string playerId)
         {
             string path = this.GetStatePath(worldId, playerId);
             if (!File.Exists(path))
@@ -122,7 +122,7 @@ namespace WorldZones.Mod.RegionOverlay.Persistence
             }
         }
 
-        private DiscoveryState ToState(string worldId, string playerId, DiscoveryStateDocument document)
+        private DiscoveryState ToState(string worldId, string playerId, DiscoveryStateDocument? document)
         {
             var state = new DiscoveryState(worldId, playerId);
             if (document == null)
@@ -228,22 +228,22 @@ namespace WorldZones.Mod.RegionOverlay.Persistence
             public int SchemaVersion { get; set; }
 
             [DataMember(Name = "worldId", EmitDefaultValue = false)]
-            public string WorldId { get; set; }
+            public string? WorldId { get; set; }
 
             [DataMember(Name = "playerId", EmitDefaultValue = false)]
-            public string PlayerId { get; set; }
+            public string? PlayerId { get; set; }
 
             [DataMember(Name = "discoveredRegionKeys", EmitDefaultValue = false)]
-            public List<string> DiscoveredRegionKeys { get; set; }
+            public List<string>? DiscoveredRegionKeys { get; set; }
 
             [DataMember(Name = "discoveredRegionNames", EmitDefaultValue = false)]
-            public List<string> DiscoveredRegionNames { get; set; }
+            public List<string>? DiscoveredRegionNames { get; set; }
 
             [DataMember(Name = "discoveredRegionGuids", EmitDefaultValue = false)]
-            public List<string> DiscoveredRegionGuids { get; set; }
+            public List<string>? DiscoveredRegionGuids { get; set; }
 
             [DataMember(Name = "lastUpdatedUtc", EmitDefaultValue = false)]
-            public string LastUpdatedUtc { get; set; }
+            public string? LastUpdatedUtc { get; set; }
         }
     }
 }

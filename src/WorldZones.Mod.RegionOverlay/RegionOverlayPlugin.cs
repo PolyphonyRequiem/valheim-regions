@@ -22,13 +22,13 @@ namespace WorldZones.Mod.RegionOverlay
         private const float UpdateIntervalSeconds = 0.5f;
         private const int DefaultTargetZonesPerRegion = 200;
 
-        private MinimapLabelController minimapLabelController;
-        private IRegionLookupService regionLookupService;
+        private MinimapLabelController? minimapLabelController;
+        private IRegionLookupService? regionLookupService;
         private float updateTimer;
         private bool regionDataReady;
-        private string lastWorldSeedName;
-        private DiscoveryStore discoveryStore;
-        private Harmony harmony;
+        private string? lastWorldSeedName;
+        private DiscoveryStore? discoveryStore;
+        private Harmony? harmony;
 
         private void Awake()
         {
@@ -45,13 +45,18 @@ namespace WorldZones.Mod.RegionOverlay
 
         private void OnMinimapBiomeUpdated(float playerWorldX, float playerWorldZ, bool minimapVisible, bool fullMapVisible, float hoverWorldX, float hoverWorldZ)
         {
+            if (this.regionLookupService == null || this.minimapLabelController == null)
+            {
+                return;
+            }
+
             MinimapUpdateBiomePatch.OnAfterUpdateBiome(
                 playerWorldX,
                 playerWorldZ,
                 minimapVisible,
-            fullMapVisible,
-            hoverWorldX,
-            hoverWorldZ,
+                fullMapVisible,
+                hoverWorldX,
+                hoverWorldZ,
                 this.regionLookupService,
                 this.minimapLabelController);
         }
@@ -68,6 +73,8 @@ namespace WorldZones.Mod.RegionOverlay
                 return;
             }
 
+            string worldId = this.lastWorldSeedName!;
+
             RegionLookupResult lookup = this.regionLookupService.ResolveCurrent(playerWorldX, playerWorldZ);
             if (lookup == null || !lookup.HasRegion || string.IsNullOrWhiteSpace(lookup.RegionName))
             {
@@ -81,7 +88,7 @@ namespace WorldZones.Mod.RegionOverlay
             }
 
             bool isFirstDiscovery = this.discoveryStore.CheckAndRecordDiscovery(
-                this.lastWorldSeedName,
+                worldId,
                 playerKey,
                 lookup.RegionName,
                 lookup.RegionId);
@@ -129,14 +136,14 @@ namespace WorldZones.Mod.RegionOverlay
             var player = Player.m_localPlayer;
             if (player == null)
             {
-                this.minimapLabelController.UpdateCurrentRegionLabel(false, null);
-                this.minimapLabelController.UpdateHoverRegionLabel(false, null);
+                this.minimapLabelController?.UpdateCurrentRegionLabel(false, null);
+                this.minimapLabelController?.UpdateHoverRegionLabel(false, null);
                 return;
             }
 
             var pos = player.transform.position;
-            RegionLookupResult lookup = this.regionLookupService.ResolveCurrent(pos.x, pos.z);
-            this.minimapLabelController.UpdateCurrentRegionLabel(minimapVisible, lookup);
+            RegionLookupResult? lookup = this.regionLookupService?.ResolveCurrent(pos.x, pos.z);
+            this.minimapLabelController?.UpdateCurrentRegionLabel(minimapVisible, lookup);
         }
 
         private void TryInitializeRegionData()
@@ -237,14 +244,14 @@ namespace WorldZones.Mod.RegionOverlay
             try
             {
                 var worldField = worldGenerator.GetType().GetField("m_world", BindingFlags.Instance | BindingFlags.NonPublic);
-                object world = worldField?.GetValue(worldGenerator);
+                object? world = worldField?.GetValue(worldGenerator);
                 if (world == null)
                 {
                     return false;
                 }
 
                 var menuField = world.GetType().GetField("m_menu", BindingFlags.Instance | BindingFlags.Public);
-                object isMenuValue = menuField?.GetValue(world);
+                object? isMenuValue = menuField?.GetValue(world);
                 return isMenuValue is bool isMenu && isMenu;
             }
             catch
