@@ -8,6 +8,7 @@ using HarmonyLib;
 using UnityEngine;
 using WorldZones.Mod.RegionOverlay.Integration;
 using WorldZones.Mod.RegionOverlay.Patches;
+using WorldZones.Mod.RegionOverlay.Persistence;
 using WorldZones.Regions;
 
 namespace WorldZones.Mod.RegionOverlay
@@ -36,6 +37,7 @@ namespace WorldZones.Mod.RegionOverlay
         private int[,] generatedRegionIdGrid;
         private int[,] generatedLandLabelGrid;
         private Dictionary<int, int> landComponentSizesById;
+        private DiscoveryStore discoveryStore;
         private Harmony harmony;
 
         private void Awake()
@@ -44,23 +46,69 @@ namespace WorldZones.Mod.RegionOverlay
             this.harmony.PatchAll(typeof(RegionOverlayPlugin).Assembly);
             MinimapUpdateBiomePatch.Log = this.Logger;
             MinimapUpdateBiomePatch.BiomeUpdated += this.OnMinimapBiomeUpdated;
+            PlayerUpdateBiomePatch.Log = this.Logger;
+            PlayerUpdateBiomePatch.BiomeUpdated += this.OnPlayerBiomeUpdated;
 
             this.minimapLabelController = new MinimapLabelController();
             this.regionLookupService = NullRegionLookupService.Instance;
+            this.discoveryStore = new DiscoveryStore(this.Logger);
             this.lastLookupDebugText = string.Empty;
             this.lastLoggedZone = null;
             this.diagnosticLogTimer = 0f;
             this.Logger.LogInfo($"{PluginName} v{PluginVersion} loaded.");
         }
 
-        private void OnMinimapBiomeUpdated(float playerWorldX, float playerWorldZ, bool minimapVisible)
+        private void OnMinimapBiomeUpdated(float playerWorldX, float playerWorldZ, bool minimapVisible, bool fullMapVisible, float hoverWorldX, float hoverWorldZ)
         {
             MinimapUpdateBiomePatch.OnAfterUpdateBiome(
                 playerWorldX,
                 playerWorldZ,
                 minimapVisible,
+            fullMapVisible,
+            hoverWorldX,
+            hoverWorldZ,
                 this.regionLookupService,
                 this.minimapLabelController);
+        }
+
+        private void OnPlayerBiomeUpdated(float playerWorldX, float playerWorldZ, long playerId, string playerName)
+        {
+            if (!this.regionDataReady || this.regionLookupService == null || this.discoveryStore == null)
+            {
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(this.lastWorldSeedName))
+            {
+                return;
+            }
+
+            RegionLookupResult lookup = this.regionLookupService.ResolveCurrent(playerWorldX, playerWorldZ);
+            if (lookup == null || !lookup.HasRegion || string.IsNullOrWhiteSpace(lookup.RegionName))
+            {
+                return;
+            }
+
+            string playerKey = this.ResolvePlayerIdentity(playerId, playerName);
+            if (string.IsNullOrWhiteSpace(playerKey))
+            {
+                return;
+            }
+
+            bool isFirstDiscovery = this.discoveryStore.CheckAndRecordDiscovery(
+                this.lastWorldSeedName,
+                playerKey,
+                lookup.RegionName,
+                lookup.RegionId);
+
+            if (!isFirstDiscovery)
+            {
+                return;
+            }
+
+            this.ShowDiscoveryBanner(lookup.RegionName);
+            this.Logger.LogInfo(
+                $"Region discovered: world='{this.lastWorldSeedName}' player='{playerKey}' regionId={lookup.RegionId?.ToString() ?? "-"} regionName={lookup.RegionName}");
         }
 
         private void Update()
@@ -111,6 +159,7 @@ namespace WorldZones.Mod.RegionOverlay
             if (player == null)
             {
                 this.minimapLabelController.UpdateCurrentRegionLabel(false, null);
+                this.minimapLabelController.UpdateHoverRegionLabel(false, null);
 
                 if (emitDiagnostics)
                 {
@@ -187,14 +236,10 @@ namespace WorldZones.Mod.RegionOverlay
 
             string seedName = world.m_seedName;
             int seed = world.m_seed;
-            int seedRng = GetStableHashCode(seedName);
+            string worldIdentity = seed.ToString();
+            int seedRng = seed;
 
-            if (string.IsNullOrEmpty(seedName))
-            {
-                return;
-            }
-
-            this.Logger.LogInfo($"World detected: '{seedName}' (seed {seed}, seedRng {seedRng}). Generating region data...");
+            this.Logger.LogInfo($"World detected: '{seedName}' (seed {seed}, worldIdentity '{worldIdentity}', seedRng {seedRng}). Generating region data...");
             this.LogWorldGeneratorOffsets(gameWorldGenerator);
 
             try
@@ -202,7 +247,7 @@ namespace WorldZones.Mod.RegionOverlay
                 var sw = Stopwatch.StartNew();
 
                 var provider = new ValheimWorldDataProvider(
-                    seedName,
+                    worldIdentity,
                     (wx, wz) => gameWorldGenerator.GetHeight(wx, wz));
 
                 ZoneGrid grid = ProtoRegionGenerator.CreateClassifiedGrid(provider);
@@ -231,7 +276,7 @@ namespace WorldZones.Mod.RegionOverlay
                     }
                 }
 
-                this.regionLookupService = new RegionLookupService(grid, regionIdGrid, seedName, regionIds);
+                this.regionLookupService = new RegionLookupService(grid, regionIdGrid, worldIdentity, regionIds);
                 this.generatedGrid = grid;
                 this.generatedRegionIdGrid = regionIdGrid;
                 this.generatedLandLabelGrid = landLabelGrid;
@@ -240,7 +285,9 @@ namespace WorldZones.Mod.RegionOverlay
                 {
                     this.landComponentSizesById[component.Id] = component.Zones.Count;
                 }
-                this.lastWorldSeedName = seedName;
+                this.lastWorldSeedName = string.IsNullOrWhiteSpace(seedName)
+                    ? worldIdentity
+                    : seedName;
                 this.regionDataReady = true;
                 this.lastLookupDebugText = string.Empty;
                 this.lastLoggedZone = null;
@@ -726,9 +773,53 @@ namespace WorldZones.Mod.RegionOverlay
             return this.generatedRegionIdGrid[zoneY - this.generatedGrid.MinIndex, zoneX - this.generatedGrid.MinIndex];
         }
 
+        private string ResolvePlayerIdentity(long playerId, string playerName)
+        {
+            if (playerId > 0)
+            {
+                return playerId.ToString();
+            }
+
+            if (!string.IsNullOrWhiteSpace(playerName))
+            {
+                return playerName.Trim();
+            }
+
+            var localPlayer = Player.m_localPlayer;
+            if (localPlayer == null)
+            {
+                return string.Empty;
+            }
+
+            long localPlayerId = localPlayer.GetPlayerID();
+            if (localPlayerId > 0)
+            {
+                return localPlayerId.ToString();
+            }
+
+            string fallbackName = localPlayer.GetPlayerName();
+            return string.IsNullOrWhiteSpace(fallbackName) ? string.Empty : fallbackName.Trim();
+        }
+
+        private void ShowDiscoveryBanner(string regionName)
+        {
+            if (string.IsNullOrWhiteSpace(regionName))
+            {
+                return;
+            }
+
+            if (MessageHud.instance == null)
+            {
+                return;
+            }
+
+            MessageHud.instance.ShowBiomeFoundMsg($"Discovered: {regionName}", playStinger: true);
+        }
+
         private void OnDestroy()
         {
             MinimapUpdateBiomePatch.BiomeUpdated -= this.OnMinimapBiomeUpdated;
+            PlayerUpdateBiomePatch.BiomeUpdated -= this.OnPlayerBiomeUpdated;
             this.harmony?.UnpatchSelf();
         }
 
