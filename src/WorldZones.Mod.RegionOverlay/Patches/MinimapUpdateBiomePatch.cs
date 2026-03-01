@@ -11,7 +11,7 @@ namespace WorldZones.Mod.RegionOverlay.Patches
     [HarmonyPatch]
     public static class MinimapUpdateBiomePatch
     {
-        public static event Action<float, float, bool, bool, float, float> BiomeUpdated;
+        public static event Action<float, float, bool, bool, float, float>? BiomeUpdated;
 
         public static MethodBase TargetMethod()
         {
@@ -27,7 +27,7 @@ namespace WorldZones.Mod.RegionOverlay.Patches
                 return;
             }
 
-            global::Minimap minimap = global::Minimap.instance;
+            global::Minimap? minimap = global::Minimap.instance;
             var position = player.transform.position;
             bool fullMapVisible = minimap != null && global::Minimap.IsOpen();
             bool minimapVisible = minimap != null && !fullMapVisible;
@@ -60,7 +60,7 @@ namespace WorldZones.Mod.RegionOverlay.Patches
             RegionLookupResult lookup = lookupService.ResolveCurrent(playerWorldX, playerWorldZ);
             labelController.UpdateCurrentRegionLabel(minimapVisible, lookup);
 
-            RegionLookupResult hoverLookup = null;
+            RegionLookupResult? hoverLookup = null;
             if (fullMapVisible && !float.IsNaN(hoverWorldX) && !float.IsNaN(hoverWorldZ))
             {
                 hoverLookup = lookupService.ResolveCurrent(hoverWorldX, hoverWorldZ);
@@ -69,7 +69,7 @@ namespace WorldZones.Mod.RegionOverlay.Patches
             labelController.UpdateHoverRegionLabel(fullMapVisible, hoverLookup);
         }
 
-        private static bool TryGetHoverWorldPosition(global::Minimap minimap, out float worldX, out float worldZ)
+        private static bool TryGetHoverWorldPosition(global::Minimap? minimap, out float worldX, out float worldZ)
         {
             worldX = float.NaN;
             worldZ = float.NaN;
