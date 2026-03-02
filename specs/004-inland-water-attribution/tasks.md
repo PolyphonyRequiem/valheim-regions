@@ -15,8 +15,8 @@
 
 **Purpose**: Prepare feature-specific scaffolding and validation entry points.
 
-- [ ] T001 Create inland-water feature scaffold file in src/WorldZones.Regions/InlandWaterAttributionOptions.cs
-- [ ] T002 [P] Create shared inland-water test fixture utilities in tests/WorldZones.Regions.Tests/InlandWaterTestFixtures.cs
+- [x] T001 Create inland-water feature scaffold file in src/WorldZones.Regions/InlandWaterAttributionOptions.cs
+- [x] T002 [P] Create shared inland-water test fixture utilities in tests/WorldZones.Regions.Tests/InlandWaterTestFixtures.cs
 
 **Checkpoint**: Feature scaffolding and test fixtures exist for implementation.
 
@@ -28,12 +28,12 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T004 [P] Define water connectivity enum in src/WorldZones.Regions/WaterConnectivityKind.cs
-- [ ] T005 [P] Define inland water body model in src/WorldZones.Regions/InlandWaterBody.cs
-- [ ] T006 [P] Define inland attribution result model in src/WorldZones.Regions/InlandWaterAttributionResult.cs
-- [ ] T007 Implement ocean-connectivity flood-fill categorizer in src/WorldZones.Regions/InlandWaterConnectivityCategorizer.cs
-- [ ] T008 Implement deterministic inland-water attributor in src/WorldZones.Regions/InlandWaterAttributor.cs
-- [ ] T009 Wire optional inland-water attribution switch into generation entrypoint in src/WorldZones.Regions/ProtoRegionGenerator.cs
+- [x] T004 [P] Define water connectivity enum in src/WorldZones.Regions/WaterConnectivityKind.cs
+- [x] T005 [P] Define inland water body model in src/WorldZones.Regions/InlandWaterBody.cs
+- [x] T006 [P] Define inland attribution result model in src/WorldZones.Regions/InlandWaterAttributionResult.cs
+- [x] T007 Implement ocean-connectivity flood-fill categorizer in src/WorldZones.Regions/InlandWaterConnectivityCategorizer.cs
+- [x] T008 Implement deterministic inland-water attributor in src/WorldZones.Regions/InlandWaterAttributor.cs
+- [x] T009 Wire optional inland-water attribution switch into generation entrypoint in src/WorldZones.Regions/ProtoRegionGenerator.cs
 
 **Checkpoint**: Core inland-water attribution infrastructure exists and generation pipeline can invoke it.
 
@@ -47,17 +47,17 @@
 
 ### Tests for User Story 1
 
-- [ ] T010 [P] [US1] Add inland-vs-ocean connectivity categorization tests in tests/WorldZones.Regions.Tests/InlandWaterConnectivityCategorizerTests.cs
-- [ ] T011 [P] [US1] Add attribution winner and tie-break tests in tests/WorldZones.Regions.Tests/InlandWaterAttributorTests.cs
-- [ ] T012 [US1] Add land-ownership-unchanged regression test in tests/WorldZones.Regions.Tests/InlandWaterAttributionIntegrationTests.cs
-- [ ] T031 [US1] Add FR-008 safe-fail regression test for inland water with no adjacent assigned region in tests/WorldZones.Regions.Tests/InlandWaterAttributionIntegrationTests.cs
-- [ ] T032 [US1] Add FR-007 disabled-mode exact-grid-equivalence regression test in tests/WorldZones.Regions.Tests/InlandWaterAttributionIntegrationTests.cs
+- [x] T010 [P] [US1] Add inland-vs-ocean connectivity categorization tests in tests/WorldZones.Regions.Tests/InlandWaterConnectivityCategorizerTests.cs
+- [x] T011 [P] [US1] Add attribution winner and tie-break tests in tests/WorldZones.Regions.Tests/InlandWaterAttributorTests.cs
+- [x] T012 [US1] Add land-ownership-unchanged regression test in tests/WorldZones.Regions.Tests/InlandWaterAttributionIntegrationTests.cs
+- [x] T031 [US1] Add FR-008 safe-fail regression test for inland water with no adjacent assigned region in tests/WorldZones.Regions.Tests/InlandWaterAttributionIntegrationTests.cs
+- [x] T032 [US1] Add FR-007 disabled-mode exact-grid-equivalence regression test in tests/WorldZones.Regions.Tests/InlandWaterAttributionIntegrationTests.cs
 
 ### Implementation for User Story 1
 
-- [ ] T013 [US1] Integrate connectivity categorization and attribution pass into region generation flow in src/WorldZones.Regions/ProtoRegionGenerator.cs
-- [ ] T014 [US1] Record attributed/unassigned inland-water counts in generation output in src/WorldZones.Regions/ProtoRegionResult.cs
-- [ ] T015 [US1] Add inland-water attribution options defaults and validation in src/WorldZones.Regions/InlandWaterAttributionOptions.cs
+- [x] T013 [US1] Integrate connectivity categorization and attribution pass into region generation flow in src/WorldZones.Regions/ProtoRegionGenerator.cs
+- [x] T014 [US1] Record attributed/unassigned inland-water counts in generation output in src/WorldZones.Regions/ProtoRegionResult.cs
+- [x] T015 [US1] Add inland-water attribution options defaults and validation in src/WorldZones.Regions/InlandWaterAttributionOptions.cs
 
 **Checkpoint**: Inland water ownership behavior is functional and independently testable.
 
