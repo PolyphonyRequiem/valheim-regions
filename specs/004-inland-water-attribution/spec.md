@@ -82,7 +82,7 @@ As a feature consumer using region metadata and overlays, I need region statisti
 
 ### Functional Requirements
 
-- **FR-001**: The system MUST classify water zones as either ocean-connected water or inland water.
+- **FR-001**: The system MUST categorize water zones as either ocean-connected water or inland water.
 - **FR-002**: The system MUST attribute inland water zones to regions while leaving ocean-connected water unassigned by this feature.
 - **FR-003**: The system MUST preserve existing land-zone ownership produced by the baseline land-seeded generation.
 - **FR-004**: The system MUST assign each attributed inland water zone to exactly one region.
@@ -93,7 +93,7 @@ As a feature consumer using region metadata and overlays, I need region statisti
 
 ### Key Entities *(include if feature involves data)*
 
-- **Water Connectivity Class**: Classification of each water zone as inland or ocean-connected.
+- **Water Connectivity Kind**: Categorization of each water zone as inland or ocean-connected.
 - **Region Ownership Grid**: Territory ownership map including existing land ownership and newly attributed inland-water ownership.
 - **Inland Water Body**: A contiguous set of inland water zones considered for attribution.
 - **Region Summary**: Region-level aggregate metadata including territory area after inland-water attribution.
@@ -106,7 +106,7 @@ As a feature consumer using region metadata and overlays, I need region statisti
 
 ### Dependencies
 
-- Availability of existing zone classification and baseline region ownership output.
+- Availability of existing zone categorization and baseline region ownership output.
 - Availability of deterministic world input and reproducible generation settings.
 
 ## Success Criteria *(mandatory)*
