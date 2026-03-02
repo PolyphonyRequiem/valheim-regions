@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace WorldZones.Regions
 {
@@ -13,6 +14,12 @@ namespace WorldZones.Regions
         /// <summary>
         /// Applies inland-water attribution to the provided region ownership grid.
         /// </summary>
+        /// <param name="grid">Zone grid used for bounds and coordinate mapping.</param>
+        /// <param name="regionIdGrid">Mutable ownership grid; updated in-place for attributed inland-water zones.</param>
+        /// <param name="connectivityGrid">Per-zone connectivity kinds produced by the categorizer.</param>
+        /// <param name="inlandBodies">Connected inland-water bodies to attribute.</param>
+        /// <returns>Attribution summary counts and changed-region tracking.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when any input argument is null.</exception>
         public static InlandWaterAttributionResult Attribute(
             ZoneGrid grid,
             int[,] regionIdGrid,
@@ -92,18 +99,19 @@ namespace WorldZones.Regions
             int winnerRegionId = -1;
             int winnerBorderCount = -1;
 
-            foreach (var vote in borderVotes)
+            foreach (int regionId in borderVotes.Keys.OrderBy(id => id))
             {
-                if (vote.Value > winnerBorderCount)
+                int voteCount = borderVotes[regionId];
+                if (voteCount > winnerBorderCount)
                 {
-                    winnerBorderCount = vote.Value;
-                    winnerRegionId = vote.Key;
+                    winnerBorderCount = voteCount;
+                    winnerRegionId = regionId;
                     continue;
                 }
 
-                if (vote.Value == winnerBorderCount && vote.Key < winnerRegionId)
+                if (voteCount == winnerBorderCount && regionId < winnerRegionId)
                 {
-                    winnerRegionId = vote.Key;
+                    winnerRegionId = regionId;
                 }
             }
 

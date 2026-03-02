@@ -203,50 +203,74 @@ namespace WorldZones.Regions
 
             // ── 6. Optional inland-water attribution ────────────────
             InlandWaterAttributionResult inlandAttribution = InlandWaterAttributionResult.Empty;
+            WaterConnectivityKind[,] connectivityGrid = null;
             if (attributionOptions.Enabled)
             {
-                var (connectivityGrid, inlandBodies) = InlandWaterConnectivityCategorizer.Categorize(grid);
+                var categorization = InlandWaterConnectivityCategorizer.Categorize(grid);
+                connectivityGrid = categorization.connectivityGrid;
                 inlandAttribution = InlandWaterAttributor.Attribute(
                     grid,
                     regionIdGrid,
                     connectivityGrid,
-                    inlandBodies);
+                    categorization.inlandBodies);
             }
 
             // ── 7. Build result ───────────────────────────────────────
-            var regionAreas = new Dictionary<int, int>();
+            var landAreaByRegion = new Dictionary<int, int>();
+            var inlandWaterAreaByRegion = new Dictionary<int, int>();
             int unassigned = 0;
 
             for (int zy = min; zy <= max; zy++)
             {
                 for (int zx = min; zx <= max; zx++)
                 {
-                    if (grid[zx, zy] != DepthClass.Land)
-                        continue;
-
                     int rid = regionIdGrid[zy - min, zx - min];
-                    if (rid < 0)
+                    DepthClass depth = grid[zx, zy];
+
+                    if (depth == DepthClass.Land)
                     {
-                        unassigned++;
+                        if (rid < 0)
+                        {
+                            unassigned++;
+                        }
+                        else
+                        {
+                            if (!landAreaByRegion.ContainsKey(rid))
+                            {
+                                landAreaByRegion[rid] = 0;
+                            }
+
+                            landAreaByRegion[rid]++;
+                        }
                     }
-                    else
+
+                    if (connectivityGrid != null &&
+                        rid >= 0 &&
+                        connectivityGrid[zy - min, zx - min] == WaterConnectivityKind.InlandWater)
                     {
-                        if (!regionAreas.ContainsKey(rid))
-                            regionAreas[rid] = 0;
-                        regionAreas[rid]++;
+                        if (!inlandWaterAreaByRegion.ContainsKey(rid))
+                        {
+                            inlandWaterAreaByRegion[rid] = 0;
+                        }
+
+                        inlandWaterAreaByRegion[rid]++;
                     }
                 }
             }
 
-            var regions = new List<ProtoRegion>(regionAreas.Count);
+            var regions = new List<ProtoRegion>(landAreaByRegion.Count);
             int minArea = int.MaxValue;
             int maxArea = 0;
             long totalArea = 0;
 
-            foreach (var kv in regionAreas)
+            foreach (var kv in landAreaByRegion)
             {
                 var r = new ProtoRegion(kv.Key, seeds[kv.Key]);
                 r.AreaZones = kv.Value;
+                r.LandAreaZones = kv.Value;
+                r.InlandWaterAreaZones = inlandWaterAreaByRegion.TryGetValue(kv.Key, out int inlandArea)
+                    ? inlandArea
+                    : 0;
                 regions.Add(r);
 
                 if (kv.Value < minArea) minArea = kv.Value;
@@ -256,7 +280,12 @@ namespace WorldZones.Regions
 
             regions.Sort((a, b) => b.AreaZones.CompareTo(a.AreaZones));
 
-            int regionCount = regionAreas.Count;
+            int regionCount = landAreaByRegion.Count;
+            int totalInlandWaterArea = 0;
+            foreach (var inland in inlandWaterAreaByRegion.Values)
+            {
+                totalInlandWaterArea += inland;
+            }
 
             return new ProtoRegionResult
             {
@@ -275,7 +304,9 @@ namespace WorldZones.Regions
                 AttributedWaterZoneCount = inlandAttribution.AttributedWaterZoneCount,
                 UnassignedInlandWaterZoneCount = inlandAttribution.UnassignedInlandWaterZoneCount,
                 AttributedWaterBodyCount = inlandAttribution.AttributedWaterBodyCount,
-                UnassignedWaterBodyCount = inlandAttribution.UnassignedWaterBodyCount
+                UnassignedWaterBodyCount = inlandAttribution.UnassignedWaterBodyCount,
+                TotalInlandWaterAreaZones = totalInlandWaterArea,
+                TotalRegionTerritoryAreaZones = landCount - unassigned + totalInlandWaterArea
             };
         }
 

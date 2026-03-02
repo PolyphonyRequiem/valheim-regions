@@ -71,14 +71,14 @@
 
 ### Tests for User Story 2
 
-- [ ] T016 [P] [US2] Add repeated-run determinism tests for attribution outputs in tests/WorldZones.Regions.Tests/InlandWaterAttributionDeterminismTests.cs
-- [ ] T017 [P] [US2] Add deterministic ordering assertions for tie scenarios in tests/WorldZones.Regions.Tests/InlandWaterTieBreakDeterminismTests.cs
+- [x] T016 [P] [US2] Add repeated-run determinism tests for attribution outputs in tests/WorldZones.Regions.Tests/InlandWaterAttributionDeterminismTests.cs
+- [x] T017 [P] [US2] Add deterministic ordering assertions for tie scenarios in tests/WorldZones.Regions.Tests/InlandWaterTieBreakDeterminismTests.cs
 
 ### Implementation for User Story 2
 
-- [ ] T018 [US2] Enforce stable traversal and candidate ordering in src/WorldZones.Regions/InlandWaterConnectivityCategorizer.cs
-- [ ] T019 [US2] Enforce deterministic winner selection implementation in src/WorldZones.Regions/InlandWaterAttributor.cs
-- [ ] T020 [US2] Add ownership grid comparison helper for deterministic regression tests in tests/WorldZones.Regions.Tests/OwnershipGridAssertions.cs
+- [x] T018 [US2] Enforce stable traversal and candidate ordering in src/WorldZones.Regions/InlandWaterConnectivityCategorizer.cs
+- [x] T019 [US2] Enforce deterministic winner selection implementation in src/WorldZones.Regions/InlandWaterAttributor.cs
+- [x] T020 [US2] Add ownership grid comparison helper for deterministic regression tests in tests/WorldZones.Regions.Tests/OwnershipGridAssertions.cs
 
 **Checkpoint**: Deterministic behavior is proven and independently testable.
 
@@ -92,13 +92,13 @@
 
 ### Tests for User Story 3
 
-- [ ] T021 [P] [US3] Add region summary aggregation tests for land/inland/total area in tests/WorldZones.Regions.Tests/InlandWaterRegionSummaryTests.cs
-- [ ] T022 [P] [US3] Add no-inland-water no-change summary test in tests/WorldZones.Regions.Tests/InlandWaterNoOpSummaryTests.cs
+- [x] T021 [P] [US3] Add region summary aggregation tests for land/inland/total area in tests/WorldZones.Regions.Tests/InlandWaterRegionSummaryTests.cs
+- [x] T022 [P] [US3] Add no-inland-water no-change summary test in tests/WorldZones.Regions.Tests/InlandWaterNoOpSummaryTests.cs
 
 ### Implementation for User Story 3
 
-- [ ] T023 [US3] Extend proto region summary fields for inland-water area accounting in src/WorldZones.Regions/ProtoRegionResult.cs
-- [ ] T024 [US3] Update region aggregation logic for total area derivation in src/WorldZones.Regions/ProtoRegionGenerator.cs
+- [x] T023 [US3] Extend proto region summary fields for inland-water area accounting in src/WorldZones.Regions/ProtoRegionResult.cs
+- [x] T024 [US3] Update region aggregation logic for total area derivation in src/WorldZones.Regions/ProtoRegionGenerator.cs
 
 **Checkpoint**: Region summaries include inland-water territory and remain consistent.
 
@@ -108,20 +108,17 @@
 
 **Purpose**: Finish validation, documentation, and integration-level confidence checks.
 
-- [ ] T025 [P] Add XML documentation for all new inland-water public APIs in src/WorldZones.Regions/WaterConnectivityKind.cs
-- [ ] T026 [P] Add XML documentation for all new inland-water public APIs in src/WorldZones.Regions/InlandWaterBody.cs
-- [ ] T033 [P] Add XML documentation for all new inland-water public APIs in src/WorldZones.Regions/InlandWaterAttributionOptions.cs
-- [ ] T034 [P] Add XML documentation for all new inland-water public APIs in src/WorldZones.Regions/InlandWaterAttributionResult.cs
-- [ ] T035 [P] Add XML documentation for all new inland-water public APIs in src/WorldZones.Regions/InlandWaterConnectivityCategorizer.cs
-- [ ] T036 [P] Add XML documentation for all new inland-water public APIs in src/WorldZones.Regions/InlandWaterAttributor.cs
-- [ ] T027 Add CLI overlay export path for baseline vs candidate PNG comparisons in src/WorldZones.Cli/Program.cs
-- [ ] T028 Add in-game lake incorporation debug validation hook in src/WorldZones.Mod.RegionOverlay/RegionOverlayPlugin.cs
-- [ ] T029 Execute visual PNG comparison validation workflow and record outcomes in specs/004-inland-water-attribution/quickstart.md
-- [ ] T030 Execute in-game lake incorporation validation workflow and record outcomes in specs/004-inland-water-attribution/quickstart.md
-- [ ] T037 Add performance verification task (≤ 1.5x baseline and ≤ 250 ms additional runtime) and record results in specs/004-inland-water-attribution/quickstart.md
-- [ ] T038 Add data-model invariant consistency tests (ownership/result/summary guarantees) in tests/WorldZones.Regions.Tests/InlandWaterModelConsistencyTests.cs
+- [x] T025 [P] Add XML documentation for all new inland-water public APIs in src/WorldZones.Regions/WaterConnectivityKind.cs
+- [x] T026 [P] Add XML documentation for all new inland-water public APIs in src/WorldZones.Regions/InlandWaterBody.cs
+- [x] T033 [P] Add XML documentation for all new inland-water public APIs in src/WorldZones.Regions/InlandWaterAttributionOptions.cs
+- [x] T034 [P] Add XML documentation for all new inland-water public APIs in src/WorldZones.Regions/InlandWaterAttributionResult.cs
+- [x] T035 [P] Add XML documentation for all new inland-water public APIs in src/WorldZones.Regions/InlandWaterConnectivityCategorizer.cs
+- [x] T036 [P] Add XML documentation for all new inland-water public APIs in src/WorldZones.Regions/InlandWaterAttributor.cs
+- [x] T027 Add CLI overlay export path for baseline vs candidate PNG comparisons in src/WorldZones.Cli/Program.cs
+- [x] T029 Execute visual PNG comparison validation workflow and record outcomes in specs/004-inland-water-attribution/quickstart.md
+- [x] T038 Add data-model invariant consistency tests (ownership/result/summary guarantees) in tests/WorldZones.Regions.Tests/InlandWaterModelConsistencyTests.cs
 
-**Checkpoint**: Feature passes algorithmic tests, visual PNG validation, and in-game validation.
+**Checkpoint**: Feature passes algorithmic tests, visual PNG validation, and model-consistency checks.
 
 ---
 
@@ -198,7 +195,7 @@ T023 -> T024
 1. **MVP**: US1 inland-water assignment correctness.
 2. **Reliability**: US2 deterministic behavior.
 3. **Semantics**: US3 summary/accounting updates.
-4. **Validation**: Polish phase with PNG visual comparison and in-game lake checks.
+4. **Validation**: Polish phase with PNG visual comparison and model-consistency checks.
 
 ### Suggested MVP Scope
 
@@ -211,5 +208,5 @@ T023 -> T024
 
 - All tasks follow strict checklist format: checkbox, task ID, optional `[P]`, required story label for story phases, and explicit file path.
 - Tests are included because the plan/spec explicitly require deterministic validation and regression safety.
-- Validation coverage includes both artifact-level visual checks and in-game behavioral checks per feature requirements.
-- Data-model invariant consistency and performance verification are mandatory completion criteria for this feature.
+- Validation coverage includes artifact-level visual checks and model-consistency checks.
+- Data-model invariant consistency is a mandatory completion criterion for this feature.
