@@ -102,3 +102,30 @@
 - Each inland `WaterBody` produces one or more `AttributionVote` records.
 - Winning vote updates `OwnershipCell.regionId` for that water body.
 - `InlandAttributionResult` and `RegionSummary` are derived from final ownership grid.
+
+---
+
+## Simple Data Contract (Informational)
+
+This feature uses a lightweight, documentation-first data contract. The contract is informational and is defined here in `data-model.md` as the canonical model reference for implementation and tests.
+
+### Contract Types
+
+- `OwnershipCell`
+- `WaterBody`
+- `AttributionVote`
+- `InlandAttributionResult`
+- `RegionSummary`
+
+### Contract Guarantees
+
+- **Determinism**: Same seed and config produce identical ownership outputs.
+- **Land Stability**: Existing land ownership remains unchanged when attribution is enabled.
+- **Connectivity Scope**: Only `InlandWater` is eligible for attribution; `OceanConnectedWater` remains excluded.
+- **Tie Resolution**: Candidate owner ties are resolved by lowest `candidateRegionId`.
+- **Safe Fail**: Inland water with no adjacent assigned region remains unassigned and is counted in result metrics.
+
+### Versioning Approach
+
+- Contract changes are additive when possible.
+- Breaking semantic changes require updates to `spec.md`, `plan.md`, and `tasks.md` acceptance/testing coverage.

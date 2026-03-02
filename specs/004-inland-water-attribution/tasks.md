@@ -1,7 +1,7 @@
 # Tasks: Inland Water Attribution
 
 **Input**: Design documents from `/specs/004-inland-water-attribution/`
-**Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/inland-water-attribution-api.yaml, quickstart.md
+**Prerequisites**: plan.md, spec.md, research.md, data-model.md, quickstart.md
 
 ## Format: `[ID] [P?] [Story?] Description`
 
@@ -17,9 +17,8 @@
 
 - [ ] T001 Create inland-water feature scaffold file in src/WorldZones.Regions/InlandWaterAttributionOptions.cs
 - [ ] T002 [P] Create shared inland-water test fixture utilities in tests/WorldZones.Regions.Tests/InlandWaterTestFixtures.cs
-- [ ] T003 [P] Add feature-004 validation workflow notes section in specs/004-inland-water-attribution/quickstart.md
 
-**Checkpoint**: Feature scaffolding exists and validation workflow is documented for implementation.
+**Checkpoint**: Feature scaffolding and test fixtures exist for implementation.
 
 ---
 
@@ -51,6 +50,8 @@
 - [ ] T010 [P] [US1] Add inland-vs-ocean connectivity categorization tests in tests/WorldZones.Regions.Tests/InlandWaterConnectivityCategorizerTests.cs
 - [ ] T011 [P] [US1] Add attribution winner and tie-break tests in tests/WorldZones.Regions.Tests/InlandWaterAttributorTests.cs
 - [ ] T012 [US1] Add land-ownership-unchanged regression test in tests/WorldZones.Regions.Tests/InlandWaterAttributionIntegrationTests.cs
+- [ ] T031 [US1] Add FR-008 safe-fail regression test for inland water with no adjacent assigned region in tests/WorldZones.Regions.Tests/InlandWaterAttributionIntegrationTests.cs
+- [ ] T032 [US1] Add FR-007 disabled-mode exact-grid-equivalence regression test in tests/WorldZones.Regions.Tests/InlandWaterAttributionIntegrationTests.cs
 
 ### Implementation for User Story 1
 
@@ -107,12 +108,18 @@
 
 **Purpose**: Finish validation, documentation, and integration-level confidence checks.
 
-- [ ] T025 [P] Add XML documentation for inland-water public types in src/WorldZones.Regions/InlandWaterConnectivityCategorizer.cs
-- [ ] T026 [P] Add XML documentation for inland-water result contracts in src/WorldZones.Regions/InlandWaterAttributionResult.cs
+- [ ] T025 [P] Add XML documentation for all new inland-water public APIs in src/WorldZones.Regions/WaterConnectivityKind.cs
+- [ ] T026 [P] Add XML documentation for all new inland-water public APIs in src/WorldZones.Regions/InlandWaterBody.cs
+- [ ] T033 [P] Add XML documentation for all new inland-water public APIs in src/WorldZones.Regions/InlandWaterAttributionOptions.cs
+- [ ] T034 [P] Add XML documentation for all new inland-water public APIs in src/WorldZones.Regions/InlandWaterAttributionResult.cs
+- [ ] T035 [P] Add XML documentation for all new inland-water public APIs in src/WorldZones.Regions/InlandWaterConnectivityCategorizer.cs
+- [ ] T036 [P] Add XML documentation for all new inland-water public APIs in src/WorldZones.Regions/InlandWaterAttributor.cs
 - [ ] T027 Add CLI overlay export path for baseline vs candidate PNG comparisons in src/WorldZones.Cli/Program.cs
 - [ ] T028 Add in-game lake incorporation debug validation hook in src/WorldZones.Mod.RegionOverlay/RegionOverlayPlugin.cs
 - [ ] T029 Execute visual PNG comparison validation workflow and record outcomes in specs/004-inland-water-attribution/quickstart.md
 - [ ] T030 Execute in-game lake incorporation validation workflow and record outcomes in specs/004-inland-water-attribution/quickstart.md
+- [ ] T037 Add performance verification task (≤ 1.5x baseline and ≤ 250 ms additional runtime) and record results in specs/004-inland-water-attribution/quickstart.md
+- [ ] T038 Add data-model invariant consistency tests (ownership/result/summary guarantees) in tests/WorldZones.Regions.Tests/InlandWaterModelConsistencyTests.cs
 
 **Checkpoint**: Feature passes algorithmic tests, visual PNG validation, and in-game validation.
 
@@ -205,3 +212,4 @@ T023 -> T024
 - All tasks follow strict checklist format: checkbox, task ID, optional `[P]`, required story label for story phases, and explicit file path.
 - Tests are included because the plan/spec explicitly require deterministic validation and regression safety.
 - Validation coverage includes both artifact-level visual checks and in-game behavioral checks per feature requirements.
+- Data-model invariant consistency and performance verification are mandatory completion criteria for this feature.

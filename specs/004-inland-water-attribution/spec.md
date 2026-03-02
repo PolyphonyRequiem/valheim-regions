@@ -7,19 +7,6 @@
 
 ## User Scenarios & Testing *(mandatory)*
 
-<!--
-  IMPORTANT: User stories should be PRIORITIZED as user journeys ordered by importance.
-  Each user story/journey must be INDEPENDENTLY TESTABLE - meaning if you implement just ONE of them,
-  you should still have a viable MVP (Minimum Viable Product) that delivers value.
-  
-  Assign priorities (P1, P2, P3, etc.) to each story, where P1 is the most critical.
-  Think of each story as a standalone slice of functionality that can be:
-  - Developed independently
-  - Tested independently
-  - Deployed independently
-  - Demonstrated to users independently
--->
-
 ### User Story 1 - Inland Water Belongs to Regions (Priority: P1)
 
 As a map and region system designer, I need enclosed inland water (lakes and other non-ocean-connected water) to belong to a region so each region represents a full territory instead of only dry land.
@@ -33,6 +20,7 @@ As a map and region system designer, I need enclosed inland water (lakes and oth
 1. **Given** a generated world with enclosed inland lakes, **When** region ownership is computed, **Then** each inland water zone is assigned to exactly one region.
 2. **Given** a generated world with ocean-connected water, **When** region ownership is computed, **Then** ocean-connected water zones are not attributed as inland-water territory.
 3. **Given** a land-seeded region baseline, **When** inland water attribution is applied, **Then** existing land-zone region ownership remains unchanged.
+4. **Given** an inland water body with no adjacent assigned region, **When** inland water attribution is applied, **Then** the water body remains unassigned and is counted in safe-fail metrics.
 
 ---
 
@@ -48,6 +36,7 @@ As a developer validating world generation outputs, I need inland water attribut
 
 1. **Given** the same world input and configuration, **When** inland water attribution is run repeatedly, **Then** identical inland-water ownership is produced each run.
 2. **Given** an inland water zone touching multiple regions, **When** attribution resolves ties, **Then** the same region is chosen every run using a deterministic tie-break rule.
+3. **Given** inland-water attribution is disabled, **When** generation runs with identical inputs, **Then** the full ownership grid matches the baseline land-seeded output exactly.
 
 ---
 
@@ -68,11 +57,6 @@ As a feature consumer using region metadata and overlays, I need region statisti
 
 ### Edge Cases
 
-<!--
-  ACTION REQUIRED: The content in this section represents placeholders.
-  Fill them out with the right edge cases.
--->
-
 - Inland water bodies connected to ocean through a narrow channel must be treated as ocean-connected, not inland.
 - Very small enclosed water pockets fully surrounded by one region must still be attributed and not ignored.
 - Inland water touching multiple regions with equal boundary contact must resolve to one deterministic winner.
@@ -88,8 +72,8 @@ As a feature consumer using region metadata and overlays, I need region statisti
 - **FR-004**: The system MUST assign each attributed inland water zone to exactly one region.
 - **FR-005**: The system MUST use deterministic tie-break behavior when an inland water zone is equally attributable to multiple regions.
 - **FR-006**: The system MUST expose updated region summary outputs that include attributed inland-water area.
-- **FR-007**: The system MUST support running with inland-water attribution disabled, preserving prior behavior.
-- **FR-008**: The system MUST continue operating safely when attribution cannot determine a valid owning region for a water zone, leaving that zone unassigned rather than assigning incorrectly.
+- **FR-007**: The system MUST support running with inland-water attribution disabled, with exact ownership-grid equivalence to the baseline land-seeded output for identical inputs.
+- **FR-008**: The system MUST continue operating safely when attribution cannot determine a valid owning region for a water zone, leaving that zone unassigned, incrementing explicit safe-fail counters, and avoiding any forced fallback assignment.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -108,6 +92,17 @@ As a feature consumer using region metadata and overlays, I need region statisti
 
 - Availability of existing zone categorization and baseline region ownership output.
 - Availability of deterministic world input and reproducible generation settings.
+
+## Decision Log
+
+- **DL-001 (Public API scope)**: New public APIs for this feature are limited to inland-water categorization/attribution option/result types and any exposed summary fields they require.
+- **DL-002 (FR-008 canonical fixture)**: Canonical safe-fail fixture is a synthetic inland-water body with zero adjacent assigned regions, expected to remain unassigned.
+- **DL-003 (Contract status)**: `data-model.md` is the canonical informational contract for this feature; any YAML contract artifact is optional reference material and not a normative implementation gate.
+- **DL-004 (Performance threshold)**: Attribution pass target is ≤ 1.5x baseline generation runtime and ≤ 250 ms additional runtime for default world radius on the required known validation seed (`HHcLC5acQt`) and any optional reproducible seeds used.
+- **DL-005 (Visual sample set)**: Visual comparison requires `HHcLC5acQt` baseline + candidate artifacts, with optional additional reproducible seed pairs when available.
+- **DL-006 (Validation sign-off)**: Sign-off requires one designated reviewer for visual validation and one for in-game validation, recorded in quickstart result tables.
+- **DL-007 (Disabled-mode criterion)**: Disabled mode requires exact ownership-grid equality, not approximate or metric-only equality.
+- **DL-008 (MVP integration scope)**: CLI and in-game validation tasks remain in feature scope because acceptance criteria require artifact and runtime verification.
 
 ## Success Criteria *(mandatory)*
 

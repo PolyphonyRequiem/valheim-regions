@@ -7,6 +7,8 @@
 
 Add a post-processing inland-water attribution pass on top of existing land-seeded proto-region ownership. The pass classifies water into ocean-connected vs inland, assigns inland water to neighboring regions deterministically, preserves all pre-existing land ownership, and updates region summaries. Validation combines visual PNG comparison against existing samples and in-game checks confirming lakes are incorporated into region territory.
 
+**Contract Status**: `data-model.md` is the canonical informational contract for feature semantics and validation invariants. Any YAML contract artifact is optional and non-normative.
+
 ## Technical Context
 
 **Language/Version**: C# 9.0 targeting .NET Framework 4.7.2  
@@ -15,7 +17,7 @@ Add a post-processing inland-water attribution pass on top of existing land-seed
 **Testing**: `dotnet test` for deterministic logic + visual PNG regression checks + manual in-game validation of lake incorporation  
 **Target Platform**: Windows Valheim client + .NET build/test environment  
 **Project Type**: Multi-project library + CLI + game integration plugin  
-**Performance Goals**: Attribution pass completes within same order of magnitude as current proto generation; no user-observable map overlay lag  
+**Performance Goals**: Attribution-enabled generation runtime MUST be ≤ 1.5x baseline generation runtime and add ≤ 250 ms at default world radius for the required known validation seed (`HHcLC5acQt`) and any optional reproducible seeds used; map overlay behavior must show no user-observable lag during in-game validation  
 **Constraints**: Keep land-seeded generation unchanged; deterministic outputs for same seed/config; ocean-connected water remains out-of-scope for ownership  
 **Scale/Scope**: World-scale zone grid (±10,000m) across all generated components with MVP scope limited to inland water inclusion
 
@@ -45,8 +47,6 @@ specs/004-inland-water-attribution/
 ├── research.md
 ├── data-model.md
 ├── quickstart.md
-├── contracts/
-│   └── inland-water-attribution-api.yaml
 └── tasks.md
 ```
 
@@ -76,16 +76,37 @@ tests/
 
 No constitution violations requiring justification.
 
+## Public API Documentation Coverage
+
+- All new public classes, methods, and properties introduced by this feature MUST have XML documentation comments.
+- Coverage includes inland-water option/result models, categorization and attribution components, and any newly exposed summary fields.
+- Verification of this requirement is tracked explicitly in `tasks.md` documentation tasks.
+
 ## Post-Design Constitution Check
 
 | Principle | Status | Notes |
 |-----------|--------|-------|
 | I. Critical Collaboration Partnership | ✅ PASS | Added explicit non-goals to avoid hidden scope expansion |
-| II. Library-First Architecture | ✅ PASS | Data model and API contract keep core logic library-owned |
+| II. Library-First Architecture | ✅ PASS | Data model keeps core logic library-owned |
 | III. Pragmatic Testing Strategy | ✅ PASS | Validation strategy explicitly includes PNG visual diff + in-game lake verification |
-| IV. Stable Public API | ✅ PASS | Contract is additive and versionable |
+| IV. Stable Public API | ✅ PASS | Public API changes are additive and versionable |
 | V. Simplicity Bias | ✅ PASS | No polygon/spline overhaul in this feature |
-| VI. Clear Contracts | ✅ PASS | Contract + data model define inland/ocean semantics and tie-break behavior |
-| VII. Iterative Development Process | ✅ PASS | Planning artifacts complete and scoped for `/speckit.tasks` |
+| VI. Clear Contracts | ✅ PASS | Data model defines inland/ocean semantics and tie-break behavior |
+| VII. Iterative Development Process | ✅ PASS | Implementation task scope and dependencies are defined and sequenced |
 
-**Gate result (post-design): PASS — ready for `/speckit.tasks`.**
+**Gate result (post-design): PASS — ready for implementation.**
+
+## Consistency Re-analysis Summary
+
+| Finding | Status | Resolution |
+|---------|--------|------------|
+| XML documentation coverage not exhaustive | ✅ Resolved | Added explicit plan coverage requirement and expanded docs tasks in `tasks.md` |
+| FR-008 safe-fail behavior missing direct test mapping | ✅ Resolved | Added dedicated FR-008 safe-fail regression task |
+| Performance goal not testable | ✅ Resolved | Added numeric thresholds and performance verification task |
+| FR-007 disabled-mode equivalence underspecified | ✅ Resolved | Spec now requires exact ownership-grid equivalence and tasks include dedicated regression |
+| Contract artifact mismatch with implementation scope | ✅ Resolved | Data model set as canonical informational contract; YAML contract conformance tasks removed |
+| Quickstart validation audit trail underspecified | ✅ Resolved | Added required known seed + optional reproducible seeds, result templates, and sign-off recording requirements |
+
+## Outstanding Items
+
+No outstanding critical or high-severity consistency findings remain for implementation scope.
