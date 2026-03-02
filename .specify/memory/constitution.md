@@ -175,7 +175,8 @@ increases cognitive load and maintenance burden.
 
 **Rules - Performance Contracts**:
 - APIs with performance implications MUST document O(n) complexity or expected latency.
-- Region generation MUST complete in <1 second for typical map sizes (document map size assumptions).
+- Region generation and other performance-sensitive behavior MUST define feature-specific performance budgets in `spec.md`/`plan.md`, including measurement method and representative inputs.
+- Performance expectations SHOULD be framed as comparative budgets (baseline vs candidate) or context-specific latency targets, not a single global fixed threshold.
 - No unbounded operations (e.g., infinite loops, unlimited allocations) in public APIs.
 
 **Rationale**: Downstream modders integrate this library blind (no debugger access to our code).
