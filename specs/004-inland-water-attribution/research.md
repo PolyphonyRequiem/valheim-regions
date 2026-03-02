@@ -20,9 +20,9 @@
 
 ---
 
-## 2) Inland vs Ocean-Connected Water Classification
+## 2) Inland vs Ocean-Connected Water Categorization
 
-**Decision**: Use connectivity flood-fill from map boundaries to classify ocean-connected water; unvisited water is inland.
+**Decision**: Use connectivity flood-fill from map boundaries to categorize ocean-connected water; unvisited water is inland.
 
 **Rationale**:
 - Deterministic and topology-based.
