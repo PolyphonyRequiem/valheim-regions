@@ -93,12 +93,15 @@ namespace WorldZones.Regions
             out int[,] regionIdGrid,
             out List<Vector2i> seeds,
             int minRegionZones = DefaultMinRegionZones,
-            int minComponentZonesForProto = DefaultMinComponentZonesForProto)
+            int minComponentZonesForProto = DefaultMinComponentZonesForProto,
+            InlandWaterAttributionOptions inlandWaterOptions = null)
         {
             if (grid == null) throw new ArgumentNullException(nameof(grid));
             if (landComponents == null) throw new ArgumentNullException(nameof(landComponents));
             if (targetZonesPerRegion <= 0)
                 throw new ArgumentOutOfRangeException(nameof(targetZonesPerRegion), "Must be > 0");
+
+            var attributionOptions = (inlandWaterOptions ?? InlandWaterAttributionOptions.Disabled).Validated();
 
             int size = grid.Size;
             int min = grid.MinIndex;
@@ -198,7 +201,19 @@ namespace WorldZones.Regions
             // ── 5. One-zone shallow fringe assignment ───────────────
             ExpandRegionsIntoAdjacentShallowZones(grid, regionIdGrid);
 
-            // ── 6. Build result ───────────────────────────────────────
+            // ── 6. Optional inland-water attribution ────────────────
+            InlandWaterAttributionResult inlandAttribution = InlandWaterAttributionResult.Empty;
+            if (attributionOptions.Enabled)
+            {
+                var (connectivityGrid, inlandBodies) = InlandWaterConnectivityCategorizer.Categorize(grid);
+                inlandAttribution = InlandWaterAttributor.Attribute(
+                    grid,
+                    regionIdGrid,
+                    connectivityGrid,
+                    inlandBodies);
+            }
+
+            // ── 7. Build result ───────────────────────────────────────
             var regionAreas = new Dictionary<int, int>();
             int unassigned = 0;
 
@@ -256,7 +271,11 @@ namespace WorldZones.Regions
                 MinorIslets = minorIslets,
                 MinorIsletCount = minorIslets.Count,
                 MinorIsletTotalArea = minorIsletTotalArea,
-                SeededComponentCount = seededComponents.Count
+                SeededComponentCount = seededComponents.Count,
+                AttributedWaterZoneCount = inlandAttribution.AttributedWaterZoneCount,
+                UnassignedInlandWaterZoneCount = inlandAttribution.UnassignedInlandWaterZoneCount,
+                AttributedWaterBodyCount = inlandAttribution.AttributedWaterBodyCount,
+                UnassignedWaterBodyCount = inlandAttribution.UnassignedWaterBodyCount
             };
         }
 

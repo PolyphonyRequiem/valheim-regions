@@ -48,5 +48,17 @@ namespace WorldZones.Regions
 
         /// <summary>Number of land components that received proto-region seeding.</summary>
         public int SeededComponentCount { get; set; }
+
+        /// <summary>Number of inland-water zones attributed to regions.</summary>
+        public int AttributedWaterZoneCount { get; set; }
+
+        /// <summary>Number of inland-water zones left unassigned by safe-fail behavior.</summary>
+        public int UnassignedInlandWaterZoneCount { get; set; }
+
+        /// <summary>Number of inland-water bodies attributed to a region.</summary>
+        public int AttributedWaterBodyCount { get; set; }
+
+        /// <summary>Number of inland-water bodies with no valid owning region.</summary>
+        public int UnassignedWaterBodyCount { get; set; }
     }
 }
