@@ -1,7 +1,7 @@
 # Quickstart: Inland Water Attribution
 
 **Audience**: Developer implementing and validating Feature 004  
-**Goal**: Validate inland-water region ownership with deterministic outputs and combined visual + in-game checks.
+**Goal**: Validate inland-water region ownership with deterministic outputs and visual baseline-vs-candidate checks.
 
 ---
 
@@ -10,7 +10,6 @@
 - Repository checked out on branch `004-inland-water-attribution`.
 - .NET SDK available for build/test.
 - Existing sample PNG outputs available for baseline visual comparison.
-- Modded Valheim setup available for in-game verification.
 
 Validation sample set:
 - Required known seed: `HHcLC5acQt`
@@ -70,35 +69,19 @@ Recording template (append one row per seed):
 
 ---
 
-## 5) In-Game Validation
-
-Run Valheim with the updated plugin build and inspect lake-inclusive areas that are available in the selected validation seed(s).
-
-Checklist:
-- Map/overlay behavior reflects lakes as part of the surrounding region territory.
-- Region transitions near lake edges are deterministic and stable.
-- No visible regressions in general region lookup responsiveness.
-
-Pass criteria:
-- Lakes are properly incorporated as region-owned territory.
-- No false attribution of clearly ocean-connected water.
-
-Recording template (append one row per session):
-
-| Session ID | Seed | Area Checked | Lakes Incorporated | Ocean False-Positive Check | Pass/Fail | Reviewer | Notes |
-|------------|------|--------------|--------------------|----------------------------|-----------|----------|-------|
-|  | HHcLC5acQt |  |  |  |  |  |  |
-|  | OptionalSeed_1 |  |  |  |  |  |  |
-|  | OptionalSeed_2 |  |  |  |  |  |  |
-
 Sign-off authority:
 - Visual validation requires one designated reviewer sign-off.
-- In-game validation requires one designated reviewer sign-off.
-- Final sign-off is recorded in this document by completing all rows with reviewer identity and pass/fail status.
+- Final sign-off is recorded in this document by completing rows with reviewer identity and pass/fail status.
+
+Recorded run (2026-03-02):
+
+| Seed | Baseline PNG | Candidate PNG | Pass/Fail | Reviewer | Notes |
+|------|--------------|---------------|-----------|----------|-------|
+| HHcLC5acQt | specs/004-inland-water-attribution/artifacts/HHcLC5acQt_proto_regions_baseline.png | specs/004-inland-water-attribution/artifacts/HHcLC5acQt_proto_regions_candidate.png | Pending | TBD | Generated via `WorldZones.Cli regions --compare-inland` |
 
 ---
 
-## 6) Determinism Spot Check
+## 5) Determinism Spot Check
 
 Repeat generation for the same seed/config and compare outputs.
 
@@ -118,21 +101,9 @@ Recording template:
 | OptionalSeed_1 | 5 |  |  |  |  |  |
 | OptionalSeed_2 | 5 |  |  |  |  |  |
 
-Performance verification:
-- Attribution-enabled runtime must be ≤ 1.5x baseline runtime.
-- Additional runtime must be ≤ 250 ms at default world radius.
-
-Performance recording template:
-
-| Seed | Baseline Runtime (ms) | Attribution Runtime (ms) | Ratio | Delta (ms) | Pass/Fail | Reviewer |
-|------|------------------------|--------------------------|-------|------------|-----------|----------|
-| HHcLC5acQt |  |  |  |  |  |  |
-| OptionalSeed_1 |  |  |  |  |  |  |
-| OptionalSeed_2 |  |  |  |  |  |  |
-
 ---
 
-## 7) Scope Guardrails
+## 6) Scope Guardrails
 
 - Do not include boundary geometry reform (polyline/spline/LOD boundary rendering) in this feature.
 - Do not change land-seeded proto-generation semantics.

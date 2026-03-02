@@ -27,6 +27,8 @@ namespace WorldZones.Cli
             string command = args[0].ToLowerInvariant();
             string seed = "HHcLC5acQt";
             string? output = null;
+            bool includeInlandWater = false;
+            bool compareInland = false;
 
             for (int i = 1; i < args.Length; i++)
             {
@@ -34,6 +36,10 @@ namespace WorldZones.Cli
                     seed = args[++i];
                 else if ((args[i] == "-output" || args[i] == "--output" || args[i] == "-o") && i + 1 < args.Length)
                     output = args[++i];
+                else if (args[i] == "--inland-water")
+                    includeInlandWater = true;
+                else if (args[i] == "--compare-inland")
+                    compareInland = true;
             }
 
             switch (command)
@@ -41,10 +47,10 @@ namespace WorldZones.Cli
                 case "biome":
                     return ExportBiomeMap(seed, output);
                 case "regions":
-                    return ExportRegions(seed, output);
+                    return ExportRegions(seed, output, includeInlandWater, compareInland);
                 case "all":
                     int r1 = ExportBiomeMap(seed, output);
-                    int r2 = ExportRegions(seed, output);
+                    int r2 = ExportRegions(seed, output, includeInlandWater, compareInland);
                     return (r1 != 0) ? r1 : r2;
                 default:
                     Console.Error.WriteLine($"Unknown command: {command}");
@@ -67,6 +73,8 @@ namespace WorldZones.Cli
             Console.WriteLine("Options:");
             Console.WriteLine("  --seed <seed>    World seed string (default: HHcLC5acQt)");
             Console.WriteLine("  --output <dir>   Output directory (default: current directory)");
+            Console.WriteLine("  --inland-water   Enable inland-water attribution for proto region export");
+            Console.WriteLine("  --compare-inland Export both baseline and inland-water candidate proto-region PNGs");
         }
 
         // ────────────────────────────────────────────────────────────
@@ -196,7 +204,7 @@ namespace WorldZones.Cli
         static readonly Color32 ColorLandInShelf   = new Color32(100, 100, 100);
         static readonly Color32 ColorNeutralGray   = new Color32(120, 120, 120);
 
-        static int ExportRegions(string seed, string? outputDir)
+        static int ExportRegions(string seed, string? outputDir, bool includeInlandWater = false, bool compareInland = false)
         {
             string dir = outputDir ?? Directory.GetCurrentDirectory();
             if (!Directory.Exists(dir))
@@ -411,38 +419,94 @@ namespace WorldZones.Cli
             swArchSave.Stop();
             Console.WriteLine($"  archipelago_candidates: {swArchRender.ElapsedMilliseconds} ms render, {swArchSave.ElapsedMilliseconds} ms save ({new FileInfo(archPath).Length / 1024} KB)");
 
-            // ── 10. Generate proto-regions ────────────────────────
+            // ── 10. Generate proto-regions (baseline/candidate) ───
             int targetZonesPerRegion = 200;
             int protoSeedRng = seed.GetStableHashCode();
-            var swProto = Stopwatch.StartNew();
-            var protoResult = ProtoRegionGenerator.GenerateLand(
-                grid, components,
-                targetZonesPerRegion, protoSeedRng,
-                out int[,] regionIdGrid, out List<WorldZones.Regions.Vector2i> protoSeeds);
-            swProto.Stop();
-            Console.WriteLine($"Proto-region generation: {swProto.ElapsedMilliseconds} ms");
-            Console.WriteLine($"  Seeds: {protoSeeds.Count}, Target: {targetZonesPerRegion} zones/region");
-            Console.WriteLine($"  Seeded components: {protoResult.SeededComponentCount}");
-            Console.WriteLine($"  Regions (after merge): {protoResult.RegionCount}");
-            Console.WriteLine($"  Merged away: {protoResult.MergedRegionCount}");
-            Console.WriteLine($"  Minor islets: {protoResult.MinorIsletCount} ({protoResult.MinorIsletTotalArea} zones)");
-            Console.WriteLine($"  Land zones: {protoResult.LandZoneCount}");
-            Console.WriteLine($"  Unassigned (minor islet zones): {protoResult.UnassignedLandCount}");
-            Console.WriteLine($"  Area min/avg/max: {protoResult.MinAreaZones}/{protoResult.AvgAreaZones:F1}/{protoResult.MaxAreaZones}");
-            for (int i = 0; i < Math.Min(protoResult.Regions.Count, 10); i++)
+
+            bool exportBaseline = !includeInlandWater || compareInland;
+            bool exportCandidate = includeInlandWater || compareInland;
+
+            Stopwatch swProtoBaseline = Stopwatch.StartNew();
+            swProtoBaseline.Stop();
+            Stopwatch swProtoCandidate = Stopwatch.StartNew();
+            swProtoCandidate.Stop();
+
+            ProtoRegionResult? baselineResult = null;
+            ProtoRegionResult? candidateResult = null;
+            int[,]? baselineRegionIdGrid = null;
+            int[,]? candidateRegionIdGrid = null;
+            List<WorldZones.Regions.Vector2i>? baselineSeeds = null;
+            List<WorldZones.Regions.Vector2i>? candidateSeeds = null;
+
+            if (exportBaseline)
             {
-                var pr = protoResult.Regions[i];
+                swProtoBaseline = Stopwatch.StartNew();
+                baselineResult = ProtoRegionGenerator.GenerateLand(
+                    grid,
+                    components,
+                    targetZonesPerRegion,
+                    protoSeedRng,
+                    out baselineRegionIdGrid,
+                    out baselineSeeds);
+                swProtoBaseline.Stop();
+            }
+
+            if (exportCandidate)
+            {
+                swProtoCandidate = Stopwatch.StartNew();
+                candidateResult = ProtoRegionGenerator.GenerateLand(
+                    grid,
+                    components,
+                    targetZonesPerRegion,
+                    protoSeedRng,
+                    out candidateRegionIdGrid,
+                    out candidateSeeds,
+                    inlandWaterOptions: new InlandWaterAttributionOptions { Enabled = true });
+                swProtoCandidate.Stop();
+            }
+
+            var primaryResult = candidateResult ?? baselineResult;
+            var primarySeeds = candidateSeeds ?? baselineSeeds;
+
+            if (primaryResult == null || primarySeeds == null)
+            {
+                Console.Error.WriteLine("Proto-region generation produced no result.");
+                return 1;
+            }
+
+            Console.WriteLine("Proto-region generation:");
+            if (baselineResult != null)
+            {
+                Console.WriteLine($"  baseline: {swProtoBaseline.ElapsedMilliseconds} ms, regions={baselineResult.RegionCount}, attributedInland={baselineResult.AttributedWaterZoneCount}");
+            }
+
+            if (candidateResult != null)
+            {
+                Console.WriteLine($"  candidate: {swProtoCandidate.ElapsedMilliseconds} ms, regions={candidateResult.RegionCount}, attributedInland={candidateResult.AttributedWaterZoneCount}");
+            }
+
+            Console.WriteLine($"  Seeds: {primarySeeds.Count}, Target: {targetZonesPerRegion} zones/region");
+            Console.WriteLine($"  Seeded components: {primaryResult.SeededComponentCount}");
+            Console.WriteLine($"  Regions (after merge): {primaryResult.RegionCount}");
+            Console.WriteLine($"  Merged away: {primaryResult.MergedRegionCount}");
+            Console.WriteLine($"  Minor islets: {primaryResult.MinorIsletCount} ({primaryResult.MinorIsletTotalArea} zones)");
+            Console.WriteLine($"  Land zones: {primaryResult.LandZoneCount}");
+            Console.WriteLine($"  Unassigned (minor islet zones): {primaryResult.UnassignedLandCount}");
+            Console.WriteLine($"  Area min/avg/max: {primaryResult.MinAreaZones}/{primaryResult.AvgAreaZones:F1}/{primaryResult.MaxAreaZones}");
+            for (int i = 0; i < Math.Min(primaryResult.Regions.Count, 10); i++)
+            {
+                var pr = primaryResult.Regions[i];
                 Console.WriteLine($"  #{i}: id={pr.Id}, seed=({pr.Seed.x},{pr.Seed.y}), area={pr.AreaZones}");
             }
-            if (protoResult.Regions.Count > 10)
-                Console.WriteLine($"  ... and {protoResult.Regions.Count - 10} more");
+            if (primaryResult.Regions.Count > 10)
+                Console.WriteLine($"  ... and {primaryResult.Regions.Count - 10} more");
 
             // ── 11. Render & save proto_seeds.png ─────────────────
             Console.WriteLine("Rendering proto_seeds...");
             var swSeedRender = Stopwatch.StartNew();
             byte[] seedRgb = new byte[size * size * 3];
             var seedSet = new HashSet<(int, int)>();
-            foreach (var ps in protoSeeds)
+            foreach (var ps in primarySeeds)
                 seedSet.Add((ps.x, ps.y));
 
             for (int gy = 0; gy < size; gy++)
@@ -482,45 +546,49 @@ namespace WorldZones.Cli
             swSeedSave.Stop();
             Console.WriteLine($"  proto_seeds: {swSeedRender.ElapsedMilliseconds} ms render, {swSeedSave.ElapsedMilliseconds} ms save ({new FileInfo(seedsPath).Length / 1024} KB)");
 
-            // ── 12. Render & save proto_regions.png ───────────────
+            // ── 12. Render & save proto_regions*.png ──────────────
             Console.WriteLine("Rendering proto_regions...");
-            var swRegionRender = Stopwatch.StartNew();
-            byte[] regionRgb = new byte[size * size * 3];
+            var protoRegionPaths = new List<string>();
+            long protoRegionRenderMs = 0;
+            long protoRegionSaveMs = 0;
 
-            // Background: dark ocean
-            for (int i = 0; i < regionRgb.Length; i += 3)
+            if (baselineRegionIdGrid != null)
             {
-                regionRgb[i]     = 20;
-                regionRgb[i + 1] = 20;
-                regionRgb[i + 2] = 30;
+                var swRegionRender = Stopwatch.StartNew();
+                byte[] baselineRegionRgb = CreateProtoRegionImage(grid, baselineRegionIdGrid, size);
+                swRegionRender.Stop();
+
+                string baselineRegionsPath = Path.Combine(
+                    dir,
+                    compareInland ? $"{seed}_proto_regions_baseline.png" : $"{seed}_proto_regions.png");
+                var swRegionSave = Stopwatch.StartNew();
+                PngWriter.Write(baselineRegionsPath, size, size, baselineRegionRgb);
+                swRegionSave.Stop();
+
+                protoRegionRenderMs += swRegionRender.ElapsedMilliseconds;
+                protoRegionSaveMs += swRegionSave.ElapsedMilliseconds;
+                protoRegionPaths.Add(baselineRegionsPath);
+                Console.WriteLine($"  {Path.GetFileName(baselineRegionsPath)}: {swRegionRender.ElapsedMilliseconds} ms render, {swRegionSave.ElapsedMilliseconds} ms save ({new FileInfo(baselineRegionsPath).Length / 1024} KB)");
             }
 
-            // Fill each region zone with its color (north-up: flip Y)
-            for (int gy = 0; gy < size; gy++)
+            if (candidateRegionIdGrid != null)
             {
-                for (int gx = 0; gx < size; gx++)
-                {
-                    int rid = regionIdGrid[gy, gx];
-                    if (rid < 0) continue;
+                var swRegionRender = Stopwatch.StartNew();
+                byte[] candidateRegionRgb = CreateProtoRegionImage(grid, candidateRegionIdGrid, size);
+                swRegionRender.Stop();
 
-                    var c = ComponentColor(rid);
-                    int offset = ((size - 1 - gy) * size + gx) * 3;
-                    regionRgb[offset]     = c.r;
-                    regionRgb[offset + 1] = c.g;
-                    regionRgb[offset + 2] = c.b;
-                }
+                string candidateRegionsPath = Path.Combine(
+                    dir,
+                    compareInland ? $"{seed}_proto_regions_candidate.png" : $"{seed}_proto_regions_inland.png");
+                var swRegionSave = Stopwatch.StartNew();
+                PngWriter.Write(candidateRegionsPath, size, size, candidateRegionRgb);
+                swRegionSave.Stop();
+
+                protoRegionRenderMs += swRegionRender.ElapsedMilliseconds;
+                protoRegionSaveMs += swRegionSave.ElapsedMilliseconds;
+                protoRegionPaths.Add(candidateRegionsPath);
+                Console.WriteLine($"  {Path.GetFileName(candidateRegionsPath)}: {swRegionRender.ElapsedMilliseconds} ms render, {swRegionSave.ElapsedMilliseconds} ms save ({new FileInfo(candidateRegionsPath).Length / 1024} KB)");
             }
-            swRegionRender.Stop();
-
-            DrawZoneMarker(regionRgb, size, size, grid, 0, 0, new Color32(255, 255, 255));
-            DrawZonePixel(regionRgb, size, size, grid, 2, 5, new Color32(160, 160, 160));
-            DrawZonePixel(regionRgb, size, size, grid, 3, 6, new Color32(160, 160, 160));
-
-            string regionsPath = Path.Combine(dir, $"{seed}_proto_regions.png");
-            var swRegionSave = Stopwatch.StartNew();
-            PngWriter.Write(regionsPath, size, size, regionRgb);
-            swRegionSave.Stop();
-            Console.WriteLine($"  proto_regions: {swRegionRender.ElapsedMilliseconds} ms render, {swRegionSave.ElapsedMilliseconds} ms save ({new FileInfo(regionsPath).Length / 1024} KB)");
 
             // ── Summary ───────────────────────────────────────────
             Console.WriteLine("=== Summary ===");
@@ -529,18 +597,18 @@ namespace WorldZones.Cli
             Console.WriteLine($"Land labeling:     {swLabel.ElapsedMilliseconds} ms");
             Console.WriteLine($"Shelf labeling:    {swShelfLabel.ElapsedMilliseconds} ms");
             Console.WriteLine($"Archip. detection: {swArchDetect.ElapsedMilliseconds} ms");
-            Console.WriteLine($"Proto-region gen:  {swProto.ElapsedMilliseconds} ms");
+                        Console.WriteLine($"Proto-region gen:  {swProtoBaseline.ElapsedMilliseconds + swProtoCandidate.ElapsedMilliseconds} ms");
             long renderMs = swRender.ElapsedMilliseconds + swShelfRender.ElapsedMilliseconds
                           + swArchRender.ElapsedMilliseconds + swSeedRender.ElapsedMilliseconds
-                          + swRegionRender.ElapsedMilliseconds;
+                                                    + protoRegionRenderMs;
             long saveMs = swSave.ElapsedMilliseconds + swShelfSave.ElapsedMilliseconds
                         + swArchSave.ElapsedMilliseconds + swSeedSave.ElapsedMilliseconds
-                        + swRegionSave.ElapsedMilliseconds;
+                                                + protoRegionSaveMs;
             Console.WriteLine($"Render:            {renderMs} ms");
             Console.WriteLine($"PNG save:          {saveMs} ms");
             long totalMs = swInit.ElapsedMilliseconds + swClassify.ElapsedMilliseconds
                          + swLabel.ElapsedMilliseconds + swShelfLabel.ElapsedMilliseconds
-                         + swArchDetect.ElapsedMilliseconds + swProto.ElapsedMilliseconds
+                                                 + swArchDetect.ElapsedMilliseconds + swProtoBaseline.ElapsedMilliseconds + swProtoCandidate.ElapsedMilliseconds
                          + renderMs + saveMs;
             Console.WriteLine($"Total:             {totalMs} ms");
             Console.WriteLine($"Output files:");
@@ -548,7 +616,10 @@ namespace WorldZones.Cli
             Console.WriteLine($"  {shelfPath}");
             Console.WriteLine($"  {archPath}");
             Console.WriteLine($"  {seedsPath}");
-            Console.WriteLine($"  {regionsPath}");
+            foreach (var protoRegionPath in protoRegionPaths)
+            {
+                Console.WriteLine($"  {protoRegionPath}");
+            }
             Console.WriteLine($"Marker: zone (0,0) at pixel ({markerX},{markerY}) (top-left origin)");
             Console.WriteLine("Gray markers: zones (2,5) and (3,6)");
             return 0;
@@ -589,6 +660,42 @@ namespace WorldZones.Cli
                 (byte)((r + m) * 255),
                 (byte)((g + m) * 255),
                 (byte)((b + m) * 255));
+        }
+
+        static byte[] CreateProtoRegionImage(ZoneGrid grid, int[,] regionIdGrid, int size)
+        {
+            byte[] regionRgb = new byte[size * size * 3];
+
+            for (int i = 0; i < regionRgb.Length; i += 3)
+            {
+                regionRgb[i] = 20;
+                regionRgb[i + 1] = 20;
+                regionRgb[i + 2] = 30;
+            }
+
+            for (int gy = 0; gy < size; gy++)
+            {
+                for (int gx = 0; gx < size; gx++)
+                {
+                    int rid = regionIdGrid[gy, gx];
+                    if (rid < 0)
+                    {
+                        continue;
+                    }
+
+                    var c = ComponentColor(rid);
+                    int offset = ((size - 1 - gy) * size + gx) * 3;
+                    regionRgb[offset] = c.r;
+                    regionRgb[offset + 1] = c.g;
+                    regionRgb[offset + 2] = c.b;
+                }
+            }
+
+            DrawZoneMarker(regionRgb, size, size, grid, 0, 0, new Color32(255, 255, 255));
+            DrawZonePixel(regionRgb, size, size, grid, 2, 5, new Color32(160, 160, 160));
+            DrawZonePixel(regionRgb, size, size, grid, 3, 6, new Color32(160, 160, 160));
+
+            return regionRgb;
         }
 
         static void DrawZoneMarker(byte[] rgbData, int width, int height, ZoneGrid grid, int zoneX, int zoneY, Color32 color)

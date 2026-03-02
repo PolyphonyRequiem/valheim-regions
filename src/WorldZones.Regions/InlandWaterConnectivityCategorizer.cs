@@ -13,6 +13,15 @@ namespace WorldZones.Regions
         /// <summary>
         /// Builds a per-zone connectivity map and list of connected inland-water bodies.
         /// </summary>
+        /// <param name="grid">Classified zone grid containing land/shallow/deep depth classes.</param>
+        /// <returns>
+        /// A tuple containing:
+        /// <list type="bullet">
+        /// <item><description><c>connectivityGrid</c>: per-zone connectivity kind in grid index space.</description></item>
+        /// <item><description><c>inlandBodies</c>: connected inland-water components in deterministic scan order.</description></item>
+        /// </list>
+        /// </returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="grid"/> is null.</exception>
         public static (WaterConnectivityKind[,] connectivityGrid, List<InlandWaterBody> inlandBodies) Categorize(ZoneGrid grid)
         {
             if (grid == null)

@@ -18,6 +18,7 @@ namespace WorldZones.Regions
         /// <summary>
         /// Creates a validated copy of this options object.
         /// </summary>
+        /// <returns>A normalized options instance safe to use in generation.</returns>
         public InlandWaterAttributionOptions Validated()
         {
             return new InlandWaterAttributionOptions

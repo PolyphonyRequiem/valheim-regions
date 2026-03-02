@@ -60,5 +60,11 @@ namespace WorldZones.Regions
 
         /// <summary>Number of inland-water bodies with no valid owning region.</summary>
         public int UnassignedWaterBodyCount { get; set; }
+
+        /// <summary>Total inland-water zones attributed across all regions.</summary>
+        public int TotalInlandWaterAreaZones { get; set; }
+
+        /// <summary>Total territory zones across all regions (land + inland water).</summary>
+        public int TotalRegionTerritoryAreaZones { get; set; }
     }
 }

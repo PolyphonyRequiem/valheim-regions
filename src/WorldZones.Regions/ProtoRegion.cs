@@ -16,6 +16,15 @@ namespace WorldZones.Regions
         /// <summary>Number of land zones assigned to this region.</summary>
         public int AreaZones { get; set; }
 
+        /// <summary>Number of land zones assigned to this region.</summary>
+        public int LandAreaZones { get; set; }
+
+        /// <summary>Number of inland-water zones assigned to this region.</summary>
+        public int InlandWaterAreaZones { get; set; }
+
+        /// <summary>Total territory zones assigned to this region (land + inland water).</summary>
+        public int TotalAreaZones => this.LandAreaZones + this.InlandWaterAreaZones;
+
         public ProtoRegion(int id, Vector2i seed)
         {
             Id = id;
