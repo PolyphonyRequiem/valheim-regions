@@ -97,3 +97,7 @@ unity-perlin-wrapper/UserSettings/
 unity-perlin-wrapper/obj/
 unity-perlin-wrapper/Builds/
 tests/unity/land-component-export.log
+
+# Generated code-nav index (tree-sitter / brace-parser output) — derived, regenerate with
+# tools/knowledge/build_index.py or the csharp-treesitter-index skill. Not committed (node_modules smell).
+docs/knowledge/index/
