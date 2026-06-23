@@ -28,13 +28,20 @@ def pick(pool,key,salt): return pool[h(key,salt)%len(pool)]
 # ── rosters (fictitious faux-Norse) ──────────────────────────────────
 PEOPLE = ["Halla","Ulfr","Bjorn","Sigrun","Thrandr","Astrid","Gunnar","Hildr","Ivar","Thora",
           "Gudrun","Leif","Knut","Frida","Olvir","Ingrid","Hakon","Vigdis","Sigurd","Brand",
-          "Yrsa","Orm","Dagny","Steinarr","Solveig","Torvald","Ragnhild","Eyvind","Bera","Hrolf"]
-CREATURES = ["Wolf","Raven","Boar","Elk","Bear","Serpent","Drake","Stag","Hawk","Lynx","Adder","Crow"]
+          "Yrsa","Orm","Dagny","Steinarr","Solveig","Torvald","Ragnhild","Eyvind","Bera","Hrolf",
+          "Asgeir","Borghild","Dyri","Eldgrim","Frosti","Geirmund","Halldis","Ketil","Liv","Mundi",
+          "Njal","Oddny","Ragnar","Saerun","Tofa","Unnr","Vali","Yngvar","Aslaug","Birger",
+          "Drifa","Egil","Folki","Groa","Hroar","Isgerd","Jorund","Kari","Lifa","Mord"]
+CREATURES = ["Wolf","Raven","Boar","Elk","Bear","Serpent","Drake","Stag","Hawk","Lynx","Adder","Crow",
+             "Fox","Owl","Wyrm","Hound","Falcon","Viper","Tern","Marten","Ermine","Heron","Asp","Shrike"]
 # faux mythic figures / titles (invented, not the real pantheon, to read as world-native lore)
 MYTHIC = ["the Grey Wanderer","the Drowned King","the Ash-Mother","the Hooded One","the Twin Jarls",
-          "the Last Skald","the Pale Rider","the Hunter in Mist"]
+          "the Last Skald","the Pale Rider","the Hunter in Mist","the Bone Singer","the Frost Widow",
+          "the Nameless Jarl","the Weeping Seer","the Iron Hermit","the Salt-Witch","the Old Ferryman",
+          "the Thrice-Burned","the Hollow Saint","the Wending Crone"]
 EVENTS = ["the Sundering","the Long Winter","the Reaving","the Burning","the Silence","the Drowning",
-          "the Severing","Last Light"]
+          "the Severing","Last Light","the Hunger Years","the Red Tide","the Breaking","the Stillness",
+          "the Hollowing","the Calling","the Witherfrost","the Embering"]
 
 # ── terrain vocab (for the terrain-flavored minority) ────────────────
 BIOME_DESC={"Mountain":["Highlands","Heights","Crags","Peaks"],"Swamp":["Marshlands","Mire","Fens","Boglands"],
@@ -64,12 +71,22 @@ def cardinal(r):
 def traits(r):
     b=r["dominantBiome"]; relief=r["elevationMeters"]["relief"]; peak=r["highestPeakMeters"]["height"]
     nbr=len(r["neighborKeys"]); area=r["areaZones"]; _,dist=cardinal(r)
+    # optional location signal (real .db sidecar), attached as r["_loc"] if available
+    loc = r.get("_loc") or {}
+    counts = loc.get("counts", {})
+    dungeons = counts.get("crypt",0)+counts.get("cave",0)+counts.get("trollcave",0)+counts.get("dvergr",0)
     return dict(biome=b, relief=relief, peak=peak, nbr=nbr, area=area, dist=dist,
         remote = dist>6500 or nbr<=1,
         hospitable = b in ("Meadows","Plains","BlackForest"),
         dangerous = b in ("Swamp","Mistlands","AshLands","DeepNorth"),
         rugged = relief>=200 or b=="Mountain",
-        big = area>=300, small = area<=120, coastal = r["isCoastal"])
+        big = area>=300, small = area<=120, coastal = r["isCoastal"],
+        # location-derived (all False/0 when no sidecar attached — graceful)
+        has_boss = loc.get("hasBoss", False),
+        boss = (loc.get("bosses") or [None])[0],
+        trader = loc.get("traderPresent", False),
+        dungeon_dense = dungeons >= 20,
+        poi_rich = loc.get("totalPOIs",0) >= 120)
 
 # ── schema makers ────────────────────────────────────────────────────
 def s_bare(r,c):        return r["name"]
@@ -105,6 +122,26 @@ def s_lore_event(r,c):
     return pick([f"{ev}", f"the Land of {ev}", f"{r['name']}, after {ev}"],r["regionKey"],61)
 def s_superlative(r,c): return c["superlative"]
 
+# ── location-driven schemas (only eligible when the real .db sidecar gives signal) ──
+BOSS_EPITHET = {  # invented seat-names per boss, deterministic
+    "Eikthyr":   ["the Antlered Seat","Eikthyr's Heath","the Stag-King's Ground"],
+    "The Elder": ["the Elder's Roots","the Greatwood Seat","where the Elder stands"],
+    "Bonemass":  ["the Rotten Throne","Bonemass's Mire","the Sunken Seat"],
+    "Moder":     ["the Dragon's Roost","Moder's Peak","the Winged Seat"],
+    "Yagluth":   ["the Ashen Throne","Yagluth's Reach","the Fallen King's Ground"],
+    "Queen":     ["the Hive Throne","the Queen's Gloaming","the Sealed Seat"],
+    "Fader":     ["the Cinder Throne","Fader's End"],
+}
+def s_boss_seat(r,c):
+    b=c['t'].get('boss')
+    pool=BOSS_EPITHET.get(b, ["the Warded Seat","the Old Throne"])
+    return pick(pool, r["regionKey"], 70)
+def s_trader_hold(r,c):
+    p=pick(PEOPLE,r["regionKey"],72)
+    return pick([f"{p}'s Market", f"the Trade-Hold of {p}", f"{p}'s Crossing", "the Merchant's Rest"], r["regionKey"],73)
+def s_dungeon_haunt(r,c):
+    return pick(["the Crypt-Lands","the Hollow Hills","the Barrow-Reach","the Tomb-Fields","the Restless Ground"], r["regionKey"],74)
+
 # (key, make, weight(r,t), fits)
 SCHEMAS=[
  ("bare",          s_bare,            lambda r,t: 26, lambda r,t: True),
@@ -114,11 +151,15 @@ SCHEMAS=[
  ("cardinal",      s_cardinal,        lambda r,t: 6 + (8 if t['remote'] else 0), lambda r,t: True),
  ("minted",        s_minted,          lambda r,t: 8,  lambda r,t: r["dominantBiome"] in BIOME_PREFIX),
  ("person",        s_person_possessive,lambda r,t: 12 + (8 if t['hospitable'] else 0), lambda r,t: True),
- ("settlement",    s_settlement,      lambda r,t: 6 + (14 if (t['big'] and t['hospitable']) else 0), lambda r,t: True),
+ ("settlement",    s_settlement,      lambda r,t: 6 + (14 if (t['big'] and t['hospitable']) else 0) + (10 if t['trader'] else 0), lambda r,t: True),
  ("creature",      s_creature,        lambda r,t: 9 + (6 if (t['dangerous'] or t['biome']=='BlackForest') else 0), lambda r,t: True),
  ("memorial",      s_memorial,        lambda r,t: 5 + (10 if t['dangerous'] else 0), lambda r,t: True),
  ("lore-figure",   s_lore_figure,     lambda r,t: 3 + (14 if (t['remote'] and t['dangerous']) else 0), lambda r,t: True),
  ("lore-event",    s_lore_event,      lambda r,t: 2 + (10 if (t['remote'] and t['small']) else 0), lambda r,t: True),
+ # location-driven (real-db sidecar). High weight when signal present so the POI shapes the name.
+ ("boss-seat",     s_boss_seat,       lambda r,t: 55 if t['has_boss'] else 0, lambda r,t: t['has_boss']),
+ ("trader-hold",   s_trader_hold,     lambda r,t: 16 if t['trader'] else 0, lambda r,t: t['trader']),
+ ("dungeon-haunt", s_dungeon_haunt,   lambda r,t: 18 if t['dungeon_dense'] else 0, lambda r,t: t['dungeon_dense']),
  ("superlative",   s_superlative,     lambda r,t: 80, lambda r,t: c_has_sup(r,t)),
 ]
 def c_has_sup(r,t): return t.get("_sup") is not None

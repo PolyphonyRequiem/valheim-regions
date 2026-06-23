@@ -11,7 +11,19 @@ spec = importlib.util.spec_from_file_location("ns", os.path.join(_HERE, "name_sc
 ns = importlib.util.module_from_spec(spec); spec.loader.exec_module(ns)
 
 SRC = sys.argv[1] if len(sys.argv) > 1 else "ForTheWort_gazetteer.json"
+LOC = sys.argv[2] if len(sys.argv) > 2 else None   # optional {seed}_locations.json sidecar
 d = json.load(open(SRC)); R = d["regions"]
+
+# Attach real-db location signal to each region (if a sidecar is provided) so location-driven
+# naming schemas (boss-seat, trader-hold, dungeon-haunt) can fire. Graceful if absent.
+if LOC and os.path.exists(LOC):
+    loc = json.load(open(LOC)).get("regions", {})
+    n_attached = 0
+    for r in R:
+        if r["regionKey"] in loc:
+            r["_loc"] = loc[r["regionKey"]]; n_attached += 1
+    print(f"attached location sidecar to {n_attached}/{len(R)} regions")
+
 supmap = ns.build_superlatives(R)
 
 def name_with_salt(r, attempt):
@@ -45,6 +57,7 @@ for r in sorted(R, key=lambda x: x["regionKey"]):
             nm = f'{base} ({ns.cardinal(r)[0]})'; sc = "disambig"
     used.add(nm)
     r["baseName"] = r["name"]; r["name"] = nm; r["nameSchema"] = sc
+    r.pop("_loc", None)   # strip internal location-signal scratch (don't leak into output)
 
 d["provenance"]["naming"] = {
     "status": "PROVISIONAL — design bench, not locked; enrichment layer over gazette",
