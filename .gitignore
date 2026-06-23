@@ -101,3 +101,10 @@ tests/unity/land-component-export.log
 # Generated code-nav index (tree-sitter / brace-parser output) — derived, regenerate with
 # tools/knowledge/build_index.py or the csharp-treesitter-index skill. Not committed (node_modules smell).
 docs/knowledge/index/
+
+# naming bench output (derived, seed-specific)
+*_named.json
+*_named.tsv
+*_regions_named.txt
+__pycache__/
+*.pyc
