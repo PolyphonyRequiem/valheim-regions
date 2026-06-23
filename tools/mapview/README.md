@@ -42,3 +42,14 @@ Region ids in the grid are the **transient** BFS ids; the header maps them to du
 - `LABEL_MIN_ZONES` — area threshold below which a region is left unlabeled (declutter).
 
 Output PNG is derived; gitignored.
+
+## Ore-density variant (`render_ore_map.py`)
+
+Overlays the MODELED ore sidecar (`{seed}_vegetation.json`, from `gazetteer --vegetation`) on the
+region map as graduated markers — **size + inner brightness + printed count** scale with each
+region's `resourceTotal`. Colorblind-safe: ore richness is carried by size/lightness/number, never hue.
+
+```bash
+python3 tools/mapview/render_ore_map.py \
+    {seed}_gazetteer_grid.bin {seed}_gazetteer_named.json {seed}_vegetation.json {seed}_ore_map.png
+```
