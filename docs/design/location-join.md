@@ -1,8 +1,10 @@
 # Location / POI sidecar — `.db` → region join
 
-> **Status:** DESIGN, not built (2026-06-23). Specifies the locations sidecar for the gazetteer.
-> Verified feasible: Niflheim's `.db` demonstrably contains the location instances. Daniel's call on
-> scope/priority.
+> **Status:** BUILT 2026-06-23. The decoder + sidecar are real and validated — `tools/locations/`.
+> Decodes the world `.db` ZoneSystem block (real prefab names + positions), joins each location to a
+> region via the gazetteer grid, emits `{seed}_locations.json` keyed by `regionKey`. Verified on
+> Niflheim (11,312 locations → 9,503 joined across 144 regions) and Heistan (524,907 ZDOs). This is
+> the **real-db source** in the gazetteer's three-source architecture.
 
 ## What it is
 
