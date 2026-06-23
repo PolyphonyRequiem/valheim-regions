@@ -26,7 +26,7 @@ Two independent levers:
 - **Lever B — scheme:** wrap/replace the base via one of many **schema families**, chosen by region
   character. *This is what the bench implements.*
 
-### Schema families (13 in the bench, 5 registers)
+### Schema families (16 in the bench, 6 registers)
 
 | Register | Schemas | Example (real Niflheim) |
 |---|---|---|
@@ -35,8 +35,23 @@ Two independent levers:
 | faux-lore | lore-figure, lore-event | "where the Pale Rider fell", "the Land of Last Light" |
 | memorial | memorial | "Eyvindcairn", "the Mound of Sigrun" |
 | spatial | cardinal | "the Far Nord", "Nordvestreach" |
+| **location-driven** (real-db) | boss-seat, trader-hold, dungeon-haunt | "the Ashen Throne" (Yagluth), "the Barrow-Reach" |
 | **rare** | superlative | "Himinbjorg" (the world's highest peak) |
 | anchor | bare | "Eiksund" (unchanged catalogue name) |
+
+### Location-driven schemas (the real-db layer)
+
+When the location sidecar (`docs/design/location-join.md`) is attached, three schemas become eligible
+on regions with real POI signal, so a region's *contents* shape its name:
+- **boss-seat** — a region containing a boss altar can become "the Ashen Throne" (Yagluth), "the
+  Elder's Roots", "the Dragon's Roost" (Moder). Per-boss epithet pools.
+- **trader-hold** — a region with Haldor/Hildir leans "X's Market", "the Trade-Hold of X".
+- **dungeon-haunt** — a crypt/cave-dense region (≥20 dungeons) leans "the Barrow-Reach", "the
+  Crypt-Lands", "the Restless Ground".
+
+These are *eligible*, not forced — they compete in the weighted draw, so only ~some boss regions get a
+throne name (variety over a heavy hand). Graceful when no sidecar is attached: the schemas simply never
+fire and naming falls back to terrain/people/lore.
 
 ### Data-driven schema selection (the mechanism)
 
