@@ -1,10 +1,13 @@
 # Vegetation & resource model (ore-node counts) — buildability verdict
 
-> **Status:** Provisional / SCAFFOLD landed 2026-06-23. The headless skeleton
-> (`src/WorldZones.WorldGen/VegetationModel.cs`) is real and tested; a numerically faithful
-> ore-count sidecar is **blocked on data that does not exist on a headless box.** This doc records
-> *exactly* what is portable, what is blocked, and why — so nobody re-derives the wall or, worse,
-> fabricates configs to paper over it. Daniel's call to lock the approach.
+> **Status:** ✅ BUILT 2026-06-23. Wall 2 (the missing config catalogue) is DOWN — extracted via
+> AssetRipper from a Valheim client install (`tools/vegetation/`, 98 configs / 8 ore checked into
+> `data/`). The `--vegetation` flag on the gazetteer now emits a real per-region ore/flora sidecar
+> (`{seed}_vegetation.json`, Niflheim: 152 regions, 117 with ore, 27,564 modeled ore nodes), fully
+> deterministic, every value `source: modeled`. Wall 1 (mesh/physics rejection filters) remains —
+> so counts are a documented UPPER-BIAS estimate, not exact node counts. The headless skeleton
+> (`src/WorldZones.WorldGen/VegetationModel.cs`) is unchanged; it now receives a real catalogue
+> instead of an empty one. Daniel's call to lock the approach.
 
 ## What we wanted
 
@@ -60,17 +63,16 @@ deterministic (over-biased) estimate; until then it produces nothing rather than
 
 ## To make it real (the unblock path)
 
-1. **Extract the config catalogue** from a Valheim **client** install (AssetRipper / a BepInEx dump of
-   `ZNetScene.m_prefabs` → each `ZoneVegetation`). One-time, client-gated, produces a JSON catalogue
-   checked into `data/` (or kept external). This is the single thing standing between "scaffold" and
-   "estimate."
+1. ~~**Extract the config catalogue**~~ ✅ DONE. `tools/vegetation/parse_vegetation.py` parses an
+   AssetRipper export of the client's `ZoneSystem.m_vegetation` into `data/valheim_vegetation_catalogue.json`
+   (98 configs, 8 ore). See `tools/vegetation/README.md` for the AssetRipper-on-Prime workflow.
 2. **Quantify the over-count bias** once a client is available: walk a few zones, compare real node
    counts to `ModelZone` output, publish the correction factor per resource. The bias is *systematic*
-   (we drop only rejections), so a per-prefab scalar may recover usable accuracy.
-3. **(optional)** Port `GetForestFactor` if forest-gated flora matters to the sidecar.
-4. **Wire into the gazetteer**: a `--vegetation <catalogue.json>` flag aggregating `ModelZone` over
-   each region's zones, emitted as a **separate sidecar** keyed by `regionKey`, every field
-   `source: modeled`. Never folded into the core (computed) gazetteer table.
+   (we drop only rejections), so a per-prefab scalar may recover usable accuracy. ← STILL OPEN (Wall 1).
+3. **(optional)** Port `GetForestFactor` if forest-gated flora matters to the sidecar. ← still parked.
+4. ~~**Wire into the gazetteer**~~ ✅ DONE. `--vegetation <catalogue.json>` aggregates `ModelZone` over
+   each region's zones into `{seed}_vegetation.json`, keyed by `regionKey`, every value `source: modeled`.
+   Kept as a SEPARATE sidecar — never folded into the core (computed) gazetteer table.
 
 ## Why this is the right cut
 

@@ -29,6 +29,7 @@ namespace WorldZones.Cli
             string? output = null;
             bool includeInlandWater = false;
             bool compareInland = false;
+            string? vegetationCatalogue = null;
 
             for (int i = 1; i < args.Length; i++)
             {
@@ -40,6 +41,8 @@ namespace WorldZones.Cli
                     includeInlandWater = true;
                 else if (args[i] == "--compare-inland")
                     compareInland = true;
+                else if (args[i] == "--vegetation" && i + 1 < args.Length)
+                    vegetationCatalogue = args[++i];
             }
 
             switch (command)
@@ -49,7 +52,7 @@ namespace WorldZones.Cli
                 case "regions":
                     return ExportRegions(seed, output, includeInlandWater, compareInland);
                 case "gazetteer":
-                    return Gazetteer.Export(seed, output ?? Directory.GetCurrentDirectory(), includeInlandWater);
+                    return Gazetteer.Export(seed, output ?? Directory.GetCurrentDirectory(), includeInlandWater, vegetationCatalogue);
                 case "all":
                     int r1 = ExportBiomeMap(seed, output);
                     int r2 = ExportRegions(seed, output, includeInlandWater, compareInland);
@@ -77,6 +80,7 @@ namespace WorldZones.Cli
             Console.WriteLine("  --output <dir>   Output directory (default: current directory)");
             Console.WriteLine("  --inland-water   Enable inland-water attribution for proto region export");
             Console.WriteLine("  --compare-inland Export both baseline and inland-water candidate proto-region PNGs");
+            Console.WriteLine("  --vegetation <catalogue.json>  (gazetteer) Emit a modeled ore/vegetation sidecar from an extracted catalogue");
         }
 
         // ────────────────────────────────────────────────────────────
