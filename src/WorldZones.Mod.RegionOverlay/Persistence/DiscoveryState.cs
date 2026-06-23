@@ -31,17 +31,15 @@ namespace WorldZones.Mod.RegionOverlay.Persistence
 
         public bool IsDiscovered(string regionName, int? regionId)
         {
-            if (string.IsNullOrWhiteSpace(regionName))
-            {
-                return false;
-            }
-
-            string normalizedName = NormalizeRegionName(regionName);
-            string identitySafeKey = BuildRegionKey(regionName, regionId);
-            return this.DiscoveredRegionKeys.Contains(identitySafeKey) || this.DiscoveredRegionNames.Contains(normalizedName);
+            return this.IsDiscovered(regionName, regionId, null);
         }
 
-        public bool TryMarkDiscovered(string regionName, int? regionId)
+        /// <summary>
+        /// Discovery check keyed on a durable <paramref name="regionKey"/> (coordinate-derived) when
+        /// supplied — this is the identity-stable path. Falls back to the legacy name#id key when
+        /// regionKey is null, preserving old behavior for callers that don't thread identity through.
+        /// </summary>
+        public bool IsDiscovered(string regionName, int? regionId, string regionKey)
         {
             if (string.IsNullOrWhiteSpace(regionName))
             {
@@ -49,7 +47,33 @@ namespace WorldZones.Mod.RegionOverlay.Persistence
             }
 
             string normalizedName = NormalizeRegionName(regionName);
-            string identitySafeKey = BuildRegionKey(regionName, regionId);
+            string identitySafeKey = string.IsNullOrWhiteSpace(regionKey)
+                ? BuildRegionKey(regionName, regionId)
+                : regionKey.Trim();
+            return this.DiscoveredRegionKeys.Contains(identitySafeKey) || this.DiscoveredRegionNames.Contains(normalizedName);
+        }
+
+        public bool TryMarkDiscovered(string regionName, int? regionId)
+        {
+            return this.TryMarkDiscovered(regionName, regionId, null);
+        }
+
+        /// <summary>
+        /// Marks a region discovered, keyed on a durable <paramref name="regionKey"/> when supplied.
+        /// The stable key (not the transient int ID) is what gets persisted, so saved discovery state
+        /// survives seed-list churn from border rewrites / authored seeds / Valheim 1.0.
+        /// </summary>
+        public bool TryMarkDiscovered(string regionName, int? regionId, string regionKey)
+        {
+            if (string.IsNullOrWhiteSpace(regionName))
+            {
+                return false;
+            }
+
+            string normalizedName = NormalizeRegionName(regionName);
+            string identitySafeKey = string.IsNullOrWhiteSpace(regionKey)
+                ? BuildRegionKey(regionName, regionId)
+                : regionKey.Trim();
 
             if (this.DiscoveredRegionKeys.Contains(identitySafeKey) || this.DiscoveredRegionNames.Contains(normalizedName))
             {

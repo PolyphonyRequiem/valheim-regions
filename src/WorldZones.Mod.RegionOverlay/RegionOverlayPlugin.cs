@@ -91,7 +91,8 @@ namespace WorldZones.Mod.RegionOverlay
                 worldId,
                 playerKey,
                 lookup.RegionName,
-                lookup.RegionId);
+                lookup.RegionId,
+                lookup.RegionKey);
 
             if (!isFirstDiscovery)
             {
@@ -191,6 +192,14 @@ namespace WorldZones.Mod.RegionOverlay
                     out int[,] regionIdGrid,
                     out _);
 
+                // Map each region's transient int ID to its durable identity coordinate (RegionKey),
+                // so the lookup service names + persists off stable identity, not the seed-list index.
+                var identityById = new Dictionary<int, Vector2i>(protoResult.Regions.Count);
+                foreach (var region in protoResult.Regions)
+                {
+                    identityById[region.Id] = region.IdentityCoord;
+                }
+
                 var regionIds = new HashSet<int>();
                 int rows = regionIdGrid.GetLength(0);
                 int cols = regionIdGrid.GetLength(1);
@@ -206,7 +215,7 @@ namespace WorldZones.Mod.RegionOverlay
                     }
                 }
 
-                this.regionLookupService = new RegionLookupService(grid, regionIdGrid, worldIdentity, regionIds);
+                this.regionLookupService = new RegionLookupService(grid, regionIdGrid, worldIdentity, regionIds, identityById);
                 this.lastWorldSeedName = string.IsNullOrWhiteSpace(seedName)
                     ? worldIdentity
                     : seedName;

@@ -31,6 +31,16 @@ namespace WorldZones.Mod.RegionOverlay.Persistence
 
         public bool CheckAndRecordDiscovery(string worldId, string playerId, string regionName, int? regionId)
         {
+            return this.CheckAndRecordDiscovery(worldId, playerId, regionName, regionId, null);
+        }
+
+        /// <summary>
+        /// Records a discovery keyed on a durable <paramref name="regionKey"/> (coordinate-derived)
+        /// when supplied — identity-stable across seed-list churn. Null regionKey preserves the
+        /// legacy name#id behavior.
+        /// </summary>
+        public bool CheckAndRecordDiscovery(string worldId, string playerId, string regionName, int? regionId, string regionKey)
+        {
             if (string.IsNullOrWhiteSpace(worldId) || string.IsNullOrWhiteSpace(playerId) || string.IsNullOrWhiteSpace(regionName))
             {
                 return false;
@@ -43,7 +53,7 @@ namespace WorldZones.Mod.RegionOverlay.Persistence
                 this.stateCache[cacheKey] = state;
             }
 
-            bool firstDiscovery = state.TryMarkDiscovered(regionName, regionId);
+            bool firstDiscovery = state.TryMarkDiscovered(regionName, regionId, regionKey);
             if (firstDiscovery)
             {
                 this.Save(state);

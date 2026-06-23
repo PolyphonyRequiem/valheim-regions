@@ -155,10 +155,12 @@ namespace WorldZones.Regions
                     regionIdGrid[y, x] = -1;
 
             var queue = new Queue<Vector2i>();
+            var identityById = new Dictionary<int, Vector2i>(seeds.Count);
             for (int i = 0; i < seeds.Count; i++)
             {
                 var s = seeds[i];
                 regionIdGrid[s.y - min, s.x - min] = i;
+                identityById[i] = s; // Option B: identity starts as the region's own seed coordinate
                 queue.Enqueue(s);
             }
 
@@ -195,7 +197,7 @@ namespace WorldZones.Regions
             int mergedCount = 0;
             if (minRegionZones > 0 && seeds.Count > 1)
             {
-                mergedCount = MergeTinyRegions(grid, regionIdGrid, seeds, minRegionZones);
+                mergedCount = MergeTinyRegions(grid, regionIdGrid, seeds, minRegionZones, identityById);
             }
 
             // ── 5. One-zone shallow fringe assignment ───────────────
@@ -266,6 +268,11 @@ namespace WorldZones.Regions
             foreach (var kv in landAreaByRegion)
             {
                 var r = new ProtoRegion(kv.Key, seeds[kv.Key]);
+                // Option B identity: the min seed coordinate absorbed into this region after merges.
+                // Falls back to the region's own seed if (unexpectedly) untracked.
+                r.IdentityCoord = identityById.TryGetValue(kv.Key, out var identity)
+                    ? identity
+                    : seeds[kv.Key];
                 r.AreaZones = kv.Value;
                 r.LandAreaZones = kv.Value;
                 r.InlandWaterAreaZones = inlandWaterAreaByRegion.TryGetValue(kv.Key, out int inlandArea)
@@ -377,7 +384,8 @@ namespace WorldZones.Regions
         /// </summary>
         /// <returns>Number of regions merged away.</returns>
         private static int MergeTinyRegions(
-            ZoneGrid grid, int[,] regionIdGrid, List<Vector2i> seeds, int minRegionZones)
+            ZoneGrid grid, int[,] regionIdGrid, List<Vector2i> seeds, int minRegionZones,
+            Dictionary<int, Vector2i> identityById)
         {
             int min = grid.MinIndex;
             int max = grid.MaxIndex;
@@ -484,6 +492,19 @@ namespace WorldZones.Regions
                         for (int gx = 0; gx < size; gx++)
                             if (regionIdGrid[gy, gx] == tinyId)
                                 regionIdGrid[gy, gx] = bestNeighbor;
+
+                    // Option B identity: the survivor inherits the MIN seed coordinate of the two
+                    // (its own absorbed set ∪ the tiny region's). This makes identity independent of
+                    // which region was the "survivor" and of merge order.
+                    if (identityById != null &&
+                        identityById.TryGetValue(tinyId, out var tinyIdentity))
+                    {
+                        if (identityById.TryGetValue(bestNeighbor, out var neighborIdentity))
+                            identityById[bestNeighbor] = RegionKey.Min(neighborIdentity, tinyIdentity);
+                        else
+                            identityById[bestNeighbor] = tinyIdentity;
+                        identityById.Remove(tinyId);
+                    }
 
                     totalMerged++;
                     changed = true;
