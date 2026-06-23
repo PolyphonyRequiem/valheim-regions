@@ -112,3 +112,7 @@ __pycache__/
 # map renderer output (derived)
 *_map.png
 *_gazetteer_grid.bin
+
+# location decoder output (derived)
+*_locations_raw.json
+*_locations.json
