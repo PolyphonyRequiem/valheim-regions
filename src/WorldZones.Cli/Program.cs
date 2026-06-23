@@ -48,6 +48,8 @@ namespace WorldZones.Cli
                     return ExportBiomeMap(seed, output);
                 case "regions":
                     return ExportRegions(seed, output, includeInlandWater, compareInland);
+                case "gazetteer":
+                    return Gazetteer.Export(seed, output ?? Directory.GetCurrentDirectory(), includeInlandWater);
                 case "all":
                     int r1 = ExportBiomeMap(seed, output);
                     int r2 = ExportRegions(seed, output, includeInlandWater, compareInland);
