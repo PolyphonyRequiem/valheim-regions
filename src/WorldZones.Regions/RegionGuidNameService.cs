@@ -24,6 +24,34 @@ namespace WorldZones.Regions
             }
         }
 
+        /// <summary>
+        /// Deterministic name from a durable, coordinate-derived <see cref="RegionKey"/> string.
+        /// This is the identity-stable path: the name follows the region's PLACE, not its transient
+        /// seed-list index, so it survives the seed-list churn that border rewrites / authored seeds
+        /// / Valheim 1.0 will cause. Prefer this overload for anything player-facing or persisted.
+        /// </summary>
+        public static string CreateDeterministicName(string worldId, string regionKey)
+        {
+            if (string.IsNullOrWhiteSpace(worldId))
+            {
+                throw new ArgumentException("worldId must not be null or empty", nameof(worldId));
+            }
+
+            if (string.IsNullOrWhiteSpace(regionKey))
+            {
+                throw new ArgumentException("regionKey must not be null or empty", nameof(regionKey));
+            }
+
+            unchecked
+            {
+                int worldHash = GetStableHashCode(worldId);
+                int keyHash = GetStableHashCode(regionKey);
+                uint mixed = MixRegionKey(worldHash, keyHash);
+                int index = (int)(mixed % (uint)RegionNameCatalog.Count);
+                return RegionNameCatalog.GetByIndex(index);
+            }
+        }
+
         private static uint MixRegionKey(int worldHash, int regionId)
         {
             uint value = (uint)regionId * 0x9E3779B1u;
