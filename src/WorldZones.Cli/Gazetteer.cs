@@ -136,7 +136,56 @@ namespace WorldZones.Cli
             WriteTsv(seed, tsvPath, ordered, agg, idToKey);
             Console.WriteLine($"TSV:  {tsvPath} ({ordered.Count} rows)");
 
+            // ── 5. Emit per-zone grid binary (for the visual map renderer) ──
+            string gridPath = Path.Combine(dir, $"{seed}_gazetteer_grid.bin");
+            WriteGrid(gridPath, seed, worldGen, grid, regionIdGrid, idToKey);
+            Console.WriteLine($"GRID: {gridPath} ({new FileInfo(gridPath).Length} bytes)");
+
             return 0;
+        }
+
+        /// <summary>
+        /// Emit the per-zone grid the offline map renderer consumes. Binary, little-endian:
+        ///   char[4] "WZGR"; int32 version=1
+        ///   int32 minIndex, size, zoneSize
+        ///   int32 regionCount; then per region: int32 idLen, utf8 RegionKey  (id == array index used in grid)
+        ///   then size*size records row-major (gy-major, gx-minor):
+        ///     int32 regionId (-1 = unassigned/non-land); uint16 biome; uint16 pad; float32 height
+        /// Region ids in the grid are the transient BFS ids; the header maps id->RegionKey so the
+        /// renderer can label by durable name.
+        /// </summary>
+        static void WriteGrid(string path, string seed, WorldGenerator worldGen, ZoneGrid grid,
+            int[,] regionIdGrid, Dictionary<int, string> idToKey)
+        {
+            int size = grid.Size, min = grid.MinIndex;
+            using var bw = new BinaryWriter(File.Create(path));
+            bw.Write(new char[] { 'W', 'Z', 'G', 'R' });
+            bw.Write(1);
+            bw.Write(min); bw.Write(size); bw.Write(ZoneSize);
+
+            // region id -> key table
+            bw.Write(idToKey.Count);
+            foreach (var kv in idToKey)
+            {
+                bw.Write(kv.Key);
+                var keyBytes = System.Text.Encoding.UTF8.GetBytes(kv.Value);
+                bw.Write(keyBytes.Length);
+                bw.Write(keyBytes);
+            }
+
+            for (int gy = 0; gy < size; gy++)
+            for (int gx = 0; gx < size; gx++)
+            {
+                int id = regionIdGrid[gy, gx];
+                int zx = gx + min, zy = gy + min;
+                float wx = zx * (float)ZoneSize, wz = zy * (float)ZoneSize;
+                var biome = worldGen.GetBiome(wx, wz);
+                float h = worldGen.GetBiomeHeight(biome, wx, wz);
+                bw.Write(id);
+                bw.Write((ushort)(int)biome);
+                bw.Write((ushort)0);
+                bw.Write(h);
+            }
         }
 
         static BiomeType Dominant(Agg a)

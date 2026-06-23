@@ -108,3 +108,7 @@ docs/knowledge/index/
 *_regions_named.txt
 __pycache__/
 *.pyc
+
+# map renderer output (derived)
+*_map.png
+*_gazetteer_grid.bin
