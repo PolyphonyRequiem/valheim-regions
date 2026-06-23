@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <AssemblyName>bordersexp</AssemblyName>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="ExportPatch.cs" Condition="'$(TOOL)'=='export'" />
+    <Compile Include="ScanWorld.cs" Condition="'$(TOOL)'=='scan'" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/WorldZones.WorldGen/WorldZones.WorldGen.csproj" />
+  </ItemGroup>
+</Project>
