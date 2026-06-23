@@ -56,7 +56,7 @@ namespace WorldZones.Cli
             public Agg(ProtoRegion r) { this.Region = r; }
         }
 
-        public static int Export(string seed, string outputDir, bool inlandWater)
+        public static int Export(string seed, string outputDir, bool inlandWater, string? vegetationCatalogue = null)
         {
             string dir = outputDir ?? Directory.GetCurrentDirectory();
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
@@ -141,7 +141,100 @@ namespace WorldZones.Cli
             WriteGrid(gridPath, seed, worldGen, grid, regionIdGrid, idToKey);
             Console.WriteLine($"GRID: {gridPath} ({new FileInfo(gridPath).Length} bytes)");
 
+            // ── 6. (optional) Emit modeled vegetation/ore sidecar from an extracted catalogue ──
+            if (!string.IsNullOrEmpty(vegetationCatalogue))
+            {
+                string vegPath = Path.Combine(dir, $"{seed}_vegetation.json");
+                WriteVegetationSidecar(vegPath, seed, vegetationCatalogue!, worldGen,
+                    grid, regionIdGrid, idToKey);
+                Console.WriteLine($"VEG:  {vegPath} ({new FileInfo(vegPath).Length} bytes)");
+            }
+
             return 0;
+        }
+
+        /// <summary>
+        /// Emit the MODELED vegetation/ore sidecar: for every land zone, run VegetationModel.ModelZone
+        /// (deterministic, RNG-exact, cheap-filters-only) with the extracted catalogue + the verified
+        /// port's real height/biome samplers, and aggregate per regionKey. Keyed by regionKey to JOIN
+        /// the gazetteer + location sidecars. EVERY value is source=modeled and an UPPER-BIAS estimate
+        /// (headless cannot apply the mesh/physics rejection filters — see the design doc's caveat).
+        /// </summary>
+        static void WriteVegetationSidecar(string path, string seed, string cataloguePath,
+            WorldGenerator worldGen, ZoneGrid grid, int[,] regionIdGrid, Dictionary<int, string> idToKey)
+        {
+            var catalogue = VegetationCatalogue.Load(cataloguePath);
+            int worldSeed = seed.GetStableHashCode();
+            Func<float, float, float> height = (wx, wz) => worldGen.GetBiomeHeight(worldGen.GetBiome(wx, wz), wx, wz);
+            Func<float, float, BiomeType> biomeAt = (wx, wz) => worldGen.GetBiome(wx, wz);
+
+            // per-region: prefab -> count, plus resource/flora split
+            var perRegion = new Dictionary<string, RegionVeg>();
+            int size = grid.Size, min = grid.MinIndex;
+
+            for (int gy = 0; gy < size; gy++)
+            for (int gx = 0; gx < size; gx++)
+            {
+                int id = regionIdGrid[gy, gx];
+                if (id < 0 || !idToKey.TryGetValue(id, out var key)) continue;
+
+                int zx = gx + min, zy = gy + min;
+                var counts = VegetationModel.ModelZone(worldSeed, zx, zy, catalogue, height, biomeAt);
+                if (counts.Count == 0) continue;
+
+                if (!perRegion.TryGetValue(key, out var rv)) { rv = new RegionVeg(); perRegion[key] = rv; }
+                foreach (var c in counts)
+                {
+                    rv.ByPrefab.TryGetValue(c.PrefabName, out int prev);
+                    rv.ByPrefab[c.PrefabName] = prev + c.EstimatedCount;
+                    if (c.IsResource) rv.ResourceTotal += c.EstimatedCount;
+                    else rv.FloraTotal += c.EstimatedCount;
+                }
+            }
+
+            var sb = new StringBuilder();
+            sb.Append("{\n");
+            sb.Append("  \"provenance\": {\n");
+            sb.Append($"    \"schemaVersion\": {SchemaVersion},\n");
+            sb.Append($"    \"seed\": \"{Esc(seed)}\",\n");
+            sb.Append("    \"source\": \"modeled\",\n");
+            sb.Append($"    \"catalogue\": \"{Esc(Path.GetFileName(cataloguePath))}\",\n");
+            sb.Append("    \"catalogueSource\": \"assetripper-export\",\n");
+            sb.Append("    \"overcountBias\": \"mesh/physics rejection filters (vegetation mask, ocean depth, terrain delta, tilt, blocked, clear-area, forest factor) are NOT applied headlessly — counts are an UPPER-BIAS estimate, not exact node counts\",\n");
+            sb.Append("    \"note\": \"Modeled ore/flora counts. Join on regionKey to the gazetteer + locations sidecars. Every value is source=modeled. Fully deterministic: same seed+catalogue => identical counts.\"\n");
+            sb.Append("  },\n");
+
+            // stable region order
+            var keys = new List<string>(perRegion.Keys);
+            keys.Sort(StringComparer.Ordinal);
+            sb.Append("  \"regions\": {\n");
+            for (int k = 0; k < keys.Count; k++)
+            {
+                var key = keys[k];
+                var rv = perRegion[key];
+                sb.Append($"    \"{Esc(key)}\": {{ \"resourceTotal\": {rv.ResourceTotal}, \"floraTotal\": {rv.FloraTotal}, \"byPrefab\": {{");
+                var pk = new List<string>(rv.ByPrefab.Keys);
+                pk.Sort(StringComparer.Ordinal);
+                for (int p = 0; p < pk.Count; p++)
+                    sb.Append($"{(p > 0 ? ", " : " ")}\"{Esc(pk[p])}\": {rv.ByPrefab[pk[p]]}");
+                sb.Append(" } }");
+                sb.Append(k < keys.Count - 1 ? ",\n" : "\n");
+            }
+            sb.Append("  }\n}\n");
+            File.WriteAllText(path, sb.ToString());
+
+            int totalResource = 0, regionsWithResource = 0;
+            foreach (var rv in perRegion.Values)
+                if (rv.ResourceTotal > 0) { totalResource += rv.ResourceTotal; regionsWithResource++; }
+            Console.WriteLine($"      vegetation: {perRegion.Count} regions, {regionsWithResource} with ore, " +
+                              $"{totalResource} modeled ore nodes total (source=modeled, upper-bias)");
+        }
+
+        sealed class RegionVeg
+        {
+            public int ResourceTotal;
+            public int FloraTotal;
+            public readonly Dictionary<string, int> ByPrefab = new Dictionary<string, int>();
         }
 
         /// <summary>
