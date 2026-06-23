@@ -21,4 +21,11 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\WorldZones.WorldGen\WorldZones.WorldGen.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Include="fixtures\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>fixtures\%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </None>
+  </ItemGroup>
 </Project>
