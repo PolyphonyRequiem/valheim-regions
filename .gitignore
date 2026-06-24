@@ -116,3 +116,7 @@ __pycache__/
 # location decoder output (derived)
 *_locations_raw.json
 *_locations.json
+
+# consumer-demo throwaway build output
+tools/consumer-demo/bin/
+tools/consumer-demo/obj/

@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    WorldZones.Runtime — the consumer-facing COMPOSITION ROOT.
+
+    This is the assembly a consumer mod references to get regions in-process. It is the ONLY
+    place that joins region TOPOLOGY (WorldZones.Regions, biome-blind by design) with the
+    verified worldgen PORT (WorldZones.WorldGen) to produce the rich, named region model.
+
+    - WorldZones.Regions stays pure topology (no WorldGen dependency) — do not change that.
+    - The rich per-region data (biome composition, terrain character, neighbour graph) and the
+      multi-schema naming live HERE, above the pure lib, so the topology library stays reusable.
+
+    Multitargets net472 (the Valheim/Mono shipping target — a real mod consumes this) AND net8.0
+    (so the CLI + tests + headless demos run on Linux without mono). Both core deps are
+    net8-portable, so this stays portable too.
+  -->
+  <PropertyGroup>
+    <TargetFrameworks>net472;net8.0</TargetFrameworks>
+    <LangVersion>9.0</LangVersion>
+    <RootNamespace>WorldZones.Runtime</RootNamespace>
+    <AssemblyName>WorldZones.Runtime</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WorldZones.WorldGen\WorldZones.WorldGen.csproj" />
+    <ProjectReference Include="..\WorldZones.Regions\WorldZones.Regions.csproj" />
+  </ItemGroup>
+
+</Project>
