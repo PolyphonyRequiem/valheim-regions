@@ -82,12 +82,19 @@ namespace WorldZones.Runtime
             // 6. The point-query service (existing contract).
             var lookup = new RegionLookupService(grid, regionIdGrid, worldId, knownIds, identityById);
 
-            // 7. The rich, aggregated region model (the in-process gazetteer).
-            List<RegionInfo> regions = GazetteerBuilder.Build(sampler, grid, protoResult, regionIdGrid);
-
-            // 8. Name every region (whole-world: superlatives + deterministic uniqueness pass).
-            IRegionNamer namer = options.Namer ?? new MultiSchemaRegionNamer();
-            namer.NameAll(worldId, regions);
+            // 7. The rich, aggregated region model + naming — skipped for point-query-only consumers
+            //    (ComputeRegionInfo=false), which keeps that path free of the biome sampler + namer.
+            List<RegionInfo> regions;
+            if (options.ComputeRegionInfo)
+            {
+                regions = GazetteerBuilder.Build(sampler, grid, protoResult, regionIdGrid);
+                IRegionNamer namer = options.Namer ?? new MultiSchemaRegionNamer();
+                namer.NameAll(worldId, regions);
+            }
+            else
+            {
+                regions = new List<RegionInfo>();
+            }
 
             return new RegionWorld(worldId, regions, lookup, grid, regionIdGrid, protoResult);
         }

@@ -29,6 +29,22 @@ namespace WorldZones.Runtime
         public bool IncludeInlandWater { get; set; }
 
         /// <summary>
+        /// Whether to compute the rich <see cref="RegionInfo"/> model (biome composition, terrain
+        /// character, neighbour graph) and name every region. Default true.
+        ///
+        /// <para>
+        /// Set false for a POINT-QUERY-ONLY consumer (e.g. the minimap name-label plugin): the build
+        /// produces the topology + <see cref="RegionWorld.Lookup"/> service and nothing else —
+        /// <see cref="RegionWorld.Regions"/> comes back empty, the namer never runs, and the sampler's
+        /// <c>GetBiome</c> is never called. This is the exact work the shipped overlay plugin needs, so
+        /// routing it through <see cref="WorldZonesRuntime.Build"/> stays behaviour-preserving and free
+        /// of the biome bridge. Flip to true (and supply a real biome resolver) when a consumer wants
+        /// the rich model / multi-schema names.
+        /// </para>
+        /// </summary>
+        public bool ComputeRegionInfo { get; set; } = true;
+
+        /// <summary>
         /// The namer that assigns region display names. Default = <see cref="MultiSchemaRegionNamer"/>
         /// (the rich faux-lore namer). Set to your own <see cref="IRegionNamer"/> to override, or to a
         /// namer constructed with a location sidecar to unlock boss-seat / trader / dungeon schemas.

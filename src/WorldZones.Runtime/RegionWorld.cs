@@ -73,5 +73,13 @@ namespace WorldZones.Runtime
             if (res == null || !res.HasRegion || string.IsNullOrEmpty(res.RegionKey)) return null;
             return GetByKey(res.RegionKey);
         }
+
+        /// <summary>
+        /// Double-coordinate convenience overload. Region centroids (<see cref="RegionInfo.CentroidX"/>
+        /// etc.) are doubles, so a consumer querying at a region's own centroid lands here without an
+        /// explicit cast. The lookup itself is float-precision (zone-resolution), so the doubles are
+        /// narrowed — harmless at 64 m zone granularity.
+        /// </summary>
+        public RegionInfo RegionAt(double worldX, double worldZ) => RegionAt((float)worldX, (float)worldZ);
     }
 }

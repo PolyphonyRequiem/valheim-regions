@@ -164,7 +164,7 @@ namespace WorldZones.Runtime
         }
 
         // ── cardinal direction + radial distance from world centre ──
-        private static (string card, double dist) Cardinal(float cx, float cz)
+        private static (string card, double dist) Cardinal(double cx, double cz)
         {
             double ang = Math.Atan2(cz, cx) * 180.0 / Math.PI;
             // (name, lo, hi) — first matching half-open [lo,hi) wins; Vest wraps the ±180 seam.

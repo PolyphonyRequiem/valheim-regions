@@ -111,10 +111,13 @@ namespace WorldZones.Runtime
                 foreach (var kv in a.Biome)
                     if (kv.Key != BiomeType.Ocean && kv.Value > domC) { domC = kv.Value; dom = kv.Key; }
 
-                // biome composition (fraction of land zones), descending, ocean excluded
-                var comp = a.Biome.Where(kv => kv.Key != BiomeType.Ocean)
+                // biome composition (fraction of land zones), descending, ocean excluded — plus the
+                // raw counts (lossless; lets a serializer reproduce any-precision fractions exactly)
+                var compCounts = a.Biome.Where(kv => kv.Key != BiomeType.Ocean)
                     .OrderByDescending(kv => kv.Value)
-                    .ToDictionary(kv => kv.Key, kv => (float)((double)kv.Value / land));
+                    .ToList();
+                var comp = compCounts.ToDictionary(kv => kv.Key, kv => (float)((double)kv.Value / land));
+                var counts = compCounts.ToDictionary(kv => kv.Key, kv => kv.Value);
 
                 var neighborKeys = a.NeighborIds
                     .Select(nid => idToKey[nid])
@@ -128,18 +131,20 @@ namespace WorldZones.Runtime
                     TransientId = r.Id,
                     IdentityCoord = r.IdentityCoord,
                     SeedZone = r.Seed,
-                    CentroidX = (float)cx,
-                    CentroidZ = (float)cz,
+                    CentroidX = cx,
+                    CentroidZ = cz,
                     MinZoneX = a.MinZx, MinZoneZ = a.MinZy, MaxZoneX = a.MaxZx, MaxZoneZ = a.MaxZy,
                     AreaZones = r.TotalAreaZones,
                     LandZones = r.LandAreaZones,
+                    SampledLandZones = land,
                     InlandWaterZones = r.InlandWaterAreaZones,
                     AreaKm2 = areaKm2,
                     IsCoastal = a.Coastal,
                     DominantBiome = dom,
                     BiomeComposition = comp,
+                    BiomeZoneCounts = counts,
                     MinElevation = a.MinH,
-                    MeanElevation = (float)meanH,
+                    MeanElevation = meanH,
                     MaxElevation = a.MaxH,
                     HighestPeakX = a.PeakX,
                     HighestPeakZ = a.PeakZ,

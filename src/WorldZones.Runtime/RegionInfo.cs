@@ -38,11 +38,12 @@ namespace WorldZones.Runtime
         /// <summary>The zone coordinate this region was originally seeded at.</summary>
         public Vector2i SeedZone { get; set; }
 
-        /// <summary>Area-weighted centroid in world metres.</summary>
-        public float CentroidX { get; set; }
+        /// <summary>Area-weighted centroid in world metres. Double precision: this is an average
+        /// over many zones, and consumers (and the gazetteer serializer) round at the edge.</summary>
+        public double CentroidX { get; set; }
 
         /// <summary>Area-weighted centroid in world metres.</summary>
-        public float CentroidZ { get; set; }
+        public double CentroidZ { get; set; }
 
         /// <summary>Inclusive zone-coordinate bounding box.</summary>
         public int MinZoneX { get; set; }
@@ -59,8 +60,17 @@ namespace WorldZones.Runtime
         /// <summary>Total territory in zones (land + attributed inland water).</summary>
         public int AreaZones { get; set; }
 
-        /// <summary>Land-only zone count.</summary>
+        /// <summary>Land-only zone count (the proto-region's official land area).</summary>
         public int LandZones { get; set; }
+
+        /// <summary>
+        /// Count of land zones the aggregation sampler actually visited for this region — the
+        /// denominator behind <see cref="BiomeComposition"/> and the centroid/mean averages. Usually
+        /// equals <see cref="LandZones"/>, but can differ slightly (the proto-region's official land
+        /// area vs. the zones walked during aggregation), so biome fractions must divide by THIS, not
+        /// by <see cref="LandZones"/>, to stay exact.
+        /// </summary>
+        public int SampledLandZones { get; set; }
 
         /// <summary>Attributed inland-water zone count.</summary>
         public int InlandWaterZones { get; set; }
@@ -76,14 +86,22 @@ namespace WorldZones.Runtime
 
         /// <summary>
         /// Biome → fraction of land zones (descending). Sums to ~1.0 over land. Ocean excluded.
+        /// Convenience over <see cref="BiomeZoneCounts"/>; for exact reproduction prefer the counts.
         /// </summary>
         public IReadOnlyDictionary<BiomeType, float> BiomeComposition { get; set; }
+
+        /// <summary>
+        /// Biome → raw land-zone count (descending), ocean excluded. Lossless: fractions are derived
+        /// as count / <see cref="LandZones"/>. Carried so a serializer can reproduce a fraction at any
+        /// precision without float-rounding drift.
+        /// </summary>
+        public IReadOnlyDictionary<BiomeType, int> BiomeZoneCounts { get; set; }
 
         /// <summary>Minimum terrain height (world metres) over the region's land zones.</summary>
         public float MinElevation { get; set; }
 
-        /// <summary>Mean terrain height (world metres) over the region's land zones.</summary>
-        public float MeanElevation { get; set; }
+        /// <summary>Mean terrain height (world metres) over the region's land zones. Double: averaged.</summary>
+        public double MeanElevation { get; set; }
 
         /// <summary>Maximum terrain height (world metres) over the region's land zones.</summary>
         public float MaxElevation { get; set; }
