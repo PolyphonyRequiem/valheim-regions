@@ -2,18 +2,33 @@
 """Parse Valheim ZoneLocation configs -> catalogue JSON.
 Runs on Prime where the AssetRipper export lives. Mirrors parse_vegetation.py.
 
-Locations live in TWO places (see SetupLocations, decomp 96603 — it aggregates LocationLists
-sorted by m_sortOrder, then iterates the union):
+Locations live in SEVERAL serialized assets (see SetupLocations, decomp 96603 — it aggregates
+LocationLists sorted by m_sortOrder, then iterates the union):
   1. _ZoneSystem.prefab            m_locations  (the base game locations)
-  2. Systems/LocationLists/*.prefab  m_locations  (Mistlands, Ashlands, Hildir, MountainCaves, cp1)
-Both have the IDENTICAL m_locations block shape. We parse all of them in m_sortOrder order
-(the game's registration order) so the catalogue matches the game's global zone-occupancy resolution.
+  2. _GameMain.prefab              m_locations  (dev/combat locations: CombatRuin01, BigRockClearing,
+                                                 BogWitch_Camp, the Dev* ring/range/garden — these have
+                                                 an EMPTY m_prefabName in the serialized asset; the game
+                                                 fills it at runtime from m_prefab's SoftReference)
+  3. Systems/LocationLists/*.prefab  m_locations  (Mistlands, Ashlands, Hildir, MountainCaves, cp1)
+All have the IDENTICAL m_locations block shape. We parse all of them in m_sortOrder order (the game's
+registration order) so the catalogue matches the game's global zone-occupancy resolution.
+
+🔴 EMPTY m_prefabName: some entries (notably in _GameMain) reference the prefab ONLY by
+m_prefab.m_assetID (a 128-bit SoftReference hash), with m_prefabName left blank — it's populated at
+runtime via m_prefab.Name. We resolve those via the SoftRef manifest's "asset ID -> path" map
+(StreamingAssets/SoftRef/manifest). assetID hex = the four m_assetID words (v3,v2,v1,v0) packed
+big-endian uint32 each, verified against StoneCircle's manifest id (5331b07f...). Without this, 8
+entries (incl. CombatRuin01/BigRockClearing/BogWitch_Camp) silently drop — they did, until 2026-06-24.
 """
-import re, json, os, sys, glob
+import re, json, os, sys, glob, struct
 
 EXPORT = "/tmp/valheim_export/ExportedProject"
 ZS = f"{EXPORT}/Assets/Systems/_ZoneSystem.prefab"
+GAMEMAIN = f"{EXPORT}/Assets/Systems/_GameMain.prefab"
 LOCLISTS = f"{EXPORT}/Assets/Systems/LocationLists"
+# SoftRef manifest (assetID -> prefab path), on the live install. Used to resolve empty-name entries.
+SOFTREF_MANIFEST = os.path.expanduser(
+    "~/.steam/debian-installation/steamapps/common/Valheim/valheim_Data/StreamingAssets/SoftRef/manifest")
 
 BIOME_BITS = {1:"Meadows",2:"Swamp",4:"Mountain",8:"BlackForest",16:"Plains",
               32:"AshLands",64:"DeepNorth",256:"Ocean",512:"Mistlands",0x100000:"Other"}
@@ -38,9 +53,42 @@ FIELD_RE = {
 }
 
 
+def load_assetid_index(manifest_path=SOFTREF_MANIFEST):
+    """assetID hex -> prefab name, from the SoftRef manifest. The manifest is a binary blob with
+    embedded ASCII; we scan for 'asset ID: <hex>' then the following 'path in bundle: .../Name.prefab'.
+    Returns {} if the manifest is absent (e.g. running off-box) — empty-name entries then stay unresolved."""
+    idx = {}
+    if not os.path.exists(manifest_path):
+        return idx
+    with open(manifest_path, "rb") as f:
+        data = f.read()
+    text = data.decode("latin-1", errors="replace")
+    cur_id = None
+    for m in re.finditer(r"asset ID:\s*([0-9a-f]{32})|path in bundle:\s*(\S+)", text):
+        if m.group(1):
+            cur_id = m.group(1)
+        elif m.group(2) and cur_id:
+            name = os.path.basename(m.group(2))
+            if name.endswith(".prefab"):
+                name = name[:-len(".prefab")]
+            idx[cur_id] = name
+            cur_id = None
+    return idx
+
+
+def assetid_hex(v3, v2, v1, v0):
+    """The four m_assetID words -> the manifest's 32-char hex id. Big-endian uint32 each, v3 first.
+    Verified against StoneCircle (v3=1395765375.. -> 5331b07f2f41b914bb3b638c751ff578).
+    Returns None for the all-zero id: disabled/empty-prefab entries carry a null assetID, and MANY
+    distinct locations share it — it is NOT an identity and must never be used for dedup or resolution."""
+    if (v3, v2, v1, v0) == (0, 0, 0, 0):
+        return None
+    return b"".join(struct.pack(">I", w & 0xFFFFFFFF) for w in (v3, v2, v1, v0)).hex()
+
+
 def parse_m_locations(path):
     """Extract the m_locations entries from one prefab's YAML. Returns a list of raw field dicts.
-    Returns [] if the file has no m_locations block."""
+    Captures m_prefabName AND the m_assetID tuple (for empty-name resolution). Returns [] if no block."""
     with open(path, "r", errors="replace") as f:
         lines = f.readlines()
     try:
@@ -48,17 +96,33 @@ def parse_m_locations(path):
     except StopIteration:
         return []
     entries, cur = [], None
+    pending_assetid = False   # we just saw 'm_assetID:' and the next 4 v-lines are its words
+    aid = {}
     for l in lines[start+1:]:
         m = re.match(r"\s*-\s*m_name:\s*(.*)$", l)
         if m:
             if cur is not None: entries.append(cur)
             cur = {"m_name": m.group(1).strip()}
+            pending_assetid = False; aid = {}
             continue
         if cur is None: continue
         # end of m_locations: a base-indent key that isn't part of an entry (entries indent deeper).
         if re.match(r"\s{0,2}m_[A-Za-z]", l) and not l.startswith("   "):
             if re.match(r"  m_[A-Za-z]", l) and not re.match(r"    ", l):
                 break
+        # capture the assetID words (v3..v0) following an m_assetID: line
+        if re.match(r"\s*m_assetID:\s*$", l):
+            pending_assetid = True; aid = {}; continue
+        if pending_assetid:
+            vm = re.match(r"\s*(v[0-3]):\s*(\d+)", l)
+            if vm:
+                aid[vm.group(1)] = int(vm.group(2))
+                if len(aid) == 4:
+                    cur["_assetid_hex"] = assetid_hex(aid["v3"], aid["v2"], aid["v1"], aid["v0"])
+                    pending_assetid = False
+                continue
+            else:
+                pending_assetid = False
         mm = re.match(r"\s*(m_[A-Za-z]+):\s*(.*)$", l)
         if mm and mm.group(1) in FIELD_RE:
             k, v = mm.group(1), mm.group(2).strip()
@@ -77,11 +141,19 @@ def get_sort_order(path):
     return 0
 
 
-def to_config(e, source):
+def to_config(e, source, aid_index):
     bm = int(e.get("m_biome", 0) or 0)
     ba = int(e.get("m_biomeArea", 0) or 0)
+    # Resolve the prefab name. The m_prefab SoftReference (m_assetID) is AUTHORITATIVE — it is what the
+    # game resolves m_prefab.Name from at runtime. The serialized m_prefabName is a cache that is
+    # occasionally STALE (verified 2026-06-24: 3 of 260 entries mismatch — a Hildir_camp-labelled entry
+    # is really BogWitch_Camp, two DevHouse4 are really DevHouse5/DevDressingRoom). So: prefer the
+    # assetID->manifest name; fall back to m_prefabName / m_name only when the assetID can't resolve
+    # (null id, or off-box with no manifest).
+    hx = e.get("_assetid_hex")
+    name = (aid_index.get(hx) if hx else None) or e.get("m_prefabName", "") or e.get("m_name", "")
     return {
-        "PrefabName": e.get("m_prefabName", "") or e.get("m_name", ""),
+        "PrefabName": name,
         "Enable": bool(e.get("m_enable", 1)),
         "BiomeMask": bm, "Biomes": names(bm, BIOME_BITS),
         "BiomeAreaMask": ba, "BiomeAreas": names(ba, BIOMEAREA_BITS),
@@ -119,24 +191,55 @@ def to_config(e, source):
 
 
 def build_catalogue():
-    """Aggregate _ZoneSystem.prefab + every LocationList, in m_sortOrder order (game registration order).
-    Within a tie, files are ordered by name for determinism. Returns (catalogue, source_summary)."""
+    """Aggregate _ZoneSystem.prefab + _GameMain.prefab + every LocationList, in m_sortOrder order (game
+    registration order). Empty-name entries are resolved via the SoftRef manifest assetID index. Within
+    a sortOrder tie, files are ordered by name for determinism. Returns (catalogue, source_summary)."""
+    aid_index = load_assetid_index()
     cat = []
     sources = []
+    seen = set()   # identity keys already added — _GameMain embeds the SAME ZoneSystem (most of its
+                   # entries duplicate _ZoneSystem); dedupe by assetID, or by content when the assetID
+                   # is null (disabled/empty-prefab entries all share the all-zero id, so it can't key).
 
-    # 1. base _ZoneSystem (sortOrder 0 conceptually — it is the root list).
-    base = parse_m_locations(ZS)
-    cat += [to_config(e, "_ZoneSystem") for e in base]
-    sources.append(("_ZoneSystem", 0, len(base)))
+    def identity(e):
+        hx = e.get("_assetid_hex")
+        if hx:
+            return ("aid", hx)
+        # null assetID -> key on the content that defines the ZoneLocation
+        return ("content", e.get("m_prefabName", "") or e.get("m_name", ""),
+                int(e.get("m_biome", 0) or 0), int(e.get("m_quantity", 0) or 0),
+                int(e.get("m_enable", 0) or 0))
+
+    # 1. base root assets (sortOrder 0): _ZoneSystem then _GameMain. _GameMain carries the dev/combat
+    #    locations (CombatRuin01, BigRockClearing, the Dev* ring/range/garden) — empty-name, assetID-
+    #    resolved — but ALSO re-embeds the _ZoneSystem entries, so we dedupe.
+    for path, label in ((ZS, "_ZoneSystem"), (GAMEMAIN, "_GameMain")):
+        if not os.path.exists(path):
+            continue
+        kept = 0
+        for e in parse_m_locations(path):
+            key = identity(e)
+            if key in seen:
+                continue
+            seen.add(key)
+            cat.append(to_config(e, label, aid_index))
+            kept += 1
+        sources.append((label, 0, kept))
 
     # 2. LocationLists, sorted by (m_sortOrder, filename) to match SetupLocations' Sort(sortOrder).
     lists = sorted(glob.glob(f"{LOCLISTS}/*.prefab"),
                    key=lambda p: (get_sort_order(p), os.path.basename(p)))
     for p in lists:
-        entries = parse_m_locations(p)
         name = os.path.basename(p)[:-len(".prefab")]
-        cat += [to_config(e, name) for e in entries]
-        sources.append((name, get_sort_order(p), len(entries)))
+        kept = 0
+        for e in parse_m_locations(p):
+            key = identity(e)
+            if key in seen:
+                continue
+            seen.add(key)
+            cat.append(to_config(e, name, aid_index))
+            kept += 1
+        sources.append((name, get_sort_order(p), kept))
 
     return cat, sources
 
@@ -145,17 +248,25 @@ if __name__ == "__main__":
     cat, sources = build_catalogue()
     out = sys.argv[1] if len(sys.argv) > 1 else "/tmp/valheim_locations_catalogue.json"
     payload = {"provenance": {"source": "assetripper-export", "tool": "AssetRipper 1.3.14",
-               "asset": "_ZoneSystem.prefab + Systems/LocationLists/*.prefab (m_locations), m_sortOrder order",
-               "schemaVersion": 2},
+               "asset": "_ZoneSystem.prefab + _GameMain.prefab + Systems/LocationLists/*.prefab "
+                        "(m_locations), m_sortOrder order; empty-name entries resolved via SoftRef manifest",
+               "schemaVersion": 3},
                "count": len(cat), "locations": cat}
     with open(out, "w") as f: json.dump(payload, f, indent=2)
 
     enabled = [c for c in cat if c["Enable"] and c["Quantity"] > 0]
     uniques = [c for c in enabled if c["Unique"]]
+    unnamed = [c for c in cat if not c["PrefabName"]]
     print(f"parsed {len(cat)} ZoneLocation configs ({len(enabled)} enabled w/ quantity>0) from {len(sources)} sources")
     print("--- sources (name, sortOrder, #locations) ---")
     for name, so, n in sources:
         print(f"  {name:28} sortOrder={so} locations={n}")
+    if unnamed:
+        print(f"⚠️  {len(unnamed)} entries STILL have no resolvable prefab name (assetID not in manifest):")
+        for c in unnamed[:10]:
+            print(f"     src={c['Source']} q={c['Quantity']} biomes={c['Biomes']}")
+    else:
+        print("✓ every entry has a resolved prefab name (0 unresolved)")
     print(f"--- enabled uniques (potential-location types) = {len(uniques)} ---")
     for c in uniques:
         print(f"  {c['PrefabName']:28} q={c['Quantity']} biomes={c['Biomes']}")

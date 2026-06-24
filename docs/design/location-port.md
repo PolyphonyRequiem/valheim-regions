@@ -135,19 +135,35 @@ port the decomp's reject-reason counters (`errorTerrainDelta`, `errorSimilar`, `
 over-admits. This is a *measurement* task, not a blocked one. Tracked as follow-up; does not block the
 substrate use (region-scale is unaffected by ±a-few placements per type).
 
-## §6 — Catalogue coverage (Mistlands/Ashlands) — ✅ CLOSED (2026-06-24)
+## §6 — Catalogue coverage — ✅ 147/147 COMPLETE (2026-06-24)
 
-The base catalogue was the 118 configs in `_ZoneSystem.prefab` (86 enabled). The +60 post-vanilla
-locations (Mistlands, Ashlands, Hildir, mountain caves) live in separate **`LocationList`
-ScriptableObjects** at `Assets/Systems/LocationLists/_LocationList_{Mistlands,Ashlands,MountainCaves,
-Hildir,cp1}.prefab` — same YAML shape. **`parse_locations.py` now walks `_ZoneSystem.prefab` + every
-`LocationList`, in `m_sortOrder` order** (matching `SetupLocations`' `Sort(sortOrder)` registration order,
-so global zone-occupancy resolution matches the game). Catalogue is now **178 configs / 145 enabled /
-11,612 quota**, covering **144 of 147** `.db` prefab types (was 86). The 3 still-missing
-(`BigRockClearing`, `BogWitch_Camp`, `CombatRuin01`) are even-newer-content locations registered through
-a mechanism not in this export — a small residual, not a structural gap. This also added **5 more unique
-types** (the 3 PlaceofMystery + 2 Hildir_camp biome variants), so the candidate-group mechanism now
-exercises 6 uniques, not 1.
+Three parser gaps, all closed:
+1. **LocationLists** — the +60 post-vanilla locations (Mistlands, Ashlands, Hildir, mountain caves) live
+   in `Assets/Systems/LocationLists/_LocationList_*.prefab`; the parser walks them in `m_sortOrder` order
+   (matching `SetupLocations`' `Sort(sortOrder)`).
+2. **`_GameMain.prefab` + assetID resolution** — the dev/combat locations (`CombatRuin01`,
+   `BigRockClearing`, the `Dev*` set) are registered in **`_GameMain.prefab`** (NOT `_ZoneSystem`), with
+   an **empty `m_prefabName`** (filled at runtime from `m_prefab`'s SoftReference). Resolved via the
+   SoftRef manifest assetID→name map; assetID hex = the four `m_assetID` words (v3,v2,v1,v0) big-endian
+   uint32 each (verified vs StoneCircle). `_GameMain` re-embeds the whole ZoneSystem → deduped by assetID,
+   or by content key when the assetID is **null** (the all-zero id is shared by many disabled entries and
+   is NOT an identity — keying dedup on it pruned 18 real configs before it was caught).
+3. **🔴 assetID is AUTHORITATIVE over `m_prefabName` (the BogWitch fix).** The serialized `m_prefabName`
+   is a cache that goes STALE — verified: 3 of 260 entries mismatch their assetID's true name. A
+   `_LocationList_Ashlands` entry labelled `Hildir_camp` is **really `BogWitch_Camp`** (its `m_prefab`
+   SoftReference resolves to BogWitch), and two `_GameMain` `DevHouse4` entries are really
+   `DevHouse5`/`DevDressingRoom`. The game resolves `m_prefab.Name` from the SoftReference at runtime, so
+   the assetID→manifest name wins; `m_prefabName` is only a fallback when the assetID can't resolve. This
+   is what hid BogWitch — it was mislabelled, not absent.
+
+**`BogWitch_Camp` is a registered UNIQUE** (q=10, Swamp, `m_unique`, `m_iconPlaced`) — generated
+dynamically when a player first reaches one of its candidate sites, exactly like the vendors (Daniel
+called this). It's one of the 7 candidate-group uniques.
+
+Result: **188 configs, 147 enabled, 0 unresolved/mislabelled names, 147/147 `.db` prefab types covered**
+(was 86). This was **NOT a version mismatch and NOT a missing bundle** — every location was in the export
+all along; the original parser trusted the stale `m_prefabName`, missed `_GameMain`, and didn't resolve
+assetID-only entries.
 
 ## Why this is the right cut
 

@@ -107,11 +107,15 @@ loader; in-process callers pass an already-parsed config list.
    = no-op), fires each event once. Snapshot (`CandidateGroup.Resolved`) still available for consumers
    that don't want the push. Tested Unity-free (5 overlay tests). The plugin hook is wired but the live
    gazetteer activation (assigning a real overlay) is behind the same client-runtime walk wall as the ESP.
-4. **Catalogue coverage.** ✅ **CLOSED** (2026-06-24). `parse_locations.py` now walks `_ZoneSystem.prefab`
-   + every `LocationList` in `m_sortOrder` order → **178 configs / 145 enabled**, covering 144/147 `.db`
-   prefab types (incl. all Mistlands/Ashlands). 6 unique types now (was 1). 3 newest-content locations
-   (`BigRockClearing`, `BogWitch_Camp`, `CombatRuin01`) remain outside this export — a small residual.
-   The LIVE source has them all regardless (it reads the running game).
+4. **Catalogue coverage.** ✅ **147/147 COMPLETE** (2026-06-24). `parse_locations.py` walks
+   `_ZoneSystem.prefab` + `_GameMain.prefab` + every `LocationList` in `m_sortOrder` order. **The
+   `m_prefab` SoftReference assetID is authoritative over the serialized `m_prefabName`** (which goes
+   stale — a `Hildir_camp`-labelled Ashlands entry is really **`BogWitch_Camp`**; 2 `DevHouse4` are really
+   `DevHouse5`/`DevDressingRoom`). assetID→name via the SoftRef manifest; deduped by assetID or
+   content-key for null ids. **188 configs / 147 enabled, 147/147 `.db` types, 0 mislabelled.** BogWitch
+   is a registered UNIQUE (dynamic-on-discovery like the vendors — Daniel called it), one of **7 candidate
+   groups**. NOT a version/bundle issue — the original parser trusted stale `m_prefabName` + missed
+   `_GameMain`/assetID-only entries. See location-port.md §6.
 
 ## Test coverage
 
