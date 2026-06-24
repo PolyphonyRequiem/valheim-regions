@@ -67,19 +67,32 @@ namespace WorldZones.Runtime
 
                 int zx = gx + min, zy = gy + min;
                 float wx = zx * (float)ZoneGrid.ZoneSize, wz = zy * (float)ZoneGrid.ZoneSize;
-                BiomeType biome = sampler.GetBiome(wx, wz);
-                float h = sampler.GetHeight(wx, wz);
 
-                a.LandZones++;
-                a.SumX += wx; a.SumZ += wz; a.SumH += h;
-                if (zx < a.MinZx) a.MinZx = zx;
-                if (zy < a.MinZy) a.MinZy = zy;
-                if (zx > a.MaxZx) a.MaxZx = zx;
-                if (zy > a.MaxZy) a.MaxZy = zy;
-                if (h < a.MinH) a.MinH = h;
-                if (h > a.MaxH) { a.MaxH = h; a.PeakX = wx; a.PeakZ = wz; }
-                a.Biome.TryGetValue(biome, out int bc);
-                a.Biome[biome] = bc + 1;
+                // Per-zone CHARACTER (centroid, elevation, biome composition, bounds) is accumulated
+                // over LAND zones only. A region's id also tags its one-zone shallow fringe (see
+                // ProtoRegionGenerator's shallow-fringe pass), and counting those water cells as land
+                // (a) inflated the composition denominator above the land area, breaking the
+                // SampledLandZones <= LandZones invariant, and (b) dragged centroid seaward + min
+                // elevation down to the waterline. The neighbour scan + coastal flag below still run
+                // over EVERY tagged cell — the fringe is exactly how a region learns it is coastal and
+                // who it borders, so that part must NOT be land-gated.
+                DepthClass depth = grid[zx, zy];
+                if (depth == DepthClass.Land)
+                {
+                    BiomeType biome = sampler.GetBiome(wx, wz);
+                    float h = sampler.GetHeight(wx, wz);
+
+                    a.LandZones++;
+                    a.SumX += wx; a.SumZ += wz; a.SumH += h;
+                    if (zx < a.MinZx) a.MinZx = zx;
+                    if (zy < a.MinZy) a.MinZy = zy;
+                    if (zx > a.MaxZx) a.MaxZx = zx;
+                    if (zy > a.MaxZy) a.MaxZy = zy;
+                    if (h < a.MinH) a.MinH = h;
+                    if (h > a.MaxH) { a.MaxH = h; a.PeakX = wx; a.PeakZ = wz; }
+                    a.Biome.TryGetValue(biome, out int bc);
+                    a.Biome[biome] = bc + 1;
+                }
 
                 foreach (var (dx, dy) in N4)
                 {

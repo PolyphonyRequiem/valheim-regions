@@ -8,6 +8,7 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/WorldZones.Regions.Tests/WorldZones.Regions.Tests.csproj" />
+    <Project Path="tests/WorldZones.Runtime.Tests/WorldZones.Runtime.Tests.csproj" />
     <Project Path="tests/WorldZones.WorldGen.Tests/WorldZones.WorldGen.Tests.csproj" />
   </Folder>
   <Properties Name="Configuration">
