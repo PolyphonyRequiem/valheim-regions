@@ -30,6 +30,10 @@ namespace WorldZones.Cli
             bool includeInlandWater = false;
             bool compareInland = false;
             string? vegetationCatalogue = null;
+            string? locationCatalogue = null;
+            string? oracle = null;
+            string? onlyStrategy = null;
+            string? probePrefab = null;
 
             for (int i = 1; i < args.Length; i++)
             {
@@ -43,6 +47,14 @@ namespace WorldZones.Cli
                     compareInland = true;
                 else if (args[i] == "--vegetation" && i + 1 < args.Length)
                     vegetationCatalogue = args[++i];
+                else if (args[i] == "--catalogue" && i + 1 < args.Length)
+                    locationCatalogue = args[++i];
+                else if (args[i] == "--oracle" && i + 1 < args.Length)
+                    oracle = args[++i];
+                else if (args[i] == "--strategy" && i + 1 < args.Length)
+                    onlyStrategy = args[++i];
+                else if (args[i] == "--prefab" && i + 1 < args.Length)
+                    probePrefab = args[++i];
             }
 
             switch (command)
@@ -53,6 +65,20 @@ namespace WorldZones.Cli
                     return ExportRegions(seed, output, includeInlandWater, compareInland);
                 case "gazetteer":
                     return Gazetteer.Export(seed, output ?? Directory.GetCurrentDirectory(), includeInlandWater, vegetationCatalogue);
+                case "locations":
+                    if (locationCatalogue == null)
+                    {
+                        Console.Error.WriteLine("locations: --catalogue <locations.json> is required");
+                        return 1;
+                    }
+                    return LocationValidation.Run(seed, locationCatalogue, oracle, onlyStrategy);
+                case "probe":
+                    if (locationCatalogue == null || oracle == null || onlyStrategy == null)
+                    {
+                        Console.Error.WriteLine("probe: --catalogue, --oracle, --strategy, and --prefab required");
+                        return 1;
+                    }
+                    return LocationProbe.Run(seed, probePrefab ?? "InfestedTree01", locationCatalogue, oracle, onlyStrategy, 15);
                 case "all":
                     int r1 = ExportBiomeMap(seed, output);
                     int r2 = ExportRegions(seed, output, includeInlandWater, compareInland);

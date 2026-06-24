@@ -1,4 +1,41 @@
-# Location decoder + region sidecar
+# Location decoder, catalogue parser, and offline registration port
+
+This directory has THREE related pieces — keep them straight (they map to the two-phase location model;
+see `docs/design/location-port.md`):
+
+| Tool | Layer | Needs | Output |
+|---|---|---|---|
+| `decode_locations.py` | realized `.db` (Phase 2 oracle) | a world `.db` | `{world}_locations_raw.json` (real placed/registered) |
+| `parse_locations.py` | the config catalogue | AssetRipper export (Prime) | `data/valheim_locations_catalogue.json` (118 configs) |
+| `WorldZones.Cli locations` | **offline registration port** (Phase 1) | seed + catalogue | computed placements, validated vs the `.db` |
+| `build_location_sidecar.py` | region join | raw json + gazetteer grid | `{seed}_locations.json` sidecar |
+
+The **decoder** is the validation ORACLE and the realized-POI source. The **port** is the from-seed
+offline computation (no `.db`, no client). See `docs/design/location-port.md` for the verdict
+(bit-exact RNG, 79/86 count-exact, ~83% region-scale) and the two open items (quota over-placement §5,
+the Mistlands/Ashlands `LocationList` catalogue gap §6).
+
+## Catalogue parser (`parse_locations.py`)
+
+Parses Valheim's `ZoneLocation` configs (the `m_locations` block) out of an AssetRipper export of
+`_ZoneSystem.prefab`. Mirrors `tools/vegetation/parse_vegetation.py`. Runs on Prime, where the export
+lives (`/tmp/valheim_export/ExportedProject`). Emits the schema consumed by `WorldZones.Cli locations`
+and `LocationModel.LocationConfig`.
+
+```bash
+# on Prime:
+python3 tools/locations/parse_locations.py data/valheim_locations_catalogue.json
+#  -> 118 ZoneLocation configs (86 enabled w/ quantity>0)
+```
+
+⚠️ **Coverage gap:** `_ZoneSystem.prefab` holds the 118 base configs. ~60 more (Mistlands, Ashlands,
+Hildir, mountain caves) live in `Assets/Systems/LocationLists/_LocationList_*.prefab` — SAME YAML shape.
+To get full coverage, point the parser at that directory too and concatenate, preserving `m_sortOrder`
+(the game sorts LocationLists before registering — order affects global zone-occupancy). Not yet done.
+
+---
+
+# Location decoder + region sidecar (`.db` oracle)
 
 Decodes **real location/POI data** from a Valheim world `.db` and joins it to gazetteer regions.
 This is the **real-db source** in the gazetteer's three-source architecture (measured terrain /

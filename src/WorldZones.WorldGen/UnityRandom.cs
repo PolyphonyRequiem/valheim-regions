@@ -1,3 +1,5 @@
+using System;
+
 namespace WorldZones.WorldGen
 {
     /// <summary>
@@ -100,6 +102,42 @@ namespace WorldZones.WorldGen
         public float Range(float min, float max)
         {
             return (min - max) * ((float)(Next() << 9) / 4294967295.0f) + max;
+        }
+
+        /// <summary>
+        /// Replicates <c>UnityEngine.Random.insideUnitCircle</c> — a random point inside or on the
+        /// unit circle. The native algorithm is not public (see <see cref="InsideUnitCircleStrategy"/>),
+        /// so the draw pattern is parameterized and resolved empirically by the validation harness.
+        /// Returns (x, y).
+        /// </summary>
+        public (float x, float y) InsideUnitCircle(InsideUnitCircleStrategy strategy)
+        {
+            switch (strategy)
+            {
+                case InsideUnitCircleStrategy.PolarRadiusFirst:
+                {
+                    float r = (float)Math.Sqrt(Value);
+                    float a = Value * 2f * (float)Math.PI;
+                    return (r * (float)Math.Cos(a), r * (float)Math.Sin(a));
+                }
+                case InsideUnitCircleStrategy.PolarAngleFirst:
+                {
+                    float a = Value * 2f * (float)Math.PI;
+                    float r = (float)Math.Sqrt(Value);
+                    return (r * (float)Math.Cos(a), r * (float)Math.Sin(a));
+                }
+                case InsideUnitCircleStrategy.Rejection:
+                {
+                    while (true)
+                    {
+                        float x = Range(-1f, 1f);
+                        float y = Range(-1f, 1f);
+                        if (x * x + y * y <= 1f) return (x, y);
+                    }
+                }
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(strategy));
+            }
         }
     }
 }

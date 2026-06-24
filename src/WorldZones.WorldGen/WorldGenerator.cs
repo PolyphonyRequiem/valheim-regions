@@ -149,6 +149,57 @@ namespace WorldZones.WorldGen
         {
             return GetBiome(worldX, worldZ, oceanLevel: 0.02f, waterAlwaysOcean: false);
         }
+
+        /// <summary>
+        /// Matches WorldGenerator.GetBiomeArea (decomp 130191): samples the biome at the point and its
+        /// 8 neighbours ±64m; if all 9 agree it's the biome's Median, else an Edge. Returned as the raw
+        /// Heightmap.BiomeArea bitmask (Edge=1, Median=2) so callers can mask against ZoneLocation.m_biomeArea
+        /// without a Unity enum dependency.
+        /// </summary>
+        public int GetBiomeArea(float worldX, float worldZ)
+        {
+            BiomeType b = GetBiome(worldX, worldZ);
+            // Note the decomp subtracts NEGATED vectors: point - (-64,-64) == point + (64,64), etc.
+            BiomeType b2 = GetBiome(worldX + 64f, worldZ + 64f);
+            BiomeType b3 = GetBiome(worldX - 64f, worldZ + 64f);
+            BiomeType b4 = GetBiome(worldX - 64f, worldZ - 64f);
+            BiomeType b5 = GetBiome(worldX + 64f, worldZ - 64f);
+            BiomeType b6 = GetBiome(worldX + 64f, worldZ);
+            BiomeType b7 = GetBiome(worldX - 64f, worldZ);
+            BiomeType b8 = GetBiome(worldX, worldZ + 64f);
+            BiomeType b9 = GetBiome(worldX, worldZ - 64f);
+            if (b == b2 && b == b3 && b == b4 && b == b5 && b == b6 && b == b7 && b == b8 && b == b9)
+                return 2; // Heightmap.BiomeArea.Median
+            return 1;     // Heightmap.BiomeArea.Edge
+        }
+
+        /// <summary>
+        /// Matches WorldGenerator.GetForestFactor (decomp 130747): DUtils.Fbm(pos * 0.004, 3, 1.6, 0.7).
+        /// Operates on world (x, z). Returned as float to mirror the game's precision.
+        /// <para>
+        /// ⚠️ Uses the game's EXACT Fbm (assembly_utils DUtils.Fbm, line 575): a RAW SUM of
+        /// PerlinNoise samples — <c>num += amp * PerlinNoise(x,y)</c>, NO <c>*2-1</c> remap. This is
+        /// deliberately NOT <see cref="MathUtils.Fbm"/>, which applies a <c>*2-1</c> remap (correct for
+        /// ITS callers but wrong here): the remap centres the result near 0, whereas the game's forest
+        /// factor is centred near ~1.0 to match ZoneLocation.m_forestTresholdMin/Max (e.g. [1,5]).
+        /// Mixing them up made the spawn StartTemple (forestFactor must be ≥1) get rejected.
+        /// </para>
+        /// </summary>
+        public float GetForestFactor(float worldX, float worldZ)
+        {
+            const float scale = 0.01f * 0.4f; // 0.004
+            float px = worldX * scale, pz = worldZ * scale;
+            // DUtils.Fbm(p, octaves=3, lacunarity=1.6, gain=0.7): raw PerlinNoise sum, no remap.
+            float sum = 0f, amp = 1f;
+            float fx = px, fz = pz;
+            for (int i = 0; i < 3; i++)
+            {
+                sum += amp * PerlinNoise.Sample(fx, fz);
+                amp *= 0.7f;
+                fx *= 1.6f; fz *= 1.6f;
+            }
+            return sum;
+        }
         
         public BiomeType GetBiome(float worldX, float worldZ, float oceanLevel = 0.02f, bool waterAlwaysOcean = false)
         {
