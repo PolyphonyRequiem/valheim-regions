@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    ConsumerDemo — a STANDALONE proof that a consumer mod needs only ONE reference
+    (WorldZones.Runtime) to get rich, named regions in-process. It deliberately does NOT reference
+    WorldZones.Regions or WorldZones.WorldGen directly: if this compiles and runs, the runtime's
+    public surface is self-sufficient. This is a throwaway harness, not a shipped project — it lives
+    under tools/ and is excluded from the solution.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <AssemblyName>consumerdemo</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\WorldZones.Runtime\WorldZones.Runtime.csproj" />
+  </ItemGroup>
+
+</Project>

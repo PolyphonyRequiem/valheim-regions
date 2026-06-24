@@ -3,6 +3,7 @@
     <Project Path="src/WorldZones.Cli/WorldZones.Cli.csproj" />
     <Project Path="src/WorldZones.Mod.RegionOverlay/WorldZones.Mod.RegionOverlay.csproj" />
     <Project Path="src/WorldZones.Regions/WorldZones.Regions.csproj" />
+    <Project Path="src/WorldZones.Runtime/WorldZones.Runtime.csproj" />
     <Project Path="src/WorldZones.WorldGen/WorldZones.WorldGen.csproj" />
   </Folder>
   <Folder Name="/tests/">

@@ -9,6 +9,8 @@ using WorldZones.Mod.RegionOverlay.Integration;
 using WorldZones.Mod.RegionOverlay.Patches;
 using WorldZones.Mod.RegionOverlay.Persistence;
 using WorldZones.Regions;
+using WorldZones.Runtime;
+using WorldZones.WorldGen;
 
 namespace WorldZones.Mod.RegionOverlay
 {
@@ -177,51 +179,40 @@ namespace WorldZones.Mod.RegionOverlay
             {
                 var sw = Stopwatch.StartNew();
 
-                var provider = new ValheimWorldDataProvider(
+                // Route through the shared runtime façade (the bootstrap that used to be inlined here
+                // now lives in WorldZonesRuntime.Build, deduped with the CLI + gazetteer). The minimap
+                // label plugin is a POINT-QUERY consumer: ComputeRegionInfo=false skips the rich
+                // gazetteer aggregation + naming, so this stays behaviour-identical to the old inline
+                // path (height-only classification, no biome sampling) — and the GetBiome resolver
+                // below is never invoked at this flag setting.
+                //
+                // worldIdentity MUST stay the numeric seed string (world.m_seed.ToString()): discovery
+                // persistence file paths are keyed on it. Do not "fix" it to the seed NAME here — that
+                // would orphan every player's saved discovery state.
+                var sampler = new ValheimWorldSampler(
                     worldIdentity,
-                    (wx, wz) => gameWorldGenerator.GetHeight(wx, wz));
+                    (wx, wz) => gameWorldGenerator.GetHeight(wx, wz),
+                    // Raw cast is valid: the port's BiomeType mirrors Valheim's Heightmap.Biome bits
+                    // EXACTLY (Meadows=1..Mistlands=512 — see VegetationCatalogue.cs). Never invoked at
+                    // ComputeRegionInfo=false; if a consumer flips that flag, prefer a name-mapped bridge
+                    // so a future 1.0 enum renumber fails loudly instead of silently mis-tagging biomes.
+                    (wx, wz) => (BiomeType)(int)gameWorldGenerator.GetBiome(wx, wz));
 
-                ZoneGrid grid = ProtoRegionGenerator.CreateClassifiedGrid(provider);
-                List<LandComponent> landComponents = ComponentLabeler.LabelLand(grid, out _);
-
-                ProtoRegionResult protoResult = ProtoRegionGenerator.GenerateLand(
-                    grid,
-                    landComponents,
-                    DefaultTargetZonesPerRegion,
-                    seedRng,
-                    out int[,] regionIdGrid,
-                    out _);
-
-                // Map each region's transient int ID to its durable identity coordinate (RegionKey),
-                // so the lookup service names + persists off stable identity, not the seed-list index.
-                var identityById = new Dictionary<int, Vector2i>(protoResult.Regions.Count);
-                foreach (var region in protoResult.Regions)
+                RegionWorld regionWorld = WorldZonesRuntime.Build(sampler, new RegionBuildOptions
                 {
-                    identityById[region.Id] = region.IdentityCoord;
-                }
+                    TargetZonesPerRegion = DefaultTargetZonesPerRegion,
+                    SeedRng = seedRng,
+                    ComputeRegionInfo = false,    // point-query-only: no aggregation, no naming, no biome
+                });
 
-                var regionIds = new HashSet<int>();
-                int rows = regionIdGrid.GetLength(0);
-                int cols = regionIdGrid.GetLength(1);
-                for (int y = 0; y < rows; y++)
-                {
-                    for (int x = 0; x < cols; x++)
-                    {
-                        int assignedId = regionIdGrid[y, x];
-                        if (assignedId >= 0)
-                        {
-                            regionIds.Add(assignedId);
-                        }
-                    }
-                }
-
-                this.regionLookupService = new RegionLookupService(grid, regionIdGrid, worldIdentity, regionIds, identityById);
+                this.regionLookupService = regionWorld.Lookup;
                 this.lastWorldSeedName = string.IsNullOrWhiteSpace(seedName)
                     ? worldIdentity
                     : seedName;
                 this.regionDataReady = true;
 
                 sw.Stop();
+                ProtoRegionResult protoResult = regionWorld.ProtoResult;
                 this.Logger.LogInfo(
                     $"Region data ready: {protoResult.RegionCount} regions, land={protoResult.LandZoneCount}, unassigned={protoResult.UnassignedLandCount}, seededComponents={protoResult.SeededComponentCount}, minorIslets={protoResult.MinorIsletCount} in {sw.ElapsedMilliseconds}ms.");
             }
