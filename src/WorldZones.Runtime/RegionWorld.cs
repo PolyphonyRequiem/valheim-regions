@@ -25,7 +25,9 @@ namespace WorldZones.Runtime
             IRegionLookupService lookup,
             ZoneGrid grid,
             int[,] regionIdGrid,
-            ProtoRegionResult protoResult)
+            ProtoRegionResult protoResult,
+            IReadOnlyList<GazetteerLocation> allLocations = null,
+            IReadOnlyList<CandidateGroup> candidateGroups = null)
         {
             this.WorldId = worldId;
             this.Regions = regions;
@@ -33,6 +35,8 @@ namespace WorldZones.Runtime
             this.Grid = grid;
             this.RegionIdGrid = regionIdGrid;
             this.ProtoResult = protoResult;
+            this.AllLocations = allLocations ?? System.Array.Empty<GazetteerLocation>();
+            this.CandidateGroups = candidateGroups ?? System.Array.Empty<CandidateGroup>();
 
             this.byKey = new Dictionary<string, RegionInfo>(regions.Count, StringComparer.Ordinal);
             foreach (var r in regions) this.byKey[r.RegionKey] = r;
@@ -55,6 +59,22 @@ namespace WorldZones.Runtime
 
         /// <summary>Raw proto-region statistics from generation.</summary>
         public ProtoRegionResult ProtoResult { get; }
+
+        /// <summary>
+        /// Every gazetteer location in the world (the flat set), each joined to its region and carrying
+        /// its <see cref="PlacementStatus"/>. Empty unless a <see cref="RegionBuildOptions.LocationSource"/>
+        /// was supplied. Per-region slices are on <see cref="RegionInfo.Locations"/>; this is the
+        /// world-wide view (includes locations outside any region — ocean/islet — with null RegionKey).
+        /// </summary>
+        public IReadOnlyList<GazetteerLocation> AllLocations { get; }
+
+        /// <summary>
+        /// Candidate groups for UNIQUE locations (Haldor, PlaceOfMystery, Hildir) — each a world-scoped
+        /// set of N sites that resolve to exactly one. Empty unless a location source was supplied and
+        /// the world has uniques. Offline these are unresolved (the seed doesn't pick the winner); a live
+        /// source resolves them as the world is explored. See <see cref="CandidateGroup"/>.
+        /// </summary>
+        public IReadOnlyList<CandidateGroup> CandidateGroups { get; }
 
         /// <summary>Look up a rich region by its durable key, or null if unknown.</summary>
         public RegionInfo GetByKey(string regionKey)

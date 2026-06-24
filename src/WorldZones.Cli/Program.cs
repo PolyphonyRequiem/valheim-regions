@@ -34,6 +34,7 @@ namespace WorldZones.Cli
             string? oracle = null;
             string? onlyStrategy = null;
             string? probePrefab = null;
+            string? dumpPath = null;
 
             for (int i = 1; i < args.Length; i++)
             {
@@ -55,6 +56,8 @@ namespace WorldZones.Cli
                     onlyStrategy = args[++i];
                 else if (args[i] == "--prefab" && i + 1 < args.Length)
                     probePrefab = args[++i];
+                else if (args[i] == "--dump" && i + 1 < args.Length)
+                    dumpPath = args[++i];
             }
 
             switch (command)
@@ -71,7 +74,7 @@ namespace WorldZones.Cli
                         Console.Error.WriteLine("locations: --catalogue <locations.json> is required");
                         return 1;
                     }
-                    return LocationValidation.Run(seed, locationCatalogue, oracle, onlyStrategy);
+                    return LocationValidation.Run(seed, locationCatalogue, oracle, onlyStrategy, dumpPath);
                 case "probe":
                     if (locationCatalogue == null || oracle == null || onlyStrategy == null)
                     {

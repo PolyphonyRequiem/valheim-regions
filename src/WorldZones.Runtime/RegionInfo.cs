@@ -117,5 +117,15 @@ namespace WorldZones.Runtime
 
         /// <summary>Durable keys of the regions that share a border with this one (sorted, ordinal).</summary>
         public IReadOnlyList<string> NeighborKeys { get; set; } = new List<string>();
+
+        /// <summary>
+        /// Locations (POIs, dungeons, bosses, structures, traders) whose position falls inside this
+        /// region. Empty unless a <see cref="RegionBuildOptions.LocationSource"/> was supplied to the
+        /// build. Each carries its <see cref="PlacementStatus"/> — Registered (a normal location, will
+        /// spawn when its zone loads), Candidate (one of N sites for a unique; see
+        /// <see cref="RegionWorld.CandidateGroups"/>), or Realized (live source only). Ordered by prefab
+        /// then position for stable output.
+        /// </summary>
+        public IReadOnlyList<GazetteerLocation> Locations { get; set; } = new List<GazetteerLocation>();
     }
 }

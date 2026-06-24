@@ -96,7 +96,95 @@ namespace WorldZones.Runtime
                 regions = new List<RegionInfo>();
             }
 
-            return new RegionWorld(worldId, regions, lookup, grid, regionIdGrid, protoResult);
+            // 8. Optional location join — bind POIs/dungeons/bosses/traders to their containing region,
+            //    group unique-location candidates. Only when a source is supplied AND the rich model
+            //    exists (the per-region attach needs RegionInfo; the join needs the lookup service).
+            IReadOnlyList<GazetteerLocation> allLocations = System.Array.Empty<GazetteerLocation>();
+            IReadOnlyList<CandidateGroup> candidateGroups = System.Array.Empty<CandidateGroup>();
+            if (options.LocationSource != null && options.ComputeRegionInfo)
+            {
+                (allLocations, candidateGroups) = JoinLocations(options.LocationSource, lookup, regions);
+            }
+
+            return new RegionWorld(worldId, regions, lookup, grid, regionIdGrid, protoResult,
+                allLocations, candidateGroups);
+        }
+
+        /// <summary>
+        /// Bind each source location to its containing region, resolve <see cref="PlacementStatus"/>,
+        /// build candidate groups for uniques, and attach per-region location slices. Pure aggregation —
+        /// the source already computed positions; this only joins them to the region topology.
+        /// </summary>
+        private static (IReadOnlyList<GazetteerLocation>, IReadOnlyList<CandidateGroup>) JoinLocations(
+            ILocationSource source, IRegionLookupService lookup, List<RegionInfo> regions)
+        {
+            var all = new List<GazetteerLocation>();
+            // group sites per unique prefab as we go
+            var groupSites = new Dictionary<string, List<GazetteerLocation>>(StringComparer.Ordinal);
+
+            foreach (LocationRecord rec in source.EnumerateLocations())
+            {
+                string regionKey = null;
+                RegionLookupResult res = lookup.ResolveCurrent(rec.X, rec.Z);
+                if (res != null && res.HasRegion && !string.IsNullOrEmpty(res.RegionKey))
+                    regionKey = res.RegionKey;
+
+                // Status: a realized site (live source) -> Realized; a unique candidate -> Candidate;
+                // a normal planned location -> Registered.
+                PlacementStatus status =
+                    rec.IsRealized ? PlacementStatus.Realized
+                    : rec.IsUnique ? PlacementStatus.Candidate
+                    : PlacementStatus.Registered;
+
+                var loc = new GazetteerLocation
+                {
+                    PrefabName = rec.PrefabName,
+                    X = rec.X,
+                    Z = rec.Z,
+                    RegionKey = regionKey,
+                    Status = status,
+                    CandidateGroupKey = rec.IsUnique ? rec.PrefabName : null,
+                };
+                all.Add(loc);
+
+                if (rec.IsUnique)
+                {
+                    if (!groupSites.TryGetValue(rec.PrefabName, out var list))
+                        groupSites[rec.PrefabName] = list = new List<GazetteerLocation>();
+                    list.Add(loc);
+                }
+            }
+
+            // Stable order: prefab, then position.
+            all.Sort((a, b) =>
+            {
+                int c = string.CompareOrdinal(a.PrefabName, b.PrefabName);
+                if (c != 0) return c;
+                c = a.X.CompareTo(b.X);
+                return c != 0 ? c : a.Z.CompareTo(b.Z);
+            });
+
+            // Candidate groups (sorted by prefab for determinism).
+            var groups = new List<CandidateGroup>(groupSites.Count);
+            foreach (var kv in groupSites)
+                groups.Add(new CandidateGroup(kv.Key, kv.Value));
+            groups.Sort((a, b) => string.CompareOrdinal(a.PrefabName, b.PrefabName));
+
+            // Per-region attach.
+            var byRegion = new Dictionary<string, List<GazetteerLocation>>(StringComparer.Ordinal);
+            foreach (var loc in all)
+            {
+                if (loc.RegionKey == null) continue;
+                if (!byRegion.TryGetValue(loc.RegionKey, out var list))
+                    byRegion[loc.RegionKey] = list = new List<GazetteerLocation>();
+                list.Add(loc);
+            }
+            foreach (var region in regions)
+                region.Locations = byRegion.TryGetValue(region.RegionKey, out var list)
+                    ? list
+                    : (IReadOnlyList<GazetteerLocation>)System.Array.Empty<GazetteerLocation>();
+
+            return (all, groups);
         }
 
         /// <summary>

@@ -124,7 +124,7 @@ namespace WorldZones.Cli
 
         // ---------- the harness ----------
 
-        public static int Run(string seed, string cataloguePath, string? oraclePath, string? onlyStrategy = null)
+        public static int Run(string seed, string cataloguePath, string? oraclePath, string? onlyStrategy = null, string? dumpPath = null)
         {
             Console.WriteLine($"=== Location port validation — seed '{seed}' ===");
             var catalogue = LoadCatalogue(cataloguePath);
@@ -161,6 +161,28 @@ namespace WorldZones.Cli
                 var byPrefab = placed.GroupBy(p => p.PrefabName)
                     .ToDictionary(g => g.Key, g => g.Select(p => (p.X, p.Z)).ToList());
                 Console.WriteLine($"computed {placed.Count} placements in {sw.Elapsed.TotalSeconds:F1}s");
+
+                if (dumpPath != null)
+                {
+                    using var fs = File.Create(dumpPath);
+                    using var w = new System.Text.Json.Utf8JsonWriter(fs);
+                    w.WriteStartObject();
+                    w.WriteString("seed", seed);
+                    w.WriteString("strategy", strat.ToString());
+                    w.WriteStartArray("placements");
+                    foreach (var p in placed)
+                    {
+                        w.WriteStartObject();
+                        w.WriteString("prefab", p.PrefabName);
+                        w.WriteNumber("x", p.X);
+                        w.WriteNumber("z", p.Z);
+                        w.WriteEndObject();
+                    }
+                    w.WriteEndArray();
+                    w.WriteEndObject();
+                    w.Flush();
+                    Console.WriteLine($"  dumped computed placements -> {dumpPath}");
+                }
 
                 if (oracleByPrefab == null) continue;
 
@@ -214,6 +236,17 @@ namespace WorldZones.Cli
                     Console.WriteLine($"    ✓ {r.p,-28} comp={r.comp,4} real={r.real,4} exact={r.hit,4}");
                 foreach (var r in perPrefab.OrderByDescending(r => r.comp - r.hit).Take(8))
                     Console.WriteLine($"    ✗ {r.p,-28} comp={r.comp,4} real={r.real,4} exact={r.hit,4}");
+
+                // FULL count-mismatch table — every prefab where computed != real (answers "why not 86/86")
+                Console.WriteLine("\n  COUNT MISMATCHES (computed != real) — sorted by |delta|:");
+                var mism = perPrefab.Where(r => r.comp != r.real)
+                    .OrderByDescending(r => Math.Abs(r.comp - r.real)).ToList();
+                Console.WriteLine($"  ({mism.Count} of {perPrefab.Count} compared prefabs differ)");
+                foreach (var r in mism)
+                {
+                    int d = r.comp - r.real;
+                    Console.WriteLine($"    {r.p,-28} comp={r.comp,4} real={r.real,4} delta={(d > 0 ? "+" : "")}{d}");
+                }
             }
             return 0;
         }

@@ -51,6 +51,19 @@ namespace WorldZones.Runtime
         /// </summary>
         public IRegionNamer Namer { get; set; }
 
+        /// <summary>
+        /// Optional source of LOCATIONS (POIs, dungeons, bosses, traders) to join into the gazetteer in
+        /// the same build pass. When set, every location is binned to its containing region
+        /// (<see cref="RegionInfo.Locations"/>) and unique-location candidate sites are grouped into
+        /// <see cref="RegionWorld.CandidateGroups"/>. When null (default), the build produces no location
+        /// data and those collections come back empty — preserving the existing regions-only behaviour.
+        ///
+        /// <para>Use <see cref="PortLocationSource"/> for an offline/from-seed build (tagged computed),
+        /// or the mod project's live source for runtime-exact data with realization. Requires
+        /// <see cref="ComputeRegionInfo"/> = true (the join needs the rich region model + lookup).</para>
+        /// </summary>
+        public ILocationSource LocationSource { get; set; }
+
         /// <summary>A fresh options object with shipped defaults.</summary>
         public static RegionBuildOptions Default => new RegionBuildOptions();
     }
