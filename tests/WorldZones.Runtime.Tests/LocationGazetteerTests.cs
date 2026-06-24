@@ -12,47 +12,24 @@ namespace WorldZones.Runtime.Tests
     /// candidates. Runs the real Niflheim world (seed ForTheWort) + the checked-in catalogue.
     /// See docs/design/location-gazetteer-api.md (provisional).
     /// </summary>
-    public class LocationGazetteerTests
+    public class LocationGazetteerTests : IClassFixture<NiflheimLocationFixture>
     {
-        private const string NiflheimSeed = "ForTheWort";
-
-        private static string CataloguePath()
-        {
-            var dir = new DirectoryInfo(System.AppContext.BaseDirectory);
-            while (dir != null)
-            {
-                var candidate = Path.Combine(dir.FullName, "data", "valheim_locations_catalogue.json");
-                if (File.Exists(candidate)) return candidate;
-                dir = dir.Parent;
-            }
-            throw new FileNotFoundException(
-                "Could not locate data/valheim_locations_catalogue.json from " + System.AppContext.BaseDirectory);
-        }
-
-        private static RegionWorld BuildWithLocations()
-        {
-            var catalogue = LocationCatalogue.Load(CataloguePath());
-            var locSource = PortLocationSource.FromSeed(NiflheimSeed, catalogue);
-            return WorldZonesRuntime.Build(
-                PortWorldSampler.FromSeed(NiflheimSeed),
-                new RegionBuildOptions { IncludeInlandWater = true, LocationSource = locSource });
-        }
+        private readonly RegionWorld world;
+        public LocationGazetteerTests(NiflheimLocationFixture fixture) => this.world = fixture.World;
 
         [Fact]
         public void Build_WithoutLocationSource_LeavesLocationCollectionsEmpty()
         {
             // Regression guard: the location join is opt-in; a regions-only build is unchanged.
-            var world = WorldZonesRuntime.Build(PortWorldSampler.FromSeed(NiflheimSeed));
-            Assert.Empty(world.AllLocations);
-            Assert.Empty(world.CandidateGroups);
-            Assert.All(world.Regions, r => Assert.Empty(r.Locations));
+            var w = WorldZonesRuntime.Build(PortWorldSampler.FromSeed(NiflheimLocationFixture.Seed));
+            Assert.Empty(w.AllLocations);
+            Assert.Empty(w.CandidateGroups);
+            Assert.All(w.Regions, r => Assert.Empty(r.Locations));
         }
 
         [Fact]
         public void Build_WithLocationSource_PopulatesAndJoinsLocations()
         {
-            var world = BuildWithLocations();
-
             // The port computes ~6,100 base-catalogue locations for Niflheim.
             Assert.True(world.AllLocations.Count > 5000,
                 $"expected >5000 locations, got {world.AllLocations.Count}");
@@ -73,7 +50,6 @@ namespace WorldZones.Runtime.Tests
         [Fact]
         public void StartTemple_IsRegistered_AndInAMeadowsRegionNearSpawn()
         {
-            var world = BuildWithLocations();
             var temple = world.AllLocations.SingleOrDefault(l => l.PrefabName == "StartTemple");
             Assert.NotNull(temple);
 
@@ -91,8 +67,6 @@ namespace WorldZones.Runtime.Tests
         [Fact]
         public void Haldor_IsAUniqueCandidateGroup_Unresolved_Offline()
         {
-            var world = BuildWithLocations();
-
             // Vendor_BlackForest (Haldor) is the one enabled unique in the base catalogue: N candidate
             // sites, exactly one realizes at runtime. Offline it must be an UNRESOLVED candidate group.
             var haldor = world.CandidateGroups.SingleOrDefault(g => g.PrefabName == "Vendor_BlackForest");
@@ -117,7 +91,6 @@ namespace WorldZones.Runtime.Tests
         public void OfflineBuild_NeverReportsRealized()
         {
             // The offline source cannot know realization — no location should be Realized.
-            var world = BuildWithLocations();
             Assert.DoesNotContain(world.AllLocations, l => l.Status == PlacementStatus.Realized);
         }
     }

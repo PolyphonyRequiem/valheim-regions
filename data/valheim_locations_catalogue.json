@@ -2,10 +2,10 @@
   "provenance": {
     "source": "assetripper-export",
     "tool": "AssetRipper 1.3.14",
-    "asset": "valheim_Data/_ZoneSystem.prefab m_locations",
-    "schemaVersion": 1
+    "asset": "_ZoneSystem.prefab + Systems/LocationLists/*.prefab (m_locations), m_sortOrder order",
+    "schemaVersion": 2
   },
-  "count": 118,
+  "count": 178,
   "locations": [
     {
       "PrefabName": "StoneCircle",
@@ -48,7 +48,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "StartTemple",
@@ -89,7 +90,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 10000.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "Eikthyrnir",
@@ -130,7 +132,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 1000.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "GoblinKing",
@@ -171,7 +174,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "Greydwarf_camp1",
@@ -212,7 +216,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "Greydwarf_camp2",
@@ -255,7 +260,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "Greydwarf_camp3",
@@ -298,7 +304,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "Runestone_Greydwarfs",
@@ -341,7 +348,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 2000.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "Grave1",
@@ -383,7 +391,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "SwampRuin1",
@@ -425,7 +434,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "SwampRuin2",
@@ -467,7 +477,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "FireHole",
@@ -508,7 +519,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "Runestone_Draugr",
@@ -551,7 +563,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "Castle",
@@ -592,7 +605,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "Fort1",
@@ -633,7 +647,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "xmastree",
@@ -674,7 +689,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "GDKing",
@@ -716,7 +732,8 @@
       "MinDistance": 1000.0,
       "MaxDistance": 7000.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "Bonemass",
@@ -758,7 +775,8 @@
       "MinDistance": 2000.0,
       "MaxDistance": 10000.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "Crypt2",
@@ -801,7 +819,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "Ruin1",
@@ -844,7 +863,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "Ruin2",
@@ -887,7 +907,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "Pillar1",
@@ -930,7 +951,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "Pillar2",
@@ -973,7 +995,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "StoneHouse1",
@@ -1016,7 +1039,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "StoneHouse1_heath",
@@ -1059,7 +1083,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "StoneHouse2_heath",
@@ -1102,7 +1127,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "StoneHouse5_heath",
@@ -1145,7 +1171,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "StoneHouse2",
@@ -1188,7 +1215,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "StoneHouse3",
@@ -1231,7 +1259,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "StoneHouse4",
@@ -1274,7 +1303,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "StoneHouse5",
@@ -1317,7 +1347,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "Ruin3",
@@ -1360,7 +1391,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "GoblinCamp1",
@@ -1403,7 +1435,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "GoblinCamp2",
@@ -1446,7 +1479,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "StoneTower1",
@@ -1489,7 +1523,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "StoneTower2",
@@ -1532,7 +1567,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "StoneTower3",
@@ -1575,7 +1611,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "StoneTower4",
@@ -1618,7 +1655,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "StoneHenge1",
@@ -1661,7 +1699,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "StoneHenge2",
@@ -1704,7 +1743,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "StoneHenge3",
@@ -1747,7 +1787,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "StoneHenge4",
@@ -1790,7 +1831,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "StoneHenge5",
@@ -1833,7 +1875,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "StoneHenge6",
@@ -1876,7 +1919,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "WoodHouse1",
@@ -1919,7 +1963,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "WoodHouse2",
@@ -1962,7 +2007,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "WoodHouse3",
@@ -2005,7 +2051,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "WoodHouse4",
@@ -2048,7 +2095,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "WoodHouse5",
@@ -2091,7 +2139,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "WoodHouse6",
@@ -2134,7 +2183,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "WoodHouse7",
@@ -2177,7 +2227,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "WoodHouse8",
@@ -2220,7 +2271,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "WoodHouse9",
@@ -2263,7 +2315,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "WoodHouse10",
@@ -2306,7 +2359,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "WoodHouse11",
@@ -2349,7 +2403,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "WoodHouse12",
@@ -2392,7 +2447,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "WoodHouse13",
@@ -2435,7 +2491,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "WoodFarm1",
@@ -2478,7 +2535,8 @@
       "MinDistance": 500.0,
       "MaxDistance": 2000.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "WoodVillage1",
@@ -2521,7 +2579,8 @@
       "MinDistance": 2000.0,
       "MaxDistance": 10000.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "TrollCave",
@@ -2562,7 +2621,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "TrollCave02",
@@ -2603,7 +2663,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "SunkenCrypt1",
@@ -2646,7 +2707,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "SunkenCrypt2",
@@ -2689,7 +2751,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "SunkenCrypt3",
@@ -2732,7 +2795,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "SunkenCrypt4",
@@ -2773,7 +2837,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "Dolmen01",
@@ -2816,7 +2881,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "Dolmen02",
@@ -2859,7 +2925,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "Dolmen03",
@@ -2902,7 +2969,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "Crypt3",
@@ -2944,7 +3012,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "Crypt4",
@@ -2986,7 +3055,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "InfestedTree01",
@@ -3028,7 +3098,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "SwampHut1",
@@ -3070,7 +3141,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "SwampHut2",
@@ -3112,7 +3184,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "SwampHut3",
@@ -3154,7 +3227,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "SwampHut4",
@@ -3196,7 +3270,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "SwampHut5",
@@ -3238,7 +3313,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "SwampWell1",
@@ -3280,7 +3356,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "StoneTowerRuins04",
@@ -3322,7 +3399,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "StoneTowerRuins05",
@@ -3364,7 +3442,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "StoneTowerRuins03",
@@ -3406,7 +3485,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "StoneTowerRuins07",
@@ -3448,7 +3528,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "StoneTowerRuins08",
@@ -3490,7 +3571,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "StoneTowerRuins09",
@@ -3532,7 +3614,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "StoneTowerRuins10",
@@ -3574,7 +3657,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "Vendor_BlackForest",
@@ -3615,7 +3699,8 @@
       "MinDistance": 1500.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "ShipSetting01",
@@ -3657,7 +3742,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "Dragonqueen",
@@ -3698,7 +3784,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 8000.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "DrakeNest01",
@@ -3740,7 +3827,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 10000.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "Waymarker01",
@@ -3782,7 +3870,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "Waymarker02",
@@ -3824,7 +3913,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "AbandonedLogCabin02",
@@ -3866,7 +3956,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "AbandonedLogCabin03",
@@ -3908,7 +3999,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "AbandonedLogCabin04",
@@ -3950,7 +4042,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "MountainGrave01",
@@ -3992,7 +4085,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "DrakeLorestone",
@@ -4034,7 +4128,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "MountainWell1",
@@ -4076,7 +4171,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "MountainCave01",
@@ -4118,7 +4214,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "ShipWreck01",
@@ -4163,7 +4260,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "ShipWreck02",
@@ -4208,7 +4306,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "ShipWreck03",
@@ -4253,7 +4352,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "ShipWreck04",
@@ -4298,7 +4398,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "Hugintest",
@@ -4340,7 +4441,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "Runestone_Meadows",
@@ -4382,7 +4484,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "Runestone_Boars",
@@ -4424,7 +4527,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "Runestone_Swamps",
@@ -4466,7 +4570,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "Runestone_Mountains",
@@ -4508,7 +4613,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "Runestone_BlackForest",
@@ -4550,7 +4656,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "Runestone_Plains",
@@ -4592,7 +4699,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": true
+      "ClearArea": true,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "DevHouse1",
@@ -4632,7 +4740,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "DevSoundTest",
@@ -4672,7 +4781,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "DevHouse2",
@@ -4712,7 +4822,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "DevHouse3",
@@ -4752,7 +4863,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "DevWall1",
@@ -4792,7 +4904,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "DevWall2",
@@ -4832,7 +4945,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "DevFloor1",
@@ -4872,7 +4986,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "DevGround1",
@@ -4912,7 +5027,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "DevGround2",
@@ -4952,7 +5068,8 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
     },
     {
       "PrefabName": "DevHouse4",
@@ -4992,7 +5109,2552 @@
       "MinDistance": 0.0,
       "MaxDistance": 0.0,
       "SnapToWater": false,
-      "ClearArea": false
+      "ClearArea": false,
+      "Source": "_ZoneSystem"
+    },
+    {
+      "PrefabName": "FaderLocation",
+      "Enable": true,
+      "BiomeMask": 32,
+      "Biomes": [
+        "AshLands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 5,
+      "Prioritized": true,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "FaderBoss",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 2048.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 32.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 40.0,
+      "MinAltitude": 1.0,
+      "MaxAltitude": 300.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 0.1,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Ashlands"
+    },
+    {
+      "PrefabName": "PlaceofMystery1",
+      "Enable": true,
+      "BiomeMask": 32,
+      "Biomes": [
+        "AshLands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 1,
+      "Prioritized": true,
+      "CenterFirst": false,
+      "Unique": true,
+      "Group": "PlaceofMystery",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 2048.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 24.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 5.0,
+      "MinAltitude": -1000.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 0.1,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Ashlands"
+    },
+    {
+      "PrefabName": "PlaceofMystery2",
+      "Enable": true,
+      "BiomeMask": 32,
+      "Biomes": [
+        "AshLands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 1,
+      "Prioritized": true,
+      "CenterFirst": false,
+      "Unique": true,
+      "Group": "PlaceofMystery",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 2048.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 24.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 5.0,
+      "MinAltitude": -1000.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 0.1,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Ashlands"
+    },
+    {
+      "PrefabName": "PlaceofMystery3",
+      "Enable": true,
+      "BiomeMask": 32,
+      "Biomes": [
+        "AshLands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 1,
+      "Prioritized": true,
+      "CenterFirst": false,
+      "Unique": true,
+      "Group": "PlaceofMystery",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 2048.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 24.0,
+      "InteriorRadius": 24.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 5.0,
+      "MinAltitude": -1000.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 0.1,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Ashlands"
+    },
+    {
+      "PrefabName": "CharredFortress",
+      "Enable": true,
+      "BiomeMask": 32,
+      "Biomes": [
+        "AshLands"
+      ],
+      "BiomeAreaMask": -1,
+      "BiomeAreas": [
+        "Edge",
+        "Median",
+        "Everything"
+      ],
+      "Quantity": 20,
+      "Prioritized": true,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "FaderBoss",
+      "GroupMax": "zigg",
+      "MinDistanceFromSimilar": 256.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 32.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 10.0,
+      "MinAltitude": 20.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 0.1,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 1.0,
+      "ForestTresholdMax": 5.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Ashlands"
+    },
+    {
+      "PrefabName": "FortressRuins",
+      "Enable": true,
+      "BiomeMask": 32,
+      "Biomes": [
+        "AshLands"
+      ],
+      "BiomeAreaMask": -1,
+      "BiomeAreas": [
+        "Edge",
+        "Median",
+        "Everything"
+      ],
+      "Quantity": 100,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "",
+      "GroupMax": "zigg",
+      "MinDistanceFromSimilar": 0.0,
+      "MaxDistanceFromSimilar": 70.0,
+      "ExteriorRadius": 32.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 10.0,
+      "MinAltitude": -1000.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 0.8,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 1.0,
+      "ForestTresholdMax": 5.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Ashlands"
+    },
+    {
+      "PrefabName": "CharredRuins1",
+      "Enable": true,
+      "BiomeMask": 32,
+      "Biomes": [
+        "AshLands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 75,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "zigg",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 256.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 32.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 6.0,
+      "MinAltitude": -5.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 1.0,
+      "ForestTresholdMax": 5.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Ashlands"
+    },
+    {
+      "PrefabName": "Runestone_Ashlands",
+      "Enable": true,
+      "BiomeMask": 32,
+      "Biomes": [
+        "AshLands"
+      ],
+      "BiomeAreaMask": -1,
+      "BiomeAreas": [
+        "Edge",
+        "Median",
+        "Everything"
+      ],
+      "Quantity": 70,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "Runestones",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 128.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 12.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 10.0,
+      "MinAltitude": -1000.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 0.1,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 1.0,
+      "ForestTresholdMax": 5.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Ashlands"
+    },
+    {
+      "PrefabName": "LeviathanLava",
+      "Enable": true,
+      "BiomeMask": 32,
+      "Biomes": [
+        "AshLands"
+      ],
+      "BiomeAreaMask": 3,
+      "BiomeAreas": [
+        "Edge",
+        "Median"
+      ],
+      "Quantity": 100,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 0.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 10.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 10.0,
+      "MinAltitude": 10.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.6,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": true,
+      "SurroundCheckDistance": 30.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 1.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": false,
+      "Source": "_LocationList_Ashlands"
+    },
+    {
+      "PrefabName": "SulfurArch",
+      "Enable": true,
+      "BiomeMask": 32,
+      "Biomes": [
+        "AshLands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 100,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 40.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 30.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 6.0,
+      "MinAltitude": 10.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 0.8,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 1.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Ashlands"
+    },
+    {
+      "PrefabName": "CharredStone_Spawner",
+      "Enable": true,
+      "BiomeMask": 32,
+      "Biomes": [
+        "AshLands"
+      ],
+      "BiomeAreaMask": 3,
+      "BiomeAreas": [
+        "Edge",
+        "Median"
+      ],
+      "Quantity": 350,
+      "Prioritized": true,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 100.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 20.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 10.0,
+      "MinAltitude": -1000.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 0.2,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 1.0,
+      "ForestTresholdMax": 5.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Ashlands"
+    },
+    {
+      "PrefabName": "VoltureNest",
+      "Enable": true,
+      "BiomeMask": 32,
+      "Biomes": [
+        "AshLands"
+      ],
+      "BiomeAreaMask": 3,
+      "BiomeAreas": [
+        "Edge",
+        "Median"
+      ],
+      "Quantity": 350,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 100.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 16.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 5.0,
+      "MinAltitude": -1000.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 0.1,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 1.0,
+      "ForestTresholdMax": 5.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Ashlands"
+    },
+    {
+      "PrefabName": "CharredTowerRuins1",
+      "Enable": true,
+      "BiomeMask": 32,
+      "Biomes": [
+        "AshLands"
+      ],
+      "BiomeAreaMask": -1,
+      "BiomeAreas": [
+        "Edge",
+        "Median",
+        "Everything"
+      ],
+      "Quantity": 30,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "towerruins",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 100.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 22.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 4.0,
+      "MinAltitude": -1000.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 0.5,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 1.0,
+      "ForestTresholdMax": 5.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Ashlands"
+    },
+    {
+      "PrefabName": "CharredTowerRuins1_dvergr",
+      "Enable": true,
+      "BiomeMask": 32,
+      "Biomes": [
+        "AshLands"
+      ],
+      "BiomeAreaMask": -1,
+      "BiomeAreas": [
+        "Edge",
+        "Median",
+        "Everything"
+      ],
+      "Quantity": 30,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "towerruins",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 100.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 22.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 4.0,
+      "MinAltitude": -1000.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 0.1,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 1.0,
+      "ForestTresholdMax": 5.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Ashlands"
+    },
+    {
+      "PrefabName": "CharredTowerRuins2",
+      "Enable": true,
+      "BiomeMask": 32,
+      "Biomes": [
+        "AshLands"
+      ],
+      "BiomeAreaMask": -1,
+      "BiomeAreas": [
+        "Edge",
+        "Median",
+        "Everything"
+      ],
+      "Quantity": 40,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 0.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 12.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 4.0,
+      "MinAltitude": -1000.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 0.3,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 1.0,
+      "ForestTresholdMax": 5.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Ashlands"
+    },
+    {
+      "PrefabName": "CharredTowerRuins3",
+      "Enable": true,
+      "BiomeMask": 32,
+      "Biomes": [
+        "AshLands"
+      ],
+      "BiomeAreaMask": -1,
+      "BiomeAreas": [
+        "Edge",
+        "Median",
+        "Everything"
+      ],
+      "Quantity": 40,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 500.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 12.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 4.0,
+      "MinAltitude": -1000.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 0.3,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 1.0,
+      "ForestTresholdMax": 5.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": false,
+      "Source": "_LocationList_Ashlands"
+    },
+    {
+      "PrefabName": "AshlandRuins",
+      "Enable": true,
+      "BiomeMask": 32,
+      "Biomes": [
+        "AshLands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 100,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 16.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 32.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 4.0,
+      "MinAltitude": -1000.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 0.2,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 1.0,
+      "ForestTresholdMax": 5.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Ashlands"
+    },
+    {
+      "PrefabName": "MorgenHole1",
+      "Enable": true,
+      "BiomeMask": 32,
+      "Biomes": [
+        "AshLands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 40,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "MorgenHole",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 300.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 24.0,
+      "InteriorRadius": 24.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 10.0,
+      "MinAltitude": -1000.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 0.3,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 1.0,
+      "ForestTresholdMax": 5.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Ashlands"
+    },
+    {
+      "PrefabName": "MorgenHole2",
+      "Enable": true,
+      "BiomeMask": 32,
+      "Biomes": [
+        "AshLands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 40,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "MorgenHole",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 200.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 24.0,
+      "InteriorRadius": 24.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 10.0,
+      "MinAltitude": -1000.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 0.3,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 1.0,
+      "ForestTresholdMax": 5.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Ashlands"
+    },
+    {
+      "PrefabName": "MorgenHole3",
+      "Enable": true,
+      "BiomeMask": 32,
+      "Biomes": [
+        "AshLands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 40,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "MorgenHole",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 200.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 24.0,
+      "InteriorRadius": 24.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 10.0,
+      "MinAltitude": -1000.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 0.3,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 1.0,
+      "ForestTresholdMax": 5.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Ashlands"
+    },
+    {
+      "PrefabName": "CharredRuins2",
+      "Enable": true,
+      "BiomeMask": 32,
+      "Biomes": [
+        "AshLands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 100,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 128.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 15.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 30.0,
+      "MinAltitude": -5.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 1.0,
+      "ForestTresholdMax": 5.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Ashlands"
+    },
+    {
+      "PrefabName": "CharredRuins3",
+      "Enable": true,
+      "BiomeMask": 32,
+      "Biomes": [
+        "AshLands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 100,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 128.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 12.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 30.0,
+      "MinAltitude": -5.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 1.0,
+      "ForestTresholdMax": 5.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Ashlands"
+    },
+    {
+      "PrefabName": "CharredRuins4",
+      "Enable": true,
+      "BiomeMask": 32,
+      "Biomes": [
+        "AshLands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 100,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 128.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 10.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 30.0,
+      "MinAltitude": -5.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 1.0,
+      "ForestTresholdMax": 5.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Ashlands"
+    },
+    {
+      "PrefabName": "DevWallAsh",
+      "Enable": false,
+      "BiomeMask": 32,
+      "Biomes": [
+        "AshLands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 5,
+      "Prioritized": true,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "FaderBoss",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 2048.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 10.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 40.0,
+      "MinAltitude": 1.0,
+      "MaxAltitude": 300.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 0.5,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Ashlands"
+    },
+    {
+      "PrefabName": "Hildir_camp",
+      "Enable": true,
+      "BiomeMask": 2,
+      "Biomes": [
+        "Swamp"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 10,
+      "Prioritized": true,
+      "CenterFirst": false,
+      "Unique": true,
+      "Group": "",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 1000.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 24.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 2.0,
+      "MinAltitude": 1.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 1.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 3000.0,
+      "MaxDistance": 8000.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Ashlands"
+    },
+    {
+      "PrefabName": "Hildir_cave",
+      "Enable": true,
+      "BiomeMask": 4,
+      "Biomes": [
+        "Mountain"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 3,
+      "Prioritized": true,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 2000.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 15.0,
+      "InteriorRadius": 32.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 40.0,
+      "MinAltitude": 200.0,
+      "MaxAltitude": 5000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 1000.0,
+      "MaxDistance": 8000.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Hildir"
+    },
+    {
+      "PrefabName": "Hildir_camp",
+      "Enable": true,
+      "BiomeMask": 1,
+      "Biomes": [
+        "Meadows"
+      ],
+      "BiomeAreaMask": 3,
+      "BiomeAreas": [
+        "Edge",
+        "Median"
+      ],
+      "Quantity": 10,
+      "Prioritized": true,
+      "CenterFirst": false,
+      "Unique": true,
+      "Group": "",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 1000.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 24.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 2.0,
+      "MinAltitude": 1.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 1.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 3000.0,
+      "MaxDistance": 8000.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Hildir"
+    },
+    {
+      "PrefabName": "Hildir_crypt",
+      "Enable": true,
+      "BiomeMask": 8,
+      "Biomes": [
+        "BlackForest"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 3,
+      "Prioritized": true,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 3000.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 18.0,
+      "InteriorRadius": 21.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 2.0,
+      "MinAltitude": 1.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 1.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 3000.0,
+      "MaxDistance": 8000.0,
+      "SnapToWater": false,
+      "ClearArea": false,
+      "Source": "_LocationList_Hildir"
+    },
+    {
+      "PrefabName": "Hildir_plainsfortress",
+      "Enable": true,
+      "BiomeMask": 16,
+      "Biomes": [
+        "Plains"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 3,
+      "Prioritized": true,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 3000.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 32.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 4.0,
+      "MinAltitude": 8.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 1.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Hildir"
+    },
+    {
+      "PrefabName": "Mistlands_GuardTower1_new",
+      "Enable": true,
+      "BiomeMask": 512,
+      "Biomes": [
+        "Mistlands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 75,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "Dvergr",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 128.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 24.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 10.0,
+      "MinAltitude": 2.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Mistlands"
+    },
+    {
+      "PrefabName": "Mistlands_GuardTower1_ruined_new",
+      "Enable": true,
+      "BiomeMask": 512,
+      "Biomes": [
+        "Mistlands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 80,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "Dvergr",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 128.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 20.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 10.0,
+      "MinAltitude": 2.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Mistlands"
+    },
+    {
+      "PrefabName": "Mistlands_GuardTower1_ruined_new2",
+      "Enable": true,
+      "BiomeMask": 512,
+      "Biomes": [
+        "Mistlands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 20,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "Dvergr",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 128.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 20.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 10.0,
+      "MinAltitude": 2.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Mistlands"
+    },
+    {
+      "PrefabName": "Mistlands_GuardTower2_new",
+      "Enable": true,
+      "BiomeMask": 512,
+      "Biomes": [
+        "Mistlands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 75,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "Dvergr",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 128.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 24.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 10.0,
+      "MinAltitude": 4.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Mistlands"
+    },
+    {
+      "PrefabName": "Mistlands_GuardTower3_new",
+      "Enable": true,
+      "BiomeMask": 512,
+      "Biomes": [
+        "Mistlands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 50,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "Dvergr",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 128.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 24.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 10.0,
+      "MinAltitude": 12.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Mistlands"
+    },
+    {
+      "PrefabName": "Mistlands_GuardTower3_ruined_new",
+      "Enable": true,
+      "BiomeMask": 512,
+      "Biomes": [
+        "Mistlands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 50,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "Dvergr",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 128.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 20.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 10.0,
+      "MinAltitude": 11.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Mistlands"
+    },
+    {
+      "PrefabName": "Mistlands_Lighthouse1_new",
+      "Enable": true,
+      "BiomeMask": 512,
+      "Biomes": [
+        "Mistlands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 100,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "Dvergr",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 128.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 20.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 40.0,
+      "MinAltitude": 1.0,
+      "MaxAltitude": 20.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Mistlands"
+    },
+    {
+      "PrefabName": "Mistlands_Excavation1",
+      "Enable": true,
+      "BiomeMask": 512,
+      "Biomes": [
+        "Mistlands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 40,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "Excavation",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 128.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 20.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 4.0,
+      "MinAltitude": 4.0,
+      "MaxAltitude": 100.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Mistlands"
+    },
+    {
+      "PrefabName": "Mistlands_Excavation2",
+      "Enable": true,
+      "BiomeMask": 512,
+      "Biomes": [
+        "Mistlands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 40,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "Excavation",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 128.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 20.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 4.0,
+      "MinAltitude": 4.0,
+      "MaxAltitude": 100.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Mistlands"
+    },
+    {
+      "PrefabName": "Mistlands_Excavation3",
+      "Enable": true,
+      "BiomeMask": 512,
+      "Biomes": [
+        "Mistlands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 40,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "Excavation",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 96.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 17.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 5.0,
+      "MinAltitude": 4.0,
+      "MaxAltitude": 100.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Mistlands"
+    },
+    {
+      "PrefabName": "Mistlands_Harbour1",
+      "Enable": true,
+      "BiomeMask": 512,
+      "Biomes": [
+        "Mistlands"
+      ],
+      "BiomeAreaMask": 1,
+      "BiomeAreas": [
+        "Edge"
+      ],
+      "Quantity": 100,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "Harbour",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 64.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 20.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 2.0,
+      "MaxTerrainDelta": 20.0,
+      "MinAltitude": -1.0,
+      "MaxAltitude": -0.25,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": true,
+      "ClearArea": true,
+      "Source": "_LocationList_Mistlands"
+    },
+    {
+      "PrefabName": "Mistlands_Viaduct1",
+      "Enable": true,
+      "BiomeMask": 512,
+      "Biomes": [
+        "Mistlands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 100,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "Harbour",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 128.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 24.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 2.0,
+      "MaxTerrainDelta": 40.0,
+      "MinAltitude": -1.0,
+      "MaxAltitude": 15.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Mistlands"
+    },
+    {
+      "PrefabName": "Mistlands_Viaduct2",
+      "Enable": true,
+      "BiomeMask": 512,
+      "Biomes": [
+        "Mistlands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 150,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "Harbour",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 64.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 8.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 4.0,
+      "MaxTerrainDelta": 40.0,
+      "MinAltitude": -1.0,
+      "MaxAltitude": 25.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Mistlands"
+    },
+    {
+      "PrefabName": "Mistlands_RockSpire1",
+      "Enable": true,
+      "BiomeMask": 512,
+      "Biomes": [
+        "Mistlands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 200,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 60.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 4.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 2.0,
+      "MaxTerrainDelta": 99.0,
+      "MinAltitude": -10.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": false,
+      "Source": "_LocationList_Mistlands"
+    },
+    {
+      "PrefabName": "Mistlands_Giant1",
+      "Enable": true,
+      "BiomeMask": 512,
+      "Biomes": [
+        "Mistlands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 350,
+      "Prioritized": true,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "Giant",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 256.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 11.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 3.0,
+      "MinAltitude": -1.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": false,
+      "Source": "_LocationList_Mistlands"
+    },
+    {
+      "PrefabName": "Mistlands_Giant2",
+      "Enable": true,
+      "BiomeMask": 512,
+      "Biomes": [
+        "Mistlands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 100,
+      "Prioritized": true,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "Giant",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 256.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 10.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 4.0,
+      "MinAltitude": -1.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": false,
+      "Source": "_LocationList_Mistlands"
+    },
+    {
+      "PrefabName": "Mistlands_DvergrTownEntrance1",
+      "Enable": true,
+      "BiomeMask": 512,
+      "Biomes": [
+        "Mistlands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 120,
+      "Prioritized": true,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "DvergrDungeon",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 256.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 20.0,
+      "InteriorRadius": 32.0,
+      "MinTerrainDelta": 5.0,
+      "MaxTerrainDelta": 40.0,
+      "MinAltitude": 12.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Mistlands"
+    },
+    {
+      "PrefabName": "Mistlands_DvergrTownEntrance2",
+      "Enable": true,
+      "BiomeMask": 512,
+      "Biomes": [
+        "Mistlands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 120,
+      "Prioritized": true,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "DvergrDungeon",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 256.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 32.0,
+      "InteriorRadius": 32.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 40.0,
+      "MinAltitude": 1.0,
+      "MaxAltitude": 20.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Mistlands"
+    },
+    {
+      "PrefabName": "Mistlands_DvergrBossEntrance1",
+      "Enable": true,
+      "BiomeMask": 512,
+      "Biomes": [
+        "Mistlands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 5,
+      "Prioritized": true,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "DvergrBoss",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 2048.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 32.0,
+      "InteriorRadius": 32.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 40.0,
+      "MinAltitude": 1.0,
+      "MaxAltitude": 20.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Mistlands"
+    },
+    {
+      "PrefabName": "Mistlands_RoadPost1",
+      "Enable": true,
+      "BiomeMask": 512,
+      "Biomes": [
+        "Mistlands"
+      ],
+      "BiomeAreaMask": 3,
+      "BiomeAreas": [
+        "Edge",
+        "Median"
+      ],
+      "Quantity": 500,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 0.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 6.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 10.0,
+      "MinAltitude": 1.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Mistlands"
+    },
+    {
+      "PrefabName": "Mistlands_StatueGroup1",
+      "Enable": true,
+      "BiomeMask": 512,
+      "Biomes": [
+        "Mistlands"
+      ],
+      "BiomeAreaMask": 3,
+      "BiomeAreas": [
+        "Edge",
+        "Median"
+      ],
+      "Quantity": 200,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 32.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 16.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 10.0,
+      "MinAltitude": 2.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Mistlands"
+    },
+    {
+      "PrefabName": "Mistlands_Statue1",
+      "Enable": true,
+      "BiomeMask": 512,
+      "Biomes": [
+        "Mistlands"
+      ],
+      "BiomeAreaMask": 3,
+      "BiomeAreas": [
+        "Edge",
+        "Median"
+      ],
+      "Quantity": 200,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 0.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 6.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 10.0,
+      "MinAltitude": 2.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Mistlands"
+    },
+    {
+      "PrefabName": "Mistlands_Statue2",
+      "Enable": true,
+      "BiomeMask": 512,
+      "Biomes": [
+        "Mistlands"
+      ],
+      "BiomeAreaMask": 3,
+      "BiomeAreas": [
+        "Edge",
+        "Median"
+      ],
+      "Quantity": 200,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 0.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 6.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 10.0,
+      "MinAltitude": 2.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Mistlands"
+    },
+    {
+      "PrefabName": "Mistlands_Swords1",
+      "Enable": true,
+      "BiomeMask": 512,
+      "Biomes": [
+        "Mistlands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 33,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "GiantArmor",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 256.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 12.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 10.0,
+      "MinAltitude": -1.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Mistlands"
+    },
+    {
+      "PrefabName": "Mistlands_Swords2",
+      "Enable": true,
+      "BiomeMask": 512,
+      "Biomes": [
+        "Mistlands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 33,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "GiantArmor",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 256.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 12.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 10.0,
+      "MinAltitude": -1.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Mistlands"
+    },
+    {
+      "PrefabName": "Mistlands_Swords3",
+      "Enable": true,
+      "BiomeMask": 512,
+      "Biomes": [
+        "Mistlands"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 33,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "GiantArmor",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 256.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 8.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 10.0,
+      "MinAltitude": -1.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Mistlands"
+    },
+    {
+      "PrefabName": "Runestone_Mistlands",
+      "Enable": true,
+      "BiomeMask": 512,
+      "Biomes": [
+        "Mistlands"
+      ],
+      "BiomeAreaMask": 3,
+      "BiomeAreas": [
+        "Edge",
+        "Median"
+      ],
+      "Quantity": 50,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "Runestones",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 128.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 12.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 10.0,
+      "MinAltitude": -1.0,
+      "MaxAltitude": 1000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_Mistlands"
+    },
+    {
+      "PrefabName": "MountainCave02",
+      "Enable": true,
+      "BiomeMask": 4,
+      "Biomes": [
+        "Mountain"
+      ],
+      "BiomeAreaMask": 3,
+      "BiomeAreas": [
+        "Edge",
+        "Median"
+      ],
+      "Quantity": 160,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "mountaincaves",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 200.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 15.0,
+      "InteriorRadius": 32.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 40.0,
+      "MinAltitude": 100.0,
+      "MaxAltitude": 5000.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_MountainCaves"
+    },
+    {
+      "PrefabName": "TarPit1",
+      "Enable": true,
+      "BiomeMask": 16,
+      "Biomes": [
+        "Plains"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 100,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "tarpit",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 128.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 20.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 1.5,
+      "MinAltitude": 5.0,
+      "MaxAltitude": 60.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_cp1"
+    },
+    {
+      "PrefabName": "TarPit2",
+      "Enable": true,
+      "BiomeMask": 16,
+      "Biomes": [
+        "Plains"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 100,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "tarpit",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 128.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 25.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 1.5,
+      "MinAltitude": 5.0,
+      "MaxAltitude": 60.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_cp1"
+    },
+    {
+      "PrefabName": "TarPit3",
+      "Enable": true,
+      "BiomeMask": 16,
+      "Biomes": [
+        "Plains"
+      ],
+      "BiomeAreaMask": 2,
+      "BiomeAreas": [
+        "Median"
+      ],
+      "Quantity": 100,
+      "Prioritized": false,
+      "CenterFirst": false,
+      "Unique": false,
+      "Group": "tarpit",
+      "GroupMax": "",
+      "MinDistanceFromSimilar": 128.0,
+      "MaxDistanceFromSimilar": 0.0,
+      "ExteriorRadius": 14.0,
+      "InteriorRadius": 0.0,
+      "MinTerrainDelta": 0.0,
+      "MaxTerrainDelta": 1.5,
+      "MinAltitude": 5.0,
+      "MaxAltitude": 60.0,
+      "MinimumVegetation": 0.0,
+      "MaximumVegetation": 1.0,
+      "SurroundCheckVegetation": false,
+      "SurroundCheckDistance": 20.0,
+      "SurroundCheckLayers": 2,
+      "SurroundBetterThanAverage": 0.0,
+      "InForest": false,
+      "ForestTresholdMin": 0.0,
+      "ForestTresholdMax": 0.0,
+      "MinDistanceFromCenter": 0.0,
+      "MaxDistanceFromCenter": 0.0,
+      "MinDistance": 0.0,
+      "MaxDistance": 0.0,
+      "SnapToWater": false,
+      "ClearArea": true,
+      "Source": "_LocationList_cp1"
     }
   ]
 }

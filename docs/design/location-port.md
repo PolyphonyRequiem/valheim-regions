@@ -135,17 +135,19 @@ port the decomp's reject-reason counters (`errorTerrainDelta`, `errorSimilar`, `
 over-admits. This is a *measurement* task, not a blocked one. Tracked as follow-up; does not block the
 substrate use (region-scale is unaffected by ±a-few placements per type).
 
-## §6 — Catalogue coverage gap (Mistlands/Ashlands)
+## §6 — Catalogue coverage (Mistlands/Ashlands) — ✅ CLOSED (2026-06-24)
 
-The base catalogue is the 118 configs in `_ZoneSystem.prefab` (86 enabled). The real `.db` has 147
-prefab types — the +29 (≈61 location instances) are **post-vanilla-content locations** (Mistlands,
-Ashlands, Hildir, mountain caves) registered via separate **`LocationList` ScriptableObjects**, not
-`_ZoneSystem.prefab`. Confirmed present in the export at
-`Assets/Systems/LocationLists/_LocationList_{Mistlands,Ashlands,MountainCaves,Hildir,cp1}.prefab` — **same
-YAML shape**, 60 additional `m_prefabName` entries. **Unblock path (easy):** point `parse_locations.py`
-at the `LocationLists/` directory and concatenate, preserving `m_sortOrder` (the game sorts LocationLists
-by `m_sortOrder` in `SetupLocations` before registering — order matters for global zone-occupancy
-fidelity). Brings the catalogue to ~178 configs / full coverage. Deferred, not blocked.
+The base catalogue was the 118 configs in `_ZoneSystem.prefab` (86 enabled). The +60 post-vanilla
+locations (Mistlands, Ashlands, Hildir, mountain caves) live in separate **`LocationList`
+ScriptableObjects** at `Assets/Systems/LocationLists/_LocationList_{Mistlands,Ashlands,MountainCaves,
+Hildir,cp1}.prefab` — same YAML shape. **`parse_locations.py` now walks `_ZoneSystem.prefab` + every
+`LocationList`, in `m_sortOrder` order** (matching `SetupLocations`' `Sort(sortOrder)` registration order,
+so global zone-occupancy resolution matches the game). Catalogue is now **178 configs / 145 enabled /
+11,612 quota**, covering **144 of 147** `.db` prefab types (was 86). The 3 still-missing
+(`BigRockClearing`, `BogWitch_Camp`, `CombatRuin01`) are even-newer-content locations registered through
+a mechanism not in this export — a small residual, not a structural gap. This also added **5 more unique
+types** (the 3 PlaceofMystery + 2 Hildir_camp biome variants), so the candidate-group mechanism now
+exercises 6 uniques, not 1.
 
 ## Why this is the right cut
 

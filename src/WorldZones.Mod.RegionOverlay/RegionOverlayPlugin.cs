@@ -31,6 +31,10 @@ namespace WorldZones.Mod.RegionOverlay
         private string? lastWorldSeedName;
         private DiscoveryStore? discoveryStore;
         private Harmony? harmony;
+        // Live realization overlay — non-null only when a location-bearing gazetteer has been built
+        // (a consumer that opts into RegionBuildOptions.LocationSource). Until then the realization
+        // signal is received but has nothing to update, so it is a no-op. See location-gazetteer-api.md.
+        private WorldZones.Runtime.LiveLocationOverlay? locationOverlay;
 
         private void Awake()
         {
@@ -38,11 +42,25 @@ namespace WorldZones.Mod.RegionOverlay
             this.harmony.PatchAll(typeof(RegionOverlayPlugin).Assembly);
             MinimapUpdateBiomePatch.BiomeUpdated += this.OnMinimapBiomeUpdated;
             PlayerUpdateBiomePatch.BiomeUpdated += this.OnPlayerBiomeUpdated;
+            // The realization Postfix on ZoneSystem.PlaceLocations pushes (prefab, x, z) here as zones load.
+            PlaceLocationsRealizationPatch.LocationRealized += this.OnLocationRealized;
 
             this.minimapLabelController = new MinimapLabelController();
             this.regionLookupService = NullRegionLookupService.Instance;
             this.discoveryStore = new DiscoveryStore(this.Logger);
             this.Logger.LogInfo($"{PluginName} v{PluginVersion} loaded.");
+        }
+
+        /// <summary>
+        /// Forwards a live realization signal (from <see cref="PlaceLocationsRealizationPatch"/>) into the
+        /// gazetteer overlay, which updates placement status and raises OnLocationRealized /
+        /// OnUniqueResolved. No-op until a location-bearing gazetteer is built (the current minimap-label
+        /// path is point-query-only and builds none) — the hook is wired now so enabling the live
+        /// gazetteer is a one-line overlay assignment, not new plumbing.
+        /// </summary>
+        private void OnLocationRealized(string prefabName, float worldX, float worldZ)
+        {
+            this.locationOverlay?.NotifyRealized(prefabName, worldX, worldZ);
         }
 
         private void OnMinimapBiomeUpdated(float playerWorldX, float playerWorldZ, bool minimapVisible, bool fullMapVisible, float hoverWorldX, float hoverWorldZ)

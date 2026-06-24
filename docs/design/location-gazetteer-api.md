@@ -95,15 +95,23 @@ loader; in-process callers pass an already-parsed config list.
 
 1. **Naming.** `PlacementStatus{Registered, Candidate, Realized}`, `CandidateGroup`, `ILocationSource`,
    `GazetteerLocation`. Provisional — rename freely before this calcifies.
-2. **Should `Realized` ever appear OFFLINE?** *Starbright lean: NO* (implemented this way) — offline can't
-   know realization, so `PortLocationSource` emits only Registered/Candidate, and Realized is a live-only
-   enrichment. Confirms the honest boundary. ← **awaiting ratify.**
-3. **Live event surface.** The model supports a snapshot (`CandidateGroup.Resolved` / re-read). A push API
-   (`OnUniqueResolved`, `OnLocationRealized` from a `SpawnLocation` Harmony patch) is sketched but NOT
-   built — decide if the live overlay needs events or snapshot-on-demand suffices. ← open.
-4. **Catalogue coverage.** Offline source uses the 118-config base catalogue; +60 Mistlands/Ashlands
-   live in separate `LocationList` assets (location-port.md §6). The LIVE source has them all (reads the
-   game). So offline gazetteer under-reports Mistlands/Ashlands locations until the catalogue is widened.
+2. **Should `Realized` ever appear OFFLINE?** ✅ **LOCKED: NO** (ratified 2026-06-24). Offline can't know
+   realization, so `PortLocationSource` emits only Registered/Candidate, and Realized is a live-only
+   enrichment. This is the honest boundary — an offline gazetteer describes the world's PLAN, a live
+   session adds the world's STATE.
+3. **Live event surface.** ✅ **BUILT** (2026-06-24). `LiveLocationOverlay` (Runtime) holds the built
+   `RegionWorld` and exposes `OnLocationRealized` (any location) + `OnUniqueResolved` (a candidate group
+   collapses to its winner), driven by `NotifyRealized(prefab, x, z)`. The mod's
+   `PlaceLocationsRealizationPatch` (Harmony Postfix on `ZoneSystem.PlaceLocations`) reads the now-placed
+   `LocationInstance` and pushes the signal; the plugin forwards it to the overlay. Idempotent (re-notify
+   = no-op), fires each event once. Snapshot (`CandidateGroup.Resolved`) still available for consumers
+   that don't want the push. Tested Unity-free (5 overlay tests). The plugin hook is wired but the live
+   gazetteer activation (assigning a real overlay) is behind the same client-runtime walk wall as the ESP.
+4. **Catalogue coverage.** ✅ **CLOSED** (2026-06-24). `parse_locations.py` now walks `_ZoneSystem.prefab`
+   + every `LocationList` in `m_sortOrder` order → **178 configs / 145 enabled**, covering 144/147 `.db`
+   prefab types (incl. all Mistlands/Ashlands). 6 unique types now (was 1). 3 newest-content locations
+   (`BigRockClearing`, `BogWitch_Camp`, `CombatRuin01`) remain outside this export — a small residual.
+   The LIVE source has them all regardless (it reads the running game).
 
 ## Test coverage
 
