@@ -1051,6 +1051,19 @@ namespace WorldZones.WorldGen
             return new Vector2i(x, y);
         }
 
+        /// <summary>
+        /// River influence at a world point: <paramref name="weight"/> is the normalised proximity
+        /// (0 = no river, →1 at the river centre) and <paramref name="width"/> the local river width in
+        /// metres. Public so a consumer (the region cost field) can treat a river as a crisp border
+        /// feature without going through the height side-effect (<see cref="AddRivers"/> only carves the
+        /// bed into <c>GetHeight</c>). Rivers are pregenerated in the constructor, so this is a cheap
+        /// dictionary lookup. Returns weight 0 where no river is near.
+        /// </summary>
+        public void GetRiverWeightPublic(float wx, float wy, out float weight, out float width)
+        {
+            GetRiverWeight(wx, wy, out weight, out width);
+        }
+
         private void GetRiverWeight(float wx, float wy, out float weight, out float width)
         {
             var riverGrid = GetRiverGrid(wx, wy);

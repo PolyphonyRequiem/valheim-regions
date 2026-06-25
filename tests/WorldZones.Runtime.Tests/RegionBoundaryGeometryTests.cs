@@ -375,5 +375,28 @@ namespace WorldZones.Runtime.Tests
             // contour) but still close — proves smoothing rounds without wandering off the coast.
             Assert.True(meanAbs < 8.0, $"smoothed coast mean |height-iso| = {meanAbs:F2} m (expected < 8)");
         }
+
+        [Fact]
+        public void RefineBiomeSeams_OnRealNiflheim_ProducesArcsForRegionPairs()
+        {
+            var sampler = PortWorldSampler.FromSeed(NiflheimSeed);
+            RegionWorld world = WorldZonesRuntime.Build(
+                sampler, new RegionBuildOptions { IncludeInlandWater = true, UseFeatureAwareBorders = true });
+            RegionBoundaryGraph graph = world.BuildBoundaryGraph();
+            var biomeField = new BiomeCategoryField(sampler);
+
+            IReadOnlyList<RefinedBorder> seams = RegionBoundaryRefiner.RefineBiomeSeams(graph, biomeField);
+
+            // Region-region seams only — every arc carries TWO real region keys (no coastline here).
+            Assert.NotEmpty(seams);
+            foreach (var s in seams)
+            {
+                Assert.False(string.IsNullOrEmpty(s.KeyA));
+                Assert.False(string.IsNullOrEmpty(s.KeyB));
+                Assert.True(s.Polyline.Count >= 2);
+            }
+            // At least some seams hug a biome flip (feature-aware borders put many seams ON biome edges).
+            Assert.Contains(seams, s => s.Hugged);
+        }
     }
 }

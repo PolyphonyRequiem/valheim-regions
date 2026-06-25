@@ -200,9 +200,9 @@ namespace WorldZones.Mod.RegionOverlay
                 // Route through the shared runtime façade (the bootstrap that used to be inlined here
                 // now lives in WorldZonesRuntime.Build, deduped with the CLI + gazetteer). The minimap
                 // label plugin is a POINT-QUERY consumer: ComputeRegionInfo=false skips the rich
-                // gazetteer aggregation + naming, so this stays behaviour-identical to the old inline
-                // path (height-only classification, no biome sampling) — and the GetBiome resolver
-                // below is never invoked at this flag setting.
+                // gazetteer aggregation + naming. But feature-aware borders (below) DO sample biome +
+                // river per land zone ONCE during the cost-field build at world load — independent of
+                // ComputeRegionInfo — so the in-game tessellation matches the headless gazetteer.
                 //
                 // worldIdentity MUST stay the numeric seed string (world.m_seed.ToString()): discovery
                 // persistence file paths are keyed on it. Do not "fix" it to the seed NAME here — that
@@ -211,16 +211,26 @@ namespace WorldZones.Mod.RegionOverlay
                     worldIdentity,
                     (wx, wz) => gameWorldGenerator.GetHeight(wx, wz),
                     // Raw cast is valid: the port's BiomeType mirrors Valheim's Heightmap.Biome bits
-                    // EXACTLY (Meadows=1..Mistlands=512 — see VegetationCatalogue.cs). Never invoked at
-                    // ComputeRegionInfo=false; if a consumer flips that flag, prefer a name-mapped bridge
-                    // so a future 1.0 enum renumber fails loudly instead of silently mis-tagging biomes.
-                    (wx, wz) => (BiomeType)(int)gameWorldGenerator.GetBiome(wx, wz));
+                    // EXACTLY (Meadows=1..Mistlands=512 — see VegetationCatalogue.cs). Used by the
+                    // feature-aware cost-field build below; if a future 1.0 enum renumber lands, prefer a
+                    // name-mapped bridge so it fails loudly instead of silently mis-tagging biomes.
+                    (wx, wz) => (BiomeType)(int)gameWorldGenerator.GetBiome(wx, wz),
+                    // River seam — forwards to the game's pregenerated rivers so in-game borders use
+                    // rivers as a wall, matching the headless gazetteer (which gets rivers via the port).
+                    // WorldGenerator.GetRiverWeight is PRIVATE in vanilla (decomp-verified), so go via a
+                    // cached reflected handle rather than a direct call (which would not compile).
+                    BuildRiverResolver(gameWorldGenerator));
 
                 RegionWorld regionWorld = WorldZonesRuntime.Build(sampler, new RegionBuildOptions
                 {
                     TargetZonesPerRegion = DefaultTargetZonesPerRegion,
                     SeedRng = seedRng,
-                    ComputeRegionInfo = false,    // point-query-only: no aggregation, no naming, no biome
+                    ComputeRegionInfo = false,    // point-query-only: no aggregation, no naming
+                    // Feature-aware borders ON: borders fall on biome edges / shores / rivers (watershed
+                    // Dijkstra), matching the gazetteer dataset so the map a player sees == the dataset.
+                    // See docs/design/region-borders.md. This is what Daniel asked for: the new
+                    // boundaries used in BOTH generation and what players walk.
+                    UseFeatureAwareBorders = true,
                 });
 
                 this.regionLookupService = regionWorld.Lookup;
@@ -250,6 +260,35 @@ namespace WorldZones.Mod.RegionOverlay
             this.regionDataReady = false;
             this.regionLookupService = NullRegionLookupService.Instance;
             this.lastWorldSeedName = null;
+        }
+
+        /// <summary>
+        /// Build a river resolver over the LIVE game's private <c>WorldGenerator.GetRiverWeight</c> via a
+        /// cached reflected handle (it is private in vanilla — decomp-verified). Returns null if the
+        /// method can't be found (e.g. a future 1.0 signature change), so feature-aware borders degrade
+        /// to biome/shore only in-game rather than crashing — and the gazetteer (which has rivers via the
+        /// port) would then differ; we log a warning so that mismatch is visible, not silent.
+        /// </summary>
+        private ValheimWorldSampler.RiverResolver BuildRiverResolver(global::WorldGenerator gameWorldGenerator)
+        {
+            var method = AccessTools.Method(typeof(global::WorldGenerator), "GetRiverWeight",
+                new[] { typeof(float), typeof(float), typeof(float).MakeByRefType(), typeof(float).MakeByRefType() });
+            if (method == null)
+            {
+                this.Logger.LogWarning(
+                    "WorldGenerator.GetRiverWeight not found via reflection — in-game borders will use " +
+                    "biome/shore only (no river seam). This will DIFFER from the gazetteer dataset, which " +
+                    "has rivers. Likely a Valheim version signature change.");
+                return null;
+            }
+
+            return (float wx, float wz, out float weight, out float width) =>
+            {
+                var args = new object[] { wx, wz, 0f, 0f };
+                method.Invoke(gameWorldGenerator, args);
+                weight = (float)args[2];
+                width = (float)args[3];
+            };
         }
 
         private static bool IsMenuWorldGenerator(global::WorldGenerator worldGenerator)

@@ -301,5 +301,113 @@ namespace WorldZones.Runtime.Geometry
             }
             return 0.5 * (s0 + s1);
         }
+
+        // ── Biome-seam contour-hug (region-vs-region borders) ───────────────────────────────────────
+
+        /// <summary>
+        /// Refine the REGION-vs-REGION borders (the seams between two named regions, not the coast) to
+        /// hug the actual biome TRANSITION line, using a categorical biome field. Same chaining +
+        /// despike + smooth pipeline as <see cref="RefineCoastlinesSmoothed"/>, but the per-vertex snap
+        /// moves the point onto the nearest biome flip (where one biome category changes to another)
+        /// instead of a height isoline. Where the two sides are the SAME biome (no transition in reach),
+        /// the point stays on the lattice — the honest "arbitrary firm line where no feature" case.
+        /// Returns one arc per chained region-pair seam. See docs/design/region-borders.md.
+        /// </summary>
+        public static IReadOnlyList<RefinedBorder> RefineBiomeSeams(
+            RegionBoundaryGraph graph, ICategoryField biomeField, SegmentRefineOptions options = null)
+        {
+            if (graph == null) throw new ArgumentNullException(nameof(graph));
+            if (biomeField == null) throw new ArgumentNullException(nameof(biomeField));
+            options ??= SegmentRefineOptions.Default;
+
+            // Group interior seams by the canonical region pair (KeyA|KeyB, both non-null).
+            var byPair = new Dictionary<(string, string), List<BorderSegment>>();
+            foreach (BorderSegment seg in graph.Segments)
+            {
+                if (seg.IsCoastline) continue; // region-vs-region only
+                var key = (seg.KeyA, seg.KeyB);
+                if (!byPair.TryGetValue(key, out var list))
+                {
+                    list = new List<BorderSegment>();
+                    byPair[key] = list;
+                }
+                list.Add(seg);
+            }
+
+            var result = new List<RefinedBorder>();
+            foreach (var kv in byPair)
+            {
+                foreach (List<WzVec2> chain in ChainSegments(kv.Value))
+                {
+                    var snapped = new List<WzVec2>(chain.Count);
+                    bool anyHug = false;
+                    for (int i = 0; i < chain.Count; i++)
+                    {
+                        WzVec2 prev = chain[Math.Max(0, i - 1)];
+                        WzVec2 next = chain[Math.Min(chain.Count - 1, i + 1)];
+                        double tx = next.X - prev.X, tz = next.Z - prev.Z;
+                        double tl = Math.Sqrt(tx * tx + tz * tz);
+                        if (tl < 1e-9) { snapped.Add(chain[i]); continue; }
+                        double nx = -tz / tl, nz = tx / tl;
+                        if (TrySnapToBiomeFlip(chain[i].X, chain[i].Z, nx, nz, biomeField, options, out double s))
+                        {
+                            snapped.Add(new WzVec2(chain[i].X + s * nx, chain[i].Z + s * nz));
+                            if (Math.Abs(s) > 1e-6) anyHug = true;
+                        }
+                        else snapped.Add(chain[i]);
+                    }
+
+                    IReadOnlyList<WzVec2> poly = snapped;
+                    if (options.DespikeThreshold > 0) poly = PolylineSmoother.Despike(poly, options.DespikeThreshold);
+                    if (options.SmoothIterations > 0) poly = PolylineSmoother.Chaikin(poly, options.SmoothIterations);
+
+                    result.Add(new RefinedBorder(poly, kv.Key.Item1, kv.Key.Item2, anyHug));
+                }
+            }
+            return result;
+        }
+
+        // Find the perpendicular displacement to the nearest biome-category flip within ±MaxDisplacement.
+        private static bool TrySnapToBiomeFlip(
+            double px, double pz, double nx, double nz, ICategoryField field, SegmentRefineOptions opt, out double bestS)
+        {
+            bestS = 0.0;
+            int c0 = field.CategoryAt(px, pz);
+            double best = double.MaxValue;
+            bool found = false;
+
+            foreach (int dir in new[] { 1, -1 })
+            {
+                int prevCat = c0;
+                double prevS = 0.0;
+                for (double step = opt.MarchStep; step <= opt.MaxDisplacement + 1e-9; step += opt.MarchStep)
+                {
+                    double s = dir * step;
+                    int cat = field.CategoryAt(px + s * nx, pz + s * nz);
+                    if (cat != prevCat)
+                    {
+                        // The flip is between prevS and s; bisect to the category boundary.
+                        double sc = BisectCategory(px, pz, nx, nz, field, prevS, s, prevCat);
+                        if (Math.Abs(sc) < best) { best = Math.Abs(sc); bestS = sc; found = true; }
+                        break;
+                    }
+                    prevCat = cat; prevS = s;
+                }
+            }
+            return found;
+        }
+
+        // Bisect to the category boundary between two perpendicular offsets (s0 has category cat0).
+        private static double BisectCategory(
+            double px, double pz, double nx, double nz, ICategoryField field, double s0, double s1, int cat0)
+        {
+            for (int i = 0; i < 20; i++)
+            {
+                double mid = 0.5 * (s0 + s1);
+                int cm = field.CategoryAt(px + mid * nx, pz + mid * nz);
+                if (cm == cat0) s0 = mid; else s1 = mid;
+            }
+            return 0.5 * (s0 + s1);
+        }
     }
 }

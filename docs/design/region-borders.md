@@ -7,10 +7,26 @@
 
 > ## ✅ IMPLEMENTATION STATUS (2026-06-24) — both border systems BUILT
 >
-> The two levers below are now CODE, on branch `feat/region-render-seam-tier1`, both verified on real
+> The levers below are now CODE, on branch `feat/region-render-seam-tier1`, all verified on real
 > Niflheim (ForTheWort). Daniel's framing this session: regions need BOTH the routing fix AND the
 > detail layer. They are **orthogonal** — one changes which zones a region owns, the other changes how
-> the owned border is *drawn*.
+> the owned border is *drawn*. **🟢 WIRED INTO GENERATION (Daniel's explicit ask, 2026-06-24):**
+> feature-aware borders are ON in BOTH the gazetteer CLI (`Gazetteer.Export`) and the overlay plugin
+> (`RegionOverlayPlugin`) — so the dataset modders consume == the tessellation players walk. Measured in
+> the emitted gazetteer: world border on-feature **32.6% → 55.8% (+23.2 pts)**.
+>
+> **ADDED THIS PASS:**
+> - **Rivers as a cost term.** `WorldGenerator.GetRiverWeight` exposed (was private) → `IRiverSampler`
+>   capability on the sampler seam → river cells become walls (cost 14, above biome-edge 12) in
+>   `RegionCostFieldBuilder`. 10.4% of land zones sit on a river at 64 m (median width 38 m — NOT missed
+>   at zone resolution). On-feature 53.1% → 55.8% with rivers on. In-game: the plugin reflects the game's
+>   private `GetRiverWeight` (decomp-verified private) via `AccessTools`, degrades to biome/shore + logs a
+>   warning if the signature changes (so a dataset/in-game mismatch is visible, not silent).
+> - **Biome-seam contour-hug** (`RegionBoundaryRefiner.RefineBiomeSeams` + `ICategoryField` /
+>   `BiomeCategoryField`). Region-vs-region borders hug the actual biome TRANSITION (categorical
+>   bisection snap), same chain+despike+Chaikin pipeline as coastlines. Coast iso = 25 m (shelf midpoint).
+> - **Jaggy fix** (`PolylineSmoother`): chaining (12k segments → continuous arcs) + Despike (kills
+>   per-segment spurs) + Chaikin (hull-bounded corner-cutting — can't wander off the feature).
 >
 > **1. ROUTING — v3 cost field ported into the engine (`ProtoRegionGenerator.GenerateLand`).**
 > The terrain-blind flat-cost BFS is now a cost-weighted multi-source **Dijkstra** (watershed). The

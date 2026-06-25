@@ -35,9 +35,16 @@ namespace WorldZones.Runtime
             options ??= RegionCostFieldOptions.Default;
             int size = grid.Size, min = grid.MinIndex;
 
+            // River capability is optional — only used when the sampler exposes it AND a positive
+            // river cost is configured. A river is a CROSS-able wall (like a biome edge) the engine
+            // otherwise can't see (rivers only carve GetHeight, which the cost field never reads).
+            var riverSampler = sampler as IRiverSampler;
+            bool useRivers = riverSampler != null && options.RiverCost > options.InteriorCost;
+
             // Pre-sample biome per land cell once (GetBiome is the expensive call).
             var biome = new BiomeType[size, size];
             var isLand = new bool[size, size];
+            var onRiver = useRivers ? new bool[size, size] : null;
             for (int gy = 0; gy < size; gy++)
             for (int gx = 0; gx < size; gx++)
             {
@@ -45,7 +52,15 @@ namespace WorldZones.Runtime
                 bool land = grid[zx, zy] == DepthClass.Land;
                 isLand[gy, gx] = land;
                 if (land)
-                    biome[gy, gx] = sampler.GetBiome(zx * (float)ZoneGrid.ZoneSize, zy * (float)ZoneGrid.ZoneSize);
+                {
+                    float wx = zx * (float)ZoneGrid.ZoneSize, wz = zy * (float)ZoneGrid.ZoneSize;
+                    biome[gy, gx] = sampler.GetBiome(wx, wz);
+                    if (useRivers)
+                    {
+                        riverSampler.GetRiverWeight(wx, wz, out float weight, out _);
+                        onRiver[gy, gx] = weight >= options.RiverWeightThreshold;
+                    }
+                }
             }
 
             var cost = new double[size, size];
@@ -68,7 +83,9 @@ namespace WorldZones.Runtime
                     if (biome[ay, ax] != b) biomeEdge = true;
                 }
 
-                cost[gy, gx] = biomeEdge ? options.BiomeEdgeCost
+                // Rivers take precedence as the crispest seam, then biome edge, then shore, then interior.
+                cost[gy, gx] = (useRivers && onRiver[gy, gx]) ? options.RiverCost
+                             : biomeEdge ? options.BiomeEdgeCost
                              : shore ? options.ShoreCost
                              : options.InteriorCost;
             }
@@ -86,6 +103,19 @@ namespace WorldZones.Runtime
     {
         /// <summary>Cost to cross a land-vs-land biome transition. Default 12 (the load-bearing wall).</summary>
         public double BiomeEdgeCost { get; set; } = 12.0;
+
+        /// <summary>
+        /// Cost to cross a river cell — the crispest natural seam, so the strongest wall. Default 14
+        /// (above biome-edge). Only applied when the sampler implements <see cref="IRiverSampler"/>;
+        /// set ≤ <see cref="InteriorCost"/> to disable rivers even when the capability is present.
+        /// </summary>
+        public double RiverCost { get; set; } = 14.0;
+
+        /// <summary>
+        /// Minimum river proximity weight (0..1, →1 at the river centre) for a cell to count as "on a
+        /// river". Default 0.25 — captures the river channel without flagging its faint outer falloff.
+        /// </summary>
+        public float RiverWeightThreshold { get; set; } = 0.25f;
 
         /// <summary>Cost to cross a land-vs-water shore. Default 8.</summary>
         public double ShoreCost { get; set; } = 8.0;

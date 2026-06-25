@@ -63,6 +63,10 @@ namespace WorldZones.Cli
             {
                 IncludeInlandWater = inlandWater,
                 Namer = new LegacyRegionNamer(),
+                // Feature-aware borders ON: the dataset must reflect the SAME tessellation players walk
+                // (the overlay plugin also enables this). Borders fall on biome edges / shores / rivers
+                // (watershed Dijkstra) instead of geometric midlines. See docs/design/region-borders.md.
+                UseFeatureAwareBorders = true,
             });
 
             ProtoRegionResult result = world.ProtoResult;

@@ -40,6 +40,21 @@ namespace WorldZones.Runtime
     }
 
     /// <summary>
+    /// Optional capability a sampler MAY implement to expose river proximity — the crisp border
+    /// feature that is otherwise invisible to region growth (rivers only enter <see cref="IWorldSampler.GetHeight"/>
+    /// as a carved bed, which the biome/shore cost field never reads). When a sampler implements this,
+    /// <see cref="RegionCostFieldBuilder"/> can add river walls to the cost field. The offline
+    /// <see cref="PortWorldSampler"/> implements it (forwarding to the port's pregenerated rivers); a
+    /// live Valheim sampler forwards to <c>WorldGenerator.GetRiverWeight</c>. Samplers that don't care
+    /// about rivers simply don't implement it — the feature degrades off, no break.
+    /// </summary>
+    public interface IRiverSampler
+    {
+        /// <summary>River proximity weight (0 = none, →1 at centre) + local width (m) at a world point.</summary>
+        void GetRiverWeight(float worldX, float worldZ, out float weight, out float width);
+    }
+
+    /// <summary>
     /// <see cref="IWorldSampler"/> backed by the verified offline worldgen port
     /// (<see cref="WorldGenerator"/>). This is the headless sampler — it needs no Valheim/Unity
     /// assemblies, so it powers the CLI, the tests, the gazetteer export, and any offline consumer.
@@ -50,7 +65,7 @@ namespace WorldZones.Runtime
     /// unchanged by routing through the runtime.
     /// </para>
     /// </summary>
-    public sealed class PortWorldSampler : IWorldSampler
+    public sealed class PortWorldSampler : IWorldSampler, IRiverSampler
     {
         private readonly WorldGenerator worldGenerator;
 
@@ -86,6 +101,12 @@ namespace WorldZones.Runtime
         public BiomeType GetBiome(float worldX, float worldZ)
         {
             return this.worldGenerator.GetBiome(worldX, worldZ);
+        }
+
+        /// <summary>River proximity at a world point — forwards to the port's pregenerated rivers.</summary>
+        public void GetRiverWeight(float worldX, float worldZ, out float weight, out float width)
+        {
+            this.worldGenerator.GetRiverWeightPublic(worldX, worldZ, out weight, out width);
         }
     }
 }
