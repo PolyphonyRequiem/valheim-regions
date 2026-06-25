@@ -94,7 +94,8 @@ namespace WorldZones.Regions
             out List<Vector2i> seeds,
             int minRegionZones = DefaultMinRegionZones,
             int minComponentZonesForProto = DefaultMinComponentZonesForProto,
-            InlandWaterAttributionOptions inlandWaterOptions = null)
+            InlandWaterAttributionOptions inlandWaterOptions = null,
+            RegionCostField costField = null)
         {
             if (grid == null) throw new ArgumentNullException(nameof(grid));
             if (landComponents == null) throw new ArgumentNullException(nameof(landComponents));
@@ -154,42 +155,96 @@ namespace WorldZones.Regions
                 for (int x = 0; x < size; x++)
                     regionIdGrid[y, x] = -1;
 
-            var queue = new Queue<Vector2i>();
             var identityById = new Dictionary<int, Vector2i>(seeds.Count);
-            for (int i = 0; i < seeds.Count; i++)
-            {
-                var s = seeds[i];
-                regionIdGrid[s.y - min, s.x - min] = i;
-                identityById[i] = s; // Option B: identity starts as the region's own seed coordinate
-                queue.Enqueue(s);
-            }
 
-            while (queue.Count > 0)
+            if (costField == null)
             {
-                var cur = queue.Dequeue();
-                int cgy = cur.y - min;
-                int cgx = cur.x - min;
-                int curId = regionIdGrid[cgy, cgx];
-
-                foreach (var (dx, dy) in Neighbors)
+                // ── Legacy unweighted multi-source BFS (flat cost-1). Byte-identical to v0; this is
+                //    the graceful fallback the cost-weighted path degrades to when the field is flat. ──
+                var queue = new Queue<Vector2i>();
+                for (int i = 0; i < seeds.Count; i++)
                 {
-                    int nx = cur.x + dx;
-                    int ny = cur.y + dy;
+                    var s = seeds[i];
+                    regionIdGrid[s.y - min, s.x - min] = i;
+                    identityById[i] = s; // Option B: identity starts as the region's own seed coordinate
+                    queue.Enqueue(s);
+                }
 
-                    if (nx < min || nx > max || ny < min || ny > max)
-                        continue;
+                while (queue.Count > 0)
+                {
+                    var cur = queue.Dequeue();
+                    int cgy = cur.y - min;
+                    int cgx = cur.x - min;
+                    int curId = regionIdGrid[cgy, cgx];
 
-                    int ngy = ny - min;
-                    int ngx = nx - min;
+                    foreach (var (dx, dy) in Neighbors)
+                    {
+                        int nx = cur.x + dx;
+                        int ny = cur.y + dy;
 
-                    if (regionIdGrid[ngy, ngx] >= 0)
-                        continue; // already assigned
+                        if (nx < min || nx > max || ny < min || ny > max)
+                            continue;
 
-                    if (grid[nx, ny] != DepthClass.Land)
-                        continue; // land-only in v0
+                        int ngy = ny - min;
+                        int ngx = nx - min;
 
-                    regionIdGrid[ngy, ngx] = curId;
-                    queue.Enqueue(new Vector2i(nx, ny));
+                        if (regionIdGrid[ngy, ngx] >= 0)
+                            continue; // already assigned
+
+                        if (grid[nx, ny] != DepthClass.Land)
+                            continue; // land-only in v0
+
+                        regionIdGrid[ngy, ngx] = curId;
+                        queue.Enqueue(new Vector2i(nx, ny));
+                    }
+                }
+            }
+            else
+            {
+                // ── Cost-weighted multi-source Dijkstra (watershed segmentation). Regions meet AT the
+                //    expensive cells (feature walls), so borders fall on biome edges / shores instead of
+                //    the geometric midline. The cost field is opaque here — Regions stays biome-blind;
+                //    Runtime computes it. See docs/design/region-borders.md (v3 cost field 12/8/1). ──
+                var dist = new double[size, size];
+                for (int y = 0; y < size; y++)
+                    for (int x = 0; x < size; x++)
+                        dist[y, x] = double.PositiveInfinity;
+
+                var heap = new RegionGrowthHeap();
+                for (int i = 0; i < seeds.Count; i++)
+                {
+                    var s = seeds[i];
+                    int sgy = s.y - min, sgx = s.x - min;
+                    regionIdGrid[sgy, sgx] = i;
+                    identityById[i] = s;
+                    dist[sgy, sgx] = 0.0;
+                    heap.Push(new RegionGrowthHeap.Node(0.0, s.x, s.y, i, TieKey(sgx, sgy, size)));
+                }
+
+                while (heap.Count > 0)
+                {
+                    RegionGrowthHeap.Node node = heap.Pop();
+                    int cgy = node.Y - min, cgx = node.X - min;
+                    // Stale entry: a cheaper path already settled this cell for another region.
+                    if (node.Dist > dist[cgy, cgx]) continue;
+
+                    foreach (var (dx, dy) in Neighbors)
+                    {
+                        int nx = node.X + dx;
+                        int ny = node.Y + dy;
+                        if (nx < min || nx > max || ny < min || ny > max) continue;
+
+                        int ngy = ny - min, ngx = nx - min;
+                        if (grid[nx, ny] != DepthClass.Land) continue; // land-only growth (as v0)
+
+                        double nd = node.Dist + costField.EnterCost(ngx, ngy);
+                        if (nd < dist[ngy, ngx])
+                        {
+                            dist[ngy, ngx] = nd;
+                            regionIdGrid[ngy, ngx] = node.RegionId;
+                            heap.Push(new RegionGrowthHeap.Node(nd, nx, ny, node.RegionId, TieKey(ngx, ngy, size)));
+                        }
+                    }
                 }
             }
 
@@ -581,6 +636,17 @@ namespace WorldZones.Regions
         private static int ManhattanDistance(Vector2i a, Vector2i b)
         {
             return Math.Abs(a.x - b.x) + Math.Abs(a.y - b.y);
+        }
+
+        /// <summary>
+        /// Deterministic tie-break key for equal-cost frontier collisions in the weighted Dijkstra
+        /// growth: a stable row-major ordinal of the grid-local cell. When two regions reach a cell at
+        /// identical accumulated cost, the lower key (then lower RegionId) wins — so the tessellation is
+        /// bit-reproducible regardless of heap insertion order or platform.
+        /// </summary>
+        private static long TieKey(int gx, int gy, int size)
+        {
+            return (long)gy * size + gx;
         }
     }
 }

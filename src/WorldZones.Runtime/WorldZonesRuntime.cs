@@ -52,7 +52,14 @@ namespace WorldZones.Runtime
             // 2. Label connected land components.
             List<LandComponent> landComponents = ComponentLabeler.LabelLand(grid, out _);
 
-            // 3. Generate proto-regions (the topology layer; still biome-blind by design).
+            // 2b. Optional v3 cost field — biome-aware, so it lives here (Runtime), not in the
+            //     biome-blind topology lib. When enabled, region growth becomes weighted Dijkstra
+            //     (watershed): borders fall on biome edges / shores instead of geometric midlines.
+            RegionCostField costField = null;
+            if (options.UseFeatureAwareBorders)
+                costField = RegionCostFieldBuilder.Build(sampler, grid, options.CostFieldOptions);
+
+            // 3. Generate proto-regions (the topology layer; cost field is opaque to it).
             ProtoRegionResult protoResult = ProtoRegionGenerator.GenerateLand(
                 grid,
                 landComponents,
@@ -62,7 +69,8 @@ namespace WorldZones.Runtime
                 out _,
                 inlandWaterOptions: options.IncludeInlandWater
                     ? new InlandWaterAttributionOptions { Enabled = true }
-                    : null);
+                    : null,
+                costField: costField);
 
             // 4. Build the transient-id → durable-identity-coordinate map (for the lookup service).
             var identityById = new Dictionary<int, Vector2i>(protoResult.Regions.Count);

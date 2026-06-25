@@ -211,4 +211,106 @@ namespace WorldZones.Runtime.Tests
             return new WzVec2(info.CentroidX, info.CentroidZ);
         }
     }
+
+    /// <summary>
+    /// Guards the contour-hug refiner (<see cref="RegionBoundaryRefiner"/>) — the sub-64 m detail
+    /// layer. Synthetic-field tests prove the marching math headlessly; a real-Niflheim test proves
+    /// coastlines snap toward sea level. The coarse graph is unchanged (additive layer).
+    /// See docs/design/region-render-seam.md.
+    /// </summary>
+    public class RegionBoundaryRefinerTests
+    {
+        private const string NiflheimSeed = "ForTheWort";
+
+        // A synthetic height field: height = X (metres). Sea level iso = 30 → the shoreline is the
+        // vertical world line X=30, regardless of Z. Any coastline sample should snap to X≈30.
+        private sealed class RampField : IScalarField
+        {
+            public double IsoLevel => 30.0;
+            public double Sample(double worldX, double worldZ) => worldX;
+        }
+
+        [Fact]
+        public void RefineSegment_SnapsSamplePointsOntoTheSyntheticIsoline()
+        {
+            // A segment near the X=30 shoreline, offset so refinement must displace it onto X=30.
+            var seg = new BorderSegment(new WzVec2(50, 0), new WzVec2(50, 64), "r.0.0", null);
+            var field = new RampField();
+            var opt = new SegmentRefineOptions { Subdivisions = 4, MaxDisplacement = 40, MarchStep = 2 };
+
+            RefinedBorder refined = RegionBoundaryRefiner.RefineSegment(seg, field, opt);
+
+            Assert.True(refined.Hugged, "segment within reach of the isoline should hug it");
+            foreach (var p in refined.Polyline)
+                Assert.True(Math.Abs(p.X - 30.0) < 0.5, $"point X={p.X:F2} did not snap to the X=30 shoreline");
+        }
+
+        [Fact]
+        public void RefineSegment_LeavesPointOnLattice_WhenNoIsolineInReach()
+        {
+            // Shoreline X=30 is 200 m away — beyond MaxDisplacement → honest no-hug, points stay put.
+            var seg = new BorderSegment(new WzVec2(230, 0), new WzVec2(230, 64), "r.0.0", null);
+            var field = new RampField();
+            var opt = new SegmentRefineOptions { Subdivisions = 4, MaxDisplacement = 40, MarchStep = 4 };
+
+            RefinedBorder refined = RegionBoundaryRefiner.RefineSegment(seg, field, opt);
+
+            Assert.False(refined.Hugged);
+            foreach (var p in refined.Polyline)
+                Assert.True(Math.Abs(p.X - 230.0) < 1e-6, "no isoline in reach → point must stay on the lattice");
+        }
+
+        [Fact]
+        public void RefineSegment_PreservesKeysAndEndpointsCount()
+        {
+            var seg = new BorderSegment(new WzVec2(50, 0), new WzVec2(50, 64), "r.1.2", "r.3.4");
+            var refined = RegionBoundaryRefiner.RefineSegment(seg, new RampField(),
+                new SegmentRefineOptions { Subdivisions = 4 });
+            Assert.Equal("r.1.2", refined.KeyA);
+            Assert.Equal("r.3.4", refined.KeyB);
+            Assert.Equal(5, refined.Polyline.Count); // Subdivisions+1
+        }
+
+        [Fact]
+        public void RefineCoastlines_OnRealNiflheim_PullsSamplesTowardSeaLevel()
+        {
+            RegionWorld world = WorldZonesRuntime.Build(
+                PortWorldSampler.FromSeed(NiflheimSeed),
+                new RegionBuildOptions { IncludeInlandWater = true });
+            RegionBoundaryGraph graph = world.BuildBoundaryGraph();
+            var field = new HeightScalarField(PortWorldSampler.FromSeed(NiflheimSeed));
+
+            IReadOnlyList<RefinedBorder> coasts = RegionBoundaryRefiner.RefineCoastlines(graph, field);
+            Assert.NotEmpty(coasts);
+
+            // Every refined coast carries a coastline key pair (KeyB null) and a real polyline.
+            foreach (var c in coasts)
+            {
+                Assert.False(string.IsNullOrEmpty(c.KeyA));
+                Assert.Null(c.KeyB);
+                Assert.True(c.Polyline.Count >= 2);
+            }
+
+            // The refinement should move the MAJORITY of coast points closer to sea level than the
+            // coarse lattice midpoint was. Measure: mean |height - 30| over hugged points should be
+            // small (the points sit on the shoreline contour).
+            int hugged = 0; double sumAbs = 0; int n = 0;
+            foreach (var c in coasts)
+            {
+                if (!c.Hugged) continue;
+                hugged++;
+                foreach (var p in c.Polyline)
+                {
+                    double h = field.Sample(p.X, p.Z);
+                    sumAbs += Math.Abs(h - HeightScalarField.SeaLevel);
+                    n++;
+                }
+            }
+            Assert.True(hugged > 0, "expected some coastlines to hug the shoreline");
+            double meanAbs = sumAbs / n;
+            // Hugged points should sit within a few metres of sea level (vs. the ~tens-of-metres a
+            // zone-center staircase lands at). Generous bound — this is a "did it actually snap" gate.
+            Assert.True(meanAbs < 5.0, $"hugged coast points mean |height-30| = {meanAbs:F2} m (expected < 5)");
+        }
+    }
 }

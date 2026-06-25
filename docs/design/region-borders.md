@@ -5,6 +5,47 @@
 > walk (you can't pick them from the top down — see "What's still gated"). Daniel gates all locks.
 > Companion: `docs/design/region-identity.md` (RegionKey — the identity layer this rests on).
 
+> ## ✅ IMPLEMENTATION STATUS (2026-06-24) — both border systems BUILT
+>
+> The two levers below are now CODE, on branch `feat/region-render-seam-tier1`, both verified on real
+> Niflheim (ForTheWort). Daniel's framing this session: regions need BOTH the routing fix AND the
+> detail layer. They are **orthogonal** — one changes which zones a region owns, the other changes how
+> the owned border is *drawn*.
+>
+> **1. ROUTING — v3 cost field ported into the engine (`ProtoRegionGenerator.GenerateLand`).**
+> The terrain-blind flat-cost BFS is now a cost-weighted multi-source **Dijkstra** (watershed). The
+> cost field (biome-edge 12 / shore 8 / interior 1, the measured v3 winner) is computed in
+> `WorldZones.Runtime` (`RegionCostFieldBuilder` — it reads biomes; Regions stays biome-blind) and
+> handed down as an opaque `RegionCostField`. **A null field = byte-identical legacy BFS** → gated
+> behind `RegionBuildOptions.UseFeatureAwareBorders` (default OFF), so zero regression (Regions 73/73,
+> WorldGen 49/49 unchanged). Measured ON vs OFF on Niflheim: **world border on-feature 30.5% → 52.3%**
+> (per-region wins up to 31%→77%). ⚠️ HONEST LIMIT: routing does NOT fix multi-biome-blob composition
+> (avg dominant-biome 72.7%→73.0%, blended-region count 44→45 — basically flat). A region with one
+> seed in the middle of four biomes stays a four-biome region no matter how its border routes. That is
+> a SEEDING problem (see deferral below), not a routing one. Caveat held: the explorer measured ~73%
+> at 8 m; at the engine's 64 m we get 52% — coarser, as predicted, still +21 pts.
+>
+> **2. CONTOUR-HUG — sub-64 m detail layer (`RegionBoundaryRefiner`, Tier-1 pure).** ADDITIVE: the
+> coarse 64 m `RegionBoundaryGraph` (the deterministic substrate gameplay keys off) is UNCHANGED; this
+> refines each coastline segment onto the real `GetHeight == 30` shoreline isoline (perpendicular
+> march + bisection). Field supplied by Runtime (`HeightScalarField`) so Tier-1 stays game-free.
+> Niflheim: 11,956 coast segments, 9,528 hugged (80%); the rest honestly left on the lattice where no
+> shoreline is in reach (the "arbitrary firm line where no feature" degenerate case). Eye-validated:
+> the 64 m staircase becomes the diagonal coast. ⚠️ KNOWN ARTIFACT: per-segment-independent snapping
+> produces perpendicular **spurs** into the water at sharp concavities/inlets (adjacent points snap to
+> different spots, the connector darts out). Two clean fixes (post-snap polyline smoothing, OR a single
+> continuous isoline-contour march through the boundary band instead of per-segment) — both are
+> refinements of a WORKING layer, and "how aggressive / does it read on the ground" is walk-gated. Only
+> coastlines are refined so far; biome-seam contour-hug (region-vs-region) is the next field type.
+>
+> **🔭 DEFERRED — the SEEDING lever (NOT done this session, by scope).** The multi-biome-blob oddity
+> (Greater Nordadal = Mtn30/Mist30/Plns20/BFor18; Aesirvoll = 4-way blend) is caused by where SEEDS
+> land, not how borders route between them. Fix = biome-aware seed placement / region splitting (drop
+> more seeds in biome-diverse components, or split a region that spans N biomes). The border-model already
+> flags routing and seeding as orthogonal knobs ("splitting is a SEEDING problem"). Tracked as a
+> follow-up; routing + contour-hug were this session's scope. Do NOT conflate it with the routing port —
+> they fix different oddities.
+
 ## The one-line model
 
 **Borders are always firm. Where a terrain feature exists, the firm edge HUGS it at sub-zone

@@ -64,6 +64,22 @@ namespace WorldZones.Runtime
         /// </summary>
         public ILocationSource LocationSource { get; set; }
 
+        /// <summary>
+        /// Enable the v3 biome-edge cost field — weighted-Dijkstra (watershed) region growth instead of
+        /// the legacy terrain-blind BFS, so borders fall on biome edges / shores rather than geometric
+        /// midlines. Default <c>false</c> (preserves shipped geometry bit-for-bit). When true, the build
+        /// computes the field via <see cref="RegionCostFieldBuilder"/> (needs the biome sampler, so it
+        /// also forces the biome bridge on) and hands it to the generator. Tune the weights via
+        /// <see cref="CostFieldOptions"/>. See docs/design/region-borders.md.
+        /// </summary>
+        public bool UseFeatureAwareBorders { get; set; }
+
+        /// <summary>
+        /// Per-feature weights for <see cref="UseFeatureAwareBorders"/>. Null = the measured v3 default
+        /// (biome-edge 12 / shore 8 / interior 1). Ignored when feature-aware borders are off.
+        /// </summary>
+        public RegionCostFieldOptions CostFieldOptions { get; set; }
+
         /// <summary>A fresh options object with shipped defaults.</summary>
         public static RegionBuildOptions Default => new RegionBuildOptions();
     }
