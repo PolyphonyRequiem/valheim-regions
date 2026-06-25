@@ -45,6 +45,30 @@
 > flags routing and seeding as orthogonal knobs ("splitting is a SEEDING problem"). Tracked as a
 > follow-up; routing + contour-hug were this session's scope. Do NOT conflate it with the routing port —
 > they fix different oddities.
+>
+> **🔴 FALSIFIED SPIKE (2026-06-24) — asymmetric "home-biome pin" does NOT fix blobs.** Daniel's #1
+> idea: make crossing OUT of a region's seed (home) biome cost extra, so a region stays in its home
+> biome. Built it (opaque category grid + `HomeExitPenalty` on the cost field, Regions stays biome-blind
+> by only testing category equality), swept the penalty 0/4/8/16/32 on real Niflheim. **Negative result,
+> reverted:**
+>
+> | penalty | on-feat% | avg dominant-biome% | blended<55% |
+> |--:|--:|--:|--:|
+> | 0 (off) | **52.3%** | 73.1% | 46/162 |
+> | 4 | 40.7% | 72.9% | 46/162 |
+> | 8 | 38.8% | 72.8% | 46/162 |
+> | 16 | 39.1% | 72.9% | 44/162 |
+> | 32 | 43.8% | 73.0% | 44/162 |
+>
+> Dominant-biome fraction is DEAD FLAT (~73%); blended count barely moves (46→44); on-feature% gets
+> WORSE (52→39%, because the penalty competes with the biome-edge walls and drags borders OFF features).
+> **Why it can't work:** pinning region A out of the Mountains doesn't purify anything when there's no
+> Mountain-SEEDED region to claim that land — it gets assigned to whoever's adjusted cost is lowest
+> anyway. Composition is set by WHERE THE SEEDS SIT; a routing penalty can't change that. This is the
+> THIRD empirical confirmation that the blob problem is a SEEDING problem, not a routing one (after raw
+> slope and the symmetric v3 both failing to move composition). Lesson held: it SOUNDED right, the seed
+> falsified it — measure (on-feature% AND dominant-fraction), don't assume. Do not re-attempt a
+> routing-side fix for composition; build the seeding lever.
 
 ## The one-line model
 
