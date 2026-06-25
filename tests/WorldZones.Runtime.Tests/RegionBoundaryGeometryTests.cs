@@ -312,5 +312,68 @@ namespace WorldZones.Runtime.Tests
             // zone-center staircase lands at). Generous bound — this is a "did it actually snap" gate.
             Assert.True(meanAbs < 5.0, $"hugged coast points mean |height-iso| = {meanAbs:F2} m (expected < 5)");
         }
+
+        [Fact]
+        public void Despike_PullsBackAnOutlierPoint_PreservesEndpoints()
+        {
+            // A clean line with one point spiked +30m off to the side.
+            var pts = new[]
+            {
+                new WzVec2(0, 0), new WzVec2(10, 0), new WzVec2(20, 30), // <- spike
+                new WzVec2(30, 0), new WzVec2(40, 0)
+            };
+            var outp = PolylineSmoother.Despike(pts, maxDeviation: 24.0);
+            Assert.Equal(5, outp.Count);
+            // Endpoints unchanged.
+            Assert.Equal(0.0, outp[0].X, 6); Assert.Equal(40.0, outp[4].X, 6);
+            // The spiked middle point pulled back toward its neighbours' midpoint (z≈0, not 30).
+            Assert.True(Math.Abs(outp[2].Z) < 1.0, $"spike not pulled back (z={outp[2].Z})");
+        }
+
+        [Fact]
+        public void Chaikin_RoundsCorners_StaysInConvexHull()
+        {
+            // An L-shaped staircase corner. Chaikin must round it WITHOUT leaving the bounding box
+            // [0,10]x[0,10] (hull-bounded — the property that keeps a smoothed coast on the coast).
+            var pts = new[] { new WzVec2(0, 0), new WzVec2(10, 0), new WzVec2(10, 10) };
+            var outp = PolylineSmoother.Chaikin(pts, iterations: 2);
+            Assert.True(outp.Count > pts.Length, "Chaikin should add points");
+            foreach (var p in outp)
+            {
+                Assert.InRange(p.X, 0.0, 10.0);
+                Assert.InRange(p.Z, 0.0, 10.0);
+            }
+        }
+
+        [Fact]
+        public void RefineCoastlinesSmoothed_OnRealNiflheim_ChainsAndStaysNearIso()
+        {
+            var sampler = PortWorldSampler.FromSeed(NiflheimSeed);
+            RegionWorld world = WorldZonesRuntime.Build(
+                sampler, new RegionBuildOptions { IncludeInlandWater = true });
+            RegionBoundaryGraph graph = world.BuildBoundaryGraph();
+            var field = new HeightScalarField(sampler); // default 25 m coast iso
+
+            IReadOnlyList<RefinedBorder> arcs = RegionBoundaryRefiner.RefineCoastlinesSmoothed(graph, field);
+
+            // Chaining collapses the ~12k per-segment pieces into far fewer continuous arcs.
+            Assert.NotEmpty(arcs);
+            Assert.True(arcs.Count < graph.Segments.Count / 10,
+                $"chaining should produce far fewer arcs than segments ({arcs.Count} vs {graph.Segments.Count})");
+
+            // Smoothed arcs still sit near the coast iso (smoothing must not drag them off the contour).
+            int hugged = 0; double sumAbs = 0; int n = 0;
+            foreach (var a in arcs)
+            {
+                if (!a.Hugged) continue;
+                hugged++;
+                foreach (var p in a.Polyline) { sumAbs += Math.Abs(field.Sample(p.X, p.Z) - field.IsoLevel); n++; }
+            }
+            Assert.True(hugged > 0);
+            double meanAbs = sumAbs / n;
+            // Looser than the un-smoothed gate (Chaikin intentionally cuts corners off the exact
+            // contour) but still close — proves smoothing rounds without wandering off the coast.
+            Assert.True(meanAbs < 8.0, $"smoothed coast mean |height-iso| = {meanAbs:F2} m (expected < 8)");
+        }
     }
 }
