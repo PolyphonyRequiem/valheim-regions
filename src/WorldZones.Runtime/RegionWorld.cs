@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using WorldZones.Regions;
+using WorldZones.Runtime.Geometry;
 
 namespace WorldZones.Runtime
 {
@@ -101,5 +102,23 @@ namespace WorldZones.Runtime
         /// narrowed — harmless at 64 m zone granularity.
         /// </summary>
         public RegionInfo RegionAt(double worldX, double worldZ) => RegionAt((float)worldX, (float)worldZ);
+
+        /// <summary>
+        /// Build the renderable boundary geometry (deduplicated seams + closed fill rings) for this
+        /// world — the Tier-1 export a render consumer (the standalone overlay, a Trailborne adapter)
+        /// projects with <see cref="Geometry.MapProjector"/>. Computed on demand from
+        /// <see cref="RegionIdGrid"/>; cache the result if you draw every frame. Keyed by durable
+        /// <see cref="RegionInfo.RegionKey"/>. See docs/design/region-render-seam.md.
+        /// </summary>
+        public RegionBoundaryGraph BuildBoundaryGraph()
+        {
+            var idToKey = new Dictionary<int, string>();
+            foreach (var r in this.Regions)
+            {
+                // RegionInfo.TransientId is the grid's int label; RegionKey is the durable identity.
+                if (!idToKey.ContainsKey(r.TransientId)) idToKey[r.TransientId] = r.RegionKey;
+            }
+            return RegionBoundaryExtractor.Extract(this.RegionIdGrid, this.Grid.MinIndex, idToKey);
+        }
     }
 }
