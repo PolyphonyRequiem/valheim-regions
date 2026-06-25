@@ -291,9 +291,9 @@ namespace WorldZones.Runtime.Tests
                 Assert.True(c.Polyline.Count >= 2);
             }
 
-            // The refinement should move the MAJORITY of coast points closer to sea level than the
-            // coarse lattice midpoint was. Measure: mean |height - 30| over hugged points should be
-            // small (the points sit on the shoreline contour).
+            // The refinement should move the MAJORITY of coast points onto the field's iso-level (the
+            // coast contour). Measure against the field's OWN IsoLevel — not a hardcoded constant — so
+            // the test follows the configured coast depth (default = the 25 m shelf midpoint).
             int hugged = 0; double sumAbs = 0; int n = 0;
             foreach (var c in coasts)
             {
@@ -302,15 +302,15 @@ namespace WorldZones.Runtime.Tests
                 foreach (var p in c.Polyline)
                 {
                     double h = field.Sample(p.X, p.Z);
-                    sumAbs += Math.Abs(h - HeightScalarField.SeaLevel);
+                    sumAbs += Math.Abs(h - field.IsoLevel);
                     n++;
                 }
             }
             Assert.True(hugged > 0, "expected some coastlines to hug the shoreline");
             double meanAbs = sumAbs / n;
-            // Hugged points should sit within a few metres of sea level (vs. the ~tens-of-metres a
+            // Hugged points should sit within a few metres of the coast iso (vs. the ~tens-of-metres a
             // zone-center staircase lands at). Generous bound — this is a "did it actually snap" gate.
-            Assert.True(meanAbs < 5.0, $"hugged coast points mean |height-30| = {meanAbs:F2} m (expected < 5)");
+            Assert.True(meanAbs < 5.0, $"hugged coast points mean |height-iso| = {meanAbs:F2} m (expected < 5)");
         }
     }
 }
