@@ -48,7 +48,12 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
         private GameObject? discClip;   // circular uGUI Mask clipping fill+ink to the inscribed disc
         private RegionInkGraphic? ink;
         private RawImage? fill;
+        private RawImage? halo;          // soft coast-fade layer (below ink, beside fill)
         private bool mountLogged;
+
+        // ── TWEAK-ME coast-halo dials (reversible; Daniel tunes in-world) ────────────────────────────
+        /// <summary>Coast-halo colour (RGB) + peak alpha (A). Warm gold by default; A scales the whole fade.</summary>
+        public Color32 HaloColor { get; set; } = new Color32(235, 180, 95, 200);
 
         // ── Cached per-world geometry (built once per world, NOT per frame — AC-T3-DRAW-1) ───────────
         private RegionBoundaryGraph? graph;
@@ -56,11 +61,17 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
         private int[,]? regionIdGrid;
         private int gridMinIndex;
         private IReadOnlyList<Color32>? palette;
+        private CoastHaloField? haloField;            // cached per-world; null until SetHaloField
 
         // ── Fill bake cache ─────────────────────────────────────────────────────────────────────────
         private readonly RegionTextureBaker baker = new RegionTextureBaker();
         private Texture2D? fillTexture;
         private float lastFillBakeTime = float.NegativeInfinity;
+
+        // ── Halo bake cache (re-baked only when the mode changes, NOT per frame) ─────────────────────
+        private readonly CoastHaloBaker haloBaker = new CoastHaloBaker();
+        private Texture2D? haloTexture;
+        private CoastHaloMode bakedHaloMode = CoastHaloMode.Off;
 
         // ── v2 reusable refined-arc fog-gate buffers ─────────────────────────────────────────────────
         // The visible fragments handed to the ink each frame, plus a pool of fragment polylines (and a
@@ -114,11 +125,25 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
         public bool HasWorld => this.graph != null && this.regionIdGrid != null && this.fog.Available;
 
         /// <summary>
-        /// The per-update render. Mounts on first call (logs success), then draws the current
-        /// <paramref name="style"/> onto the large map IF it is open; otherwise hides the content.
-        /// Safe to call every plugin tick — the boundary graph is NOT rebuilt here (it is cached).
+        /// Cache the per-world coast-halo field (the signed-distance-to-shoreline field the soft fade
+        /// bakes from). Built once per world load alongside <see cref="SetWorld"/>; null clears it (the
+        /// halo then renders nothing). Invalidates any baked halo texture so the next render re-bakes.
         /// </summary>
-        public void Render(RegionOverlayStyle style)
+        public void SetHaloField(CoastHaloField? field)
+        {
+            this.haloField = field;
+            this.InvalidateHalo();
+        }
+
+        /// <summary>
+        /// The per-update render. Mounts on first call (logs success), then draws the current
+        /// <paramref name="style"/> (F8 ink/fill dial) AND the current <paramref name="haloMode"/> (F7
+        /// coast-fade dial) onto the large map IF it is open; otherwise hides the content. Safe to call
+        /// every plugin tick — the boundary graph is NOT rebuilt here (it is cached). The halo is an
+        /// INDEPENDENT layer: it shows whenever <paramref name="haloMode"/> ≠ Off and a world is loaded,
+        /// even when <paramref name="style"/> is Vanilla (the two dials are orthogonal).
+        /// </summary>
+        public void Render(RegionOverlayStyle style, CoastHaloMode haloMode)
         {
             Minimap? minimap = Minimap.instance;
             if (minimap == null || minimap.m_pinRootLarge == null || minimap.m_mapImageLarge == null)
@@ -133,9 +158,11 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
                 if (!Mount(minimap)) { HideContent(); return; }
             }
 
-            // Only draw on the LARGE map, only when it is open, only with world data + a working fog gate.
+            // Nothing draws unless the large map is open with world data + a working fog gate. Both dials
+            // being at their resting "nothing" position (Vanilla + Off) also hides everything.
             bool largeMapOpen = Minimap.IsOpen();
-            if (!largeMapOpen || !HasWorld || style == RegionOverlayStyle.Vanilla)
+            bool anythingToDraw = style != RegionOverlayStyle.Vanilla || haloMode != CoastHaloMode.Off;
+            if (!largeMapOpen || !HasWorld || !anythingToDraw)
             {
                 HideContent();
                 return;
@@ -145,6 +172,18 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
 
             MapFrame fullFrame = ValheimMapConventions.FullMapFrame(minimap.m_pixelSize, minimap.m_textureSize);
             Rect vanillaUvRect = minimap.m_mapImageLarge.uvRect;
+
+            // ── Coast halo (soft fade, F7 dial), below the fill + ink ────────────────────────────────
+            if (haloMode != CoastHaloMode.Off && this.haloField != null)
+            {
+                EnsureHaloTexture(haloMode);
+                this.halo!.uvRect = this.haloBaker.WorldAlignedUvRect(DisplayedFrame(fullFrame, vanillaUvRect));
+                this.halo.gameObject.SetActive(this.haloTexture != null);
+            }
+            else
+            {
+                this.halo!.gameObject.SetActive(false);
+            }
 
             // ── Ink (refined contour-hugging arcs), fog-gated per SUB-SEGMENT ─────────────────────────
             if (style.DrawsInk())
@@ -172,6 +211,9 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
                 this.fill!.gameObject.SetActive(false);
             }
         }
+
+        /// <summary>Back-compat overload: render the F8 style with the coast halo off.</summary>
+        public void Render(RegionOverlayStyle style) => Render(style, CoastHaloMode.Off);
 
         /// <summary>
         /// Fog-gate the cached refined arcs at SUB-SEGMENT granularity (AC-V2-A-LINE-2). A refined arc
@@ -293,6 +335,29 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
         }
 
         /// <summary>
+        /// (Re)bake the coast-halo texture when the mode changes. The halo field is static per world, so
+        /// unlike the fill there is no time throttle — we only re-bake when <paramref name="mode"/>
+        /// differs from the baked one. The bake is fog-agnostic here (the halo traces coastlines, and the
+        /// field is pure); fog-gating the halo per-texel is a deferred v2 nicety tracked in the design doc.
+        /// </summary>
+        private void EnsureHaloTexture(CoastHaloMode mode)
+        {
+            if (this.haloField == null) return;
+            if (this.haloTexture != null && this.bakedHaloMode == mode) return;
+
+            if (this.haloTexture != null) Object.Destroy(this.haloTexture);
+            this.haloTexture = this.haloBaker.Bake(this.haloField, mode, this.HaloColor);
+            this.halo!.texture = this.haloTexture;
+            this.bakedHaloMode = mode;
+        }
+
+        private void InvalidateHalo()
+        {
+            this.bakedHaloMode = CoastHaloMode.Off;
+            if (this.haloTexture != null) { Object.Destroy(this.haloTexture); this.haloTexture = null; }
+        }
+
+        /// <summary>
         /// The MapFrame describing the world window vanilla currently DISPLAYS (after pan/zoom), from
         /// the full frame + the live <c>uvRect</c>. Used to align the fill texture's uvRect to vanilla's
         /// view so the fill registers under the ink + the terrain.
@@ -345,6 +410,18 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
             var mask = maskGo.GetComponent<Mask>();
             mask.showMaskGraphic = false;          // stencil only — the circle sprite never draws
             this.discClip = maskGo;
+
+            // Halo (lowest), then fill, then ink — all inside the MASK (so all clipped to the disc).
+            // Coast halo sits beneath the region fill + ink so the fade reads as a backdrop the borders
+            // and tints draw over.
+            var haloGo = new GameObject("WZ_CoastHalo", typeof(RectTransform), typeof(CanvasRenderer), typeof(RawImage));
+            var haloRt = (RectTransform)haloGo.transform;
+            haloRt.SetParent(maskRt, worldPositionStays: false);
+            StretchFull(haloRt);
+            this.halo = haloGo.GetComponent<RawImage>();
+            this.halo.raycastTarget = false;
+            this.halo.color = new Color32(255, 255, 255, 255); // texture carries its own per-texel alpha
+            haloGo.SetActive(false);
 
             // Fill (below) then ink (above) inside the MASK (so both are clipped to the disc).
             var fillGo = new GameObject("WZ_RegionFill", typeof(RectTransform), typeof(CanvasRenderer), typeof(RawImage));
@@ -450,8 +527,10 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
             this.discClip = null;
             this.ink = null;
             this.fill = null;
+            this.halo = null;
             this.boundMinimap = null;
             InvalidateFill();
+            InvalidateHalo();
         }
     }
 }

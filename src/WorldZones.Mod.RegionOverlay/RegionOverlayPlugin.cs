@@ -41,6 +41,9 @@ namespace WorldZones.Mod.RegionOverlay
         private RegionOverlayController? overlayController;
         private RegionOverlayStyle overlayStyle = RegionOverlayStyle.Borders;
         private const KeyCode OverlayCycleKey = KeyCode.F8;
+        // Coast-halo dial (F7) — independent of the F8 style. Resting default = Off (opt-in soft fade).
+        private CoastHaloMode haloMode = CoastHaloMode.Off;
+        private const KeyCode HaloCycleKey = KeyCode.F7;
         private bool overlayWorldCached;
         // Live realization overlay — non-null only when a location-bearing gazetteer has been built
         // (a consumer that opts into RegionBuildOptions.LocationSource). Until then the realization
@@ -322,16 +325,29 @@ namespace WorldZones.Mod.RegionOverlay
                 this.Logger.LogInfo($"RegionOverlay: style → {this.overlayStyle} (hotkey {OverlayCycleKey}).");
             }
 
+            // Coast-halo hotkey (F7) — independent dial: Off → Seaward → Inland → Off. Same focus guard.
+            if (Input.GetKeyDown(HaloCycleKey) && !IsTextInputActive())
+            {
+                this.haloMode = NextHaloMode(this.haloMode);
+                this.Logger.LogInfo($"RegionOverlay: coast halo → {this.haloMode} (hotkey {HaloCycleKey}).");
+            }
+
             // Render only once a world's geometry is cached; otherwise keep the overlay hidden.
             if (this.regionDataReady && this.overlayWorldCached)
             {
-                this.overlayController.Render(this.overlayStyle);
+                this.overlayController.Render(this.overlayStyle, this.haloMode);
             }
             else
             {
-                this.overlayController.Render(RegionOverlayStyle.Vanilla); // hides content, keeps host alive
+                this.overlayController.Render(RegionOverlayStyle.Vanilla, CoastHaloMode.Off); // hides content, keeps host alive
             }
         }
+
+        /// <summary>Advance the coast-halo dial: Off → Seaward → Inland → Off.</summary>
+        private static CoastHaloMode NextHaloMode(CoastHaloMode m) =>
+            m == CoastHaloMode.Off ? CoastHaloMode.Seaward
+            : m == CoastHaloMode.Seaward ? CoastHaloMode.Inland
+            : CoastHaloMode.Off;
 
         /// <summary>True if a uGUI/text field currently has keyboard focus (so the hotkey shouldn't fire).</summary>
         private static bool IsTextInputActive()
@@ -394,6 +410,24 @@ namespace WorldZones.Mod.RegionOverlay
                 arcs.AddRange(RegionBoundaryRefiner.RefineBiomeSeams(graph, biomeField));
 
                 this.overlayController.SetWorld(graph, arcs, regionWorld.RegionIdGrid, regionWorld.Grid.MinIndex);
+
+                // Coast-halo field (F7 soft fade) — built once over the SAME world window the region grid
+                // covers, at a 16 m cell for a smooth fade (4× finer than the 64 m zone lattice). Reads the
+                // live sampler's height via the same HeightScalarField the coast line uses, but at SEA LEVEL
+                // (30 m) so the fade's shoreline is the true waterline. true-ocean-only is handled inside
+                // CoastHaloField (flood from the window edge). Pure + static per world → bake once here.
+                const double haloCell = 16.0;
+                const double zone = 64.0, halfZone = 32.0;
+                int gh = regionWorld.RegionIdGrid.GetLength(0), gw = regionWorld.RegionIdGrid.GetLength(1);
+                double haloOriginX = regionWorld.Grid.MinIndex * zone - halfZone;
+                double haloOriginZ = regionWorld.Grid.MinIndex * zone - halfZone;
+                int haloW = (int)(gw * zone / haloCell);
+                int haloH = (int)(gh * zone / haloCell);
+                var haloHeight = new HeightScalarField(sampler, CoastHaloField.SeaLevel);
+                CoastHaloField haloFld = CoastHaloField.Build(
+                    haloHeight, haloOriginX, haloOriginZ, haloCell, haloW, haloH);
+                this.overlayController.SetHaloField(haloFld);
+
                 this.overlayWorldCached = true;
             }
             catch (Exception ex)
