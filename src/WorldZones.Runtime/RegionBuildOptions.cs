@@ -80,7 +80,42 @@ namespace WorldZones.Runtime
         /// </summary>
         public RegionCostFieldOptions CostFieldOptions { get; set; }
 
+        /// <summary>
+        /// Enable the biome-aware SEEDING lever — the only lever proven able to move region COMPOSITION
+        /// (the multi-biome-blob oddity). When true, the build computes a per-zone biome-diversity field
+        /// (<see cref="RegionSeedingFieldBuilder"/>, needs the biome sampler) and scales each land
+        /// component's seed budget UP where it spans many biomes, so a diverse landmass splits into
+        /// smaller, more-mono-biome regions. Default <c>false</c> (preserves shipped geometry bit-for-bit:
+        /// a null field leaves the legacy area-only seed budget untouched). This is ORTHOGONAL to
+        /// <see cref="UseFeatureAwareBorders"/> (routing): seeding sets composition, routing sets where
+        /// the border falls between seeds. ⚠️ Changing seed count renumbers regions (RegionKey is
+        /// seed-coordinate-derived) — fine pre-ship, but it shifts names + any persisted discovery state.
+        /// See docs/design/region-borders.md ("the SEEDING lever").
+        /// </summary>
+        public bool UseBiomeAwareSeeding { get; set; }
+
+        /// <summary>
+        /// Tunables for <see cref="UseBiomeAwareSeeding"/>. Null = the default (aggressiveness 1.0,
+        /// 5×5 neighbourhood, 4-biome normaliser). Ignored when biome-aware seeding is off. These are a
+        /// starting dial, not a locked value — split aggressiveness is partly a walk judgment.
+        /// </summary>
+        public RegionSeedingFieldOptions SeedingFieldOptions { get; set; }
+
         /// <summary>A fresh options object with shipped defaults.</summary>
         public static RegionBuildOptions Default => new RegionBuildOptions();
+
+        /// <summary>
+        /// Swamp land-rescue floor (world metres). Swamp terrain straddles the 30 m waterline
+        /// (measured range ~24.8–33.8 m on real worlds), so the height-only land test
+        /// (<c>height ≥ 30</c>) drops ~64% of swamp zones to Shallow/Deep — they then fall out of every
+        /// region (no fill, no border), the "swamp not reliably included" bug. When set, a zone is also
+        /// classified Land if its biome is Swamp AND its height ≥ this floor. Gated to the Swamp biome,
+        /// so it provably changes NO other terrain (zero blast radius outside swamp — verified across the
+        /// whole world). Default <c>22f</c>: just below swamp's measured floor, which fully heals swamp
+        /// (0% dropped) without reaching into open water. Set <c>null</c> to disable (legacy height-only
+        /// behaviour, byte-identical to the old geometry). See docs/design/region-borders.md
+        /// ("the swamp land-floor").
+        /// </summary>
+        public float? SwampLandFloorMeters { get; set; } = 22f;
     }
 }

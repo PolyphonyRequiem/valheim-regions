@@ -45,9 +45,23 @@ namespace WorldZones.Runtime
             // identical to the CLI gazetteer's seed.GetStableHashCode(), so geometry matches.
             int seedRng = options.SeedRng ?? worldId.GetStableHashCode();
 
-            // 1. Classify the world into a depth grid via the sampler's height field.
+            // 1. Classify the world into a depth grid via the sampler's height field. When a swamp
+            //    land-floor is set (default), use the biome-aware classify so swamp zones that dip below
+            //    the waterline are still Land (rescuing them into regions); gated to Swamp, it changes no
+            //    other biome. A null floor falls back to the depth-only classify (legacy geometry).
             var grid = new ZoneGrid(options.WorldRadiusMeters);
-            ZoneClassifier.Classify(grid, new SamplerWorldDataProvider(sampler));
+            if (options.SwampLandFloorMeters.HasValue)
+            {
+                ZoneClassifier.ClassifyWithSwampFloor(
+                    grid,
+                    (wx, wz) => sampler.GetHeight(wx, wz),
+                    (wx, wz) => sampler.GetBiome(wx, wz) == global::WorldZones.WorldGen.BiomeType.Swamp,
+                    options.SwampLandFloorMeters);
+            }
+            else
+            {
+                ZoneClassifier.Classify(grid, new SamplerWorldDataProvider(sampler));
+            }
 
             // 2. Label connected land components.
             List<LandComponent> landComponents = ComponentLabeler.LabelLand(grid, out _);
@@ -59,7 +73,15 @@ namespace WorldZones.Runtime
             if (options.UseFeatureAwareBorders)
                 costField = RegionCostFieldBuilder.Build(sampler, grid, options.CostFieldOptions);
 
-            // 3. Generate proto-regions (the topology layer; cost field is opaque to it).
+            // 2c. Optional biome-aware SEEDING field — the orthogonal lever that moves COMPOSITION
+            //     (not routing). Also biome-reading, so it lives here (Runtime). When enabled, diverse
+            //     land components get more seeds → split into smaller, more-mono-biome regions. A null
+            //     field leaves the legacy area-only seed budget untouched (byte-identical fallback).
+            SeedingField seedingField = null;
+            if (options.UseBiomeAwareSeeding)
+                seedingField = RegionSeedingFieldBuilder.Build(sampler, grid, options.SeedingFieldOptions);
+
+            // 3. Generate proto-regions (the topology layer; cost + seeding fields are opaque to it).
             ProtoRegionResult protoResult = ProtoRegionGenerator.GenerateLand(
                 grid,
                 landComponents,
@@ -70,7 +92,8 @@ namespace WorldZones.Runtime
                 inlandWaterOptions: options.IncludeInlandWater
                     ? new InlandWaterAttributionOptions { Enabled = true }
                     : null,
-                costField: costField);
+                costField: costField,
+                seedingField: seedingField);
 
             // 4. Build the transient-id → durable-identity-coordinate map (for the lookup service).
             var identityById = new Dictionary<int, Vector2i>(protoResult.Regions.Count);
@@ -87,22 +110,36 @@ namespace WorldZones.Runtime
                     if (id >= 0) knownIds.Add(id);
                 }
 
-            // 6. The point-query service (existing contract).
-            var lookup = new RegionLookupService(grid, regionIdGrid, worldId, knownIds, identityById);
-
-            // 7. The rich, aggregated region model + naming — skipped for point-query-only consumers
-            //    (ComputeRegionInfo=false), which keeps that path free of the biome sampler + namer.
+            // 6. The rich, aggregated region model + naming — built BEFORE the lookup service so its
+            //    output (the multi-schema names) can be threaded into the lookup. Skipped for
+            //    point-query-only consumers (ComputeRegionInfo=false), which keeps that path free of
+            //    the biome sampler + namer.
             List<RegionInfo> regions;
+            Dictionary<string, string> namesByKey = null;
             if (options.ComputeRegionInfo)
             {
                 regions = GazetteerBuilder.Build(sampler, grid, protoResult, regionIdGrid);
                 IRegionNamer namer = options.Namer ?? new MultiSchemaRegionNamer();
                 namer.NameAll(worldId, regions);
+
+                // Thread the rich names into the lookup: RegionKey → Name. ResolveCurrent derives the
+                // IDENTICAL RegionKey (RegionKey.From(identityCoord)) it resolves a point to, so this
+                // map lines up 1:1 and the live minimap labels (which read lookupResult.RegionName)
+                // render the multi-schema names instead of the legacy flat catalogue. Stays null when
+                // naming is skipped → the lookup falls back to the legacy deterministic hash unchanged.
+                namesByKey = new Dictionary<string, string>(regions.Count, StringComparer.Ordinal);
+                foreach (var region in regions)
+                    if (!string.IsNullOrEmpty(region.RegionKey) && !string.IsNullOrWhiteSpace(region.Name))
+                        namesByKey[region.RegionKey] = region.Name;
             }
             else
             {
                 regions = new List<RegionInfo>();
             }
+
+            // 7. The point-query service (existing contract), now carrying the rich names when present
+            //    (a null map makes ResolveCurrent use the legacy deterministic hash, byte-identical to before).
+            var lookup = new RegionLookupService(grid, regionIdGrid, worldId, knownIds, identityById, namesByKey);
 
             // 8. Optional location join — bind POIs/dungeons/bosses/traders to their containing region,
             //    group unique-location candidates. Only when a source is supplied AND the rich model

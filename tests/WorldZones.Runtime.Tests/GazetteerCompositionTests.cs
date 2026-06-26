@@ -87,35 +87,52 @@ namespace WorldZones.Runtime.Tests
                 Assert.True(r.MinElevation <= r.MeanElevation + 1e-3, $"{r.RegionKey}: min > mean");
                 Assert.True(r.MeanElevation <= r.MaxElevation + 1e-3, $"{r.RegionKey}: mean > max");
 
-                // ...and a LAND region's minimum elevation must sit at/above the water line. The fringe
-                // bug pulled min down to ~shore height (≈ water level); land-only keeps it on land.
-                // ZoneClassifier.DefaultWaterLevel is the shore reference (30m in Valheim terms).
+                // ...and a land region's minimum elevation must not be dragged below its true land floor
+                // by a shallow water fringe (the contamination bug this test guards). The floor depends
+                // on the biome rescue: a SWAMP-bearing region legitimately includes sub-waterline swamp
+                // terrain (the swamp land-floor, ~22 m — RegionBuildOptions.SwampLandFloorMeters), so its
+                // floor is that floor; a region with NO swamp must still sit at/above the 30 m waterline
+                // (any sub-30 there WOULD be leaked shallow fringe). This keeps the original fringe guard
+                // intact for non-swamp regions while admitting the intended swamp rescue.
+                bool hasSwamp = r.BiomeZoneCounts.TryGetValue(BiomeType.Swamp, out int sc) && sc > 0;
+                float floor = hasSwamp ? SwampFloor : ZoneClassifier.DefaultWaterLevel;
                 Assert.True(
-                    r.MinElevation >= ZoneClassifier.DefaultWaterLevel - 1e-3,
-                    $"Region {r.RegionKey} ({r.Name}): MinElevation={r.MinElevation:F1} is below the water line " +
-                    $"({ZoneClassifier.DefaultWaterLevel:F1}) — shallow fringe is contaminating elevation.");
+                    r.MinElevation >= floor - 1e-3,
+                    $"Region {r.RegionKey} ({r.Name}): MinElevation={r.MinElevation:F1} is below its land floor " +
+                    $"({floor:F1}; hasSwamp={hasSwamp}) — shallow fringe is contaminating elevation.");
             }
         }
+
+        /// <summary>The shipped swamp land-floor (RegionBuildOptions default). A swamp region's terrain
+        /// legitimately reaches this far below the waterline; below it would be leaked water.</summary>
+        private const float SwampFloor = 22f;
 
         [Fact]
         public void OriginRegion_HasExpectedCorrectedValues()
         {
-            // Locks the specific corrected numbers for Niflheim's spawn region (Lindeid), so a
-            // regression in the land-gating shows up as a concrete, readable diff rather than a
-            // whole-world statistical drift. (Values are post-fix; pre-fix these were wrong.)
+            // Locks the specific values for Niflheim's spawn region, so a regression in the land-gating
+            // shows up as a concrete, readable diff rather than a whole-world statistical drift.
+            // NOTE: these are the SWAMP-LAND-FLOOR values (RegionBuildOptions default SwampLandFloorMeters=22):
+            // rescuing sub-waterline swamp into regions shifts seeding/growth, so spawn now resolves to a
+            // different, larger region (r.3.11 "the Highlands of Jarnfjord", BlackForest) than the pre-swamp
+            // r.3.-10 Meadows. This RegionKey renumber is the documented, accepted consequence of the
+            // classification change (keys are seed-coordinate-derived). The SampledLand==Land invariant
+            // and the land-only character guarantees still hold.
             RegionWorld world = BuildNiflheim();
             RegionInfo origin = world.RegionAt(0f, 0f);
 
             Assert.NotNull(origin);
-            Assert.Equal("r.3.-10", origin.RegionKey);
-            Assert.Equal(BiomeType.Meadows, origin.DominantBiome);
-            Assert.Equal(origin.LandZones, origin.SampledLandZones); // 267 == 267, the invariant
+            Assert.Equal("r.3.11", origin.RegionKey);
+            Assert.Equal(BiomeType.BlackForest, origin.DominantBiome);
+            Assert.Equal(origin.LandZones, origin.SampledLandZones); // 351 == 351, the invariant
 
-            // Meadows fraction is ~66% land-only (was a diluted ~64% under the fringe bug).
-            float meadows = origin.BiomeComposition[BiomeType.Meadows];
-            Assert.True(meadows > 0.64f && meadows < 0.69f, $"origin Meadows fraction {meadows:F3} off expected ~0.663");
+            // BlackForest dominates ~41%, Meadows ~36% (land-only denominator).
+            float blackForest = origin.BiomeComposition[BiomeType.BlackForest];
+            Assert.True(blackForest > 0.39f && blackForest < 0.44f,
+                $"origin BlackForest fraction {blackForest:F3} off expected ~0.413");
 
-            // min elevation sits on land (≈30m), not dragged to the waterline (~20m pre-fix).
+            // This spawn region carries no swamp, so its min elevation still sits on the 30 m land floor
+            // (the swamp rescue did not drag it down — the land-only character guarantee holds).
             Assert.True(origin.MinElevation >= 29f, $"origin MinElevation {origin.MinElevation:F1} should be land-floor ~30m");
         }
     }

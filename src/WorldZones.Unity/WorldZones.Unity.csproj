@@ -1,0 +1,61 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    WorldZones.Unity — Tier 2 of the region render seam (docs/design/region-render-seam.md).
+
+    Thin typed adapters over the pure Tier-1 geometry (WorldZones.Runtime) for the common
+    Valheim-map rendering scenarios. References UnityEngine ONLY — NO assembly_valheim, NO BepInEx,
+    NO Harmony. That quarantine is load-bearing (constitution §II): a reusable render-helper lib must
+    NOT hard-reference game assemblies (they version-match the game and break on 1.0). The live
+    game read (m_pixelSize / m_textureSize / uvRect) is done by the Tier-3 mod and passed in as
+    plain data via a MapFrame + ValheimMapConventions.
+
+    net472-only (Unity's Mono runtime). It carries NO algorithm — only type adaptation — so it is
+    correctly OUTSIDE the net8 headless test path; the math it leans on lives in Tier-1 under test.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <RootNamespace>WorldZones.Unity</RootNamespace>
+    <AssemblyName>WorldZones.Unity</AssemblyName>
+    <!-- Mirror the mod project's path convention: VALHEIM_MODDED_PATH env on Linux/CI, the Windows
+         rig default otherwise. The headless compile recipe sets VALHEIM_MODDED_PATH=~/.cache/wz-modref. -->
+    <ValheimModdedPath Condition="'$(ValheimModdedPath)' == ''">$(VALHEIM_MODDED_PATH)</ValheimModdedPath>
+    <ValheimModdedPath Condition="'$(ValheimModdedPath)' == ''">C:\valheim modding\ValheimModded</ValheimModdedPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Tier-1: the pure geometry + projection this assembly adapts. The only project dependency. -->
+    <ProjectReference Include="..\WorldZones.Runtime\WorldZones.Runtime.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- UnityEngine ONLY. CoreModule = Vector2/3, Color/Color32, Rect, Texture2D, Mathf; UIModule =
+         UIVertex / CanvasRenderer; UI = VertexHelper / MaskableGraphic (the uGUI overlay primitives).
+         Private=false: these are provided by the Unity runtime at load — never copied into the mod. -->
+    <Reference Include="UnityEngine">
+      <HintPath>$(ValheimModdedPath)\valheim_Data\Managed\UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(ValheimModdedPath)\valheim_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UIModule">
+      <HintPath>$(ValheimModdedPath)\valheim_Data\Managed\UnityEngine.UIModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!-- UIVertex lives here (forwarded from UnityEngine.dll). Still a UnityEngine module — NOT a game
+         assembly — so the quarantine holds. The Tier-3 mod references this module too. -->
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>$(ValheimModdedPath)\valheim_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>$(ValheimModdedPath)\valheim_Data\Managed\UnityEngine.UI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>

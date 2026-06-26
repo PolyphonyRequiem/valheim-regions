@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using WorldZones.Regions;
 using WorldZones.Runtime;
+using WorldZones.Runtime.Geometry;
 using WorldZones.WorldGen;
 using RegionInfo = WorldZones.Runtime.RegionInfo;
 
@@ -46,7 +47,8 @@ namespace WorldZones.Cli
             { BiomeType.DeepNorth, "DeepNorth" }, { BiomeType.Ocean, "Ocean" }, { BiomeType.Mistlands, "Mistlands" },
         };
 
-        public static int Export(string seed, string outputDir, bool inlandWater, string? vegetationCatalogue = null)
+        public static int Export(string seed, string outputDir, bool inlandWater,
+            string? vegetationCatalogue = null, bool emitBoundaries = false)
         {
             string dir = outputDir ?? Directory.GetCurrentDirectory();
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
@@ -91,6 +93,19 @@ namespace WorldZones.Cli
             var idToKey = result.Regions.ToDictionary(r => r.Id, r => r.RegionKey);
             WriteGrid(gridPath, worldGen, world.Grid, world.RegionIdGrid, idToKey);
             Console.WriteLine($"GRID: {gridPath} ({new FileInfo(gridPath).Length} bytes)");
+
+            // ── 4b. (optional) Emit the renderable BOUNDARY GEOMETRY sidecar ──────────────────────
+            //   The grid above ships the per-zone regionId raster; a render consumer (the overlay, a
+            //   Trailborne adapter) still has to re-derive the stroke-once seams, the fill rings, and
+            //   the smoothed contour arcs by calling RegionWorld.BuildBoundaryGraph() + the refiner
+            //   itself. This sidecar SHIPS that geometry so the dataset carries it, not just the grid.
+            //   OPTIONAL (--boundaries) so existing consumers that only read the grid are unaffected.
+            if (emitBoundaries)
+            {
+                string boundariesPath = Path.Combine(dir, $"{seed}_boundaries.json");
+                WriteBoundaries(boundariesPath, seed, commit, world, sampler);
+                Console.WriteLine($"BNDS: {boundariesPath} ({new FileInfo(boundariesPath).Length} bytes)");
+            }
 
             // ── 5. (optional) Emit modeled vegetation/ore sidecar from an extracted catalogue ──
             if (!string.IsNullOrEmpty(vegetationCatalogue))
@@ -251,6 +266,129 @@ namespace WorldZones.Cli
                 bw.Write((ushort)0);
                 bw.Write(h);
             }
+        }
+
+        // ─────────────────────────────────────────────────────────────────────────────
+        // Boundary-geometry sidecar — the RENDERABLE geometry (stroke-once seams, fill rings, and the
+        // smoothed contour arcs) the grid raster does NOT carry. A render consumer would otherwise
+        // re-derive all of this with RegionWorld.BuildBoundaryGraph() + RegionBoundaryRefiner; this
+        // ships it so the dataset is self-contained. All coordinates are world metres, +X east / +Z
+        // north, on the 64·n+32 zone-corner lattice (refined arcs are sub-zone). source = computed.
+        // ─────────────────────────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Emit <c>{seed}_boundaries.json</c>: the Tier-1 renderable boundary geometry for the world —
+        /// deduplicated <see cref="BorderSegment"/> seams (each stroke-once, keyed by the region pair),
+        /// closed <see cref="RegionRing"/> fill loops (CCW outer / CW hole), and the smoothed contour
+        /// arcs (coast via <c>RefineCoastlinesSmoothed</c>, biome-seam via <c>RefineBiomeSeams</c>).
+        /// Points are <c>[x, z]</c> world metres. One object per line for readability without ballooning
+        /// the file. The refined arcs match what the overlay would draw in-world (same refiner, same
+        /// 25 m coast iso). See docs/design/region-render-seam.md + docs/design/region-borders.md.
+        /// </summary>
+        static void WriteBoundaries(string path, string seed, string commit,
+            RegionWorld world, IWorldSampler sampler)
+        {
+            var ci = CultureInfo.InvariantCulture;
+
+            RegionBoundaryGraph graph = world.BuildBoundaryGraph();
+            var heightField = new HeightScalarField(sampler);                 // default 25 m coast iso
+            var biomeField = new BiomeCategoryField(sampler);
+            IReadOnlyList<RefinedBorder> coastArcs = RegionBoundaryRefiner.RefineCoastlinesSmoothed(graph, heightField);
+            IReadOnlyList<RefinedBorder> biomeSeamArcs = RegionBoundaryRefiner.RefineBiomeSeams(graph, biomeField);
+
+            int coastlineSegs = 0, interiorSegs = 0;
+            foreach (var s in graph.Segments) { if (s.IsCoastline) coastlineSegs++; else interiorSegs++; }
+            int outerRings = 0, holeRings = 0;
+            foreach (var r in graph.Rings) { if (r.IsHole) holeRings++; else outerRings++; }
+
+            string P(WzVec2 p) => $"[{p.X.ToString("F1", ci)}, {p.Z.ToString("F1", ci)}]";
+            string PR(WzVec2 p) => $"[{p.X.ToString("F2", ci)}, {p.Z.ToString("F2", ci)}]"; // refined: sub-metre
+
+            string Poly(IReadOnlyList<WzVec2> pts, Func<WzVec2, string> fmt)
+            {
+                var b = new StringBuilder(pts.Count * 14);
+                for (int i = 0; i < pts.Count; i++) { if (i > 0) b.Append(", "); b.Append(fmt(pts[i])); }
+                return b.ToString();
+            }
+
+            var sb = new StringBuilder(1 << 20);
+            sb.Append("{\n");
+
+            // provenance — non-optional for a substrate dataset
+            sb.Append("  \"provenance\": {\n");
+            sb.Append($"    \"schemaVersion\": {SchemaVersion},\n");
+            sb.Append($"    \"seed\": \"{Esc(seed)}\",\n");
+            sb.Append($"    \"worldId\": \"{Esc(world.WorldId)}\",\n");
+            sb.Append($"    \"portCommit\": \"{Esc(commit)}\",\n");
+            sb.Append($"    \"zoneSizeMeters\": {ZoneSize},\n");
+            sb.Append($"    \"coastIsoMeters\": {HeightScalarField.CoastIso.ToString("F1", ci)},\n");
+            sb.Append("    \"featureAwareBorders\": true,\n");
+            sb.Append("    \"valueSource\": \"computed\",\n");
+            sb.Append("    \"coordinateSpace\": \"world-metres, +X east / +Z north; coarse seams/rings on the 64n+32 zone-corner lattice, refined arcs sub-zone\",\n");
+            sb.Append($"    \"generatedUtc\": \"{DateTime.UtcNow.ToString("o", ci)}\",\n");
+            sb.Append("    \"note\": \"Renderable boundary geometry for the region world. segments = stroke-once seams keyed by region pair (keyB null = coastline / region-vs-void). rings = closed fill loops (CCW outer, CW hole). coastArcs / biomeSeamArcs = the smoothed sub-zone contour-hug polylines the overlay draws (same refiner + 25 m coast iso). The coarse 64 m seams/rings are the deterministic substrate; the arcs are an ADDITIVE render-detail layer. Join on regionKey to the gazetteer.\"\n");
+            sb.Append("  },\n");
+
+            // summary
+            sb.Append("  \"summary\": {\n");
+            sb.Append($"    \"regionCount\": {world.Regions.Count},\n");
+            sb.Append($"    \"segmentCount\": {graph.Segments.Count},\n");
+            sb.Append($"    \"coastlineSegmentCount\": {coastlineSegs},\n");
+            sb.Append($"    \"interiorSegmentCount\": {interiorSegs},\n");
+            sb.Append($"    \"ringCount\": {graph.Rings.Count},\n");
+            sb.Append($"    \"outerRingCount\": {outerRings},\n");
+            sb.Append($"    \"holeRingCount\": {holeRings},\n");
+            sb.Append($"    \"coastArcCount\": {coastArcs.Count},\n");
+            sb.Append($"    \"biomeSeamArcCount\": {biomeSeamArcs.Count}\n");
+            sb.Append("  },\n");
+
+            // segments — stroke-once seams (the borders-only render primitive)
+            sb.Append("  \"segments\": [\n");
+            for (int i = 0; i < graph.Segments.Count; i++)
+            {
+                var s = graph.Segments[i];
+                string keyB = s.KeyB == null ? "null" : $"\"{Esc(s.KeyB)}\"";
+                sb.Append($"    {{\"a\": {P(s.A)}, \"b\": {P(s.B)}, \"keyA\": \"{Esc(s.KeyA)}\", \"keyB\": {keyB}, \"coast\": {(s.IsCoastline ? "true" : "false")}}}");
+                sb.Append(i < graph.Segments.Count - 1 ? ",\n" : "\n");
+            }
+            sb.Append("  ],\n");
+
+            // rings — closed fill loops (fill / tint / parchment render)
+            sb.Append("  \"rings\": [\n");
+            for (int i = 0; i < graph.Rings.Count; i++)
+            {
+                var r = graph.Rings[i];
+                sb.Append($"    {{\"regionKey\": \"{Esc(r.RegionKey)}\", \"isHole\": {(r.IsHole ? "true" : "false")}, ");
+                sb.Append($"\"signedAreaM2\": {r.SignedArea.ToString("F0", ci)}, \"vertices\": [{Poly(r.Vertices, P)}]}}");
+                sb.Append(i < graph.Rings.Count - 1 ? ",\n" : "\n");
+            }
+            sb.Append("  ],\n");
+
+            // coastArcs — smoothed sub-zone coastline contour (KeyA = region, KeyB null)
+            sb.Append("  \"coastArcs\": [\n");
+            for (int i = 0; i < coastArcs.Count; i++)
+            {
+                var a = coastArcs[i];
+                sb.Append($"    {{\"regionKey\": \"{Esc(a.KeyA)}\", \"hugged\": {(a.Hugged ? "true" : "false")}, \"polyline\": [{Poly(a.Polyline, PR)}]}}");
+                sb.Append(i < coastArcs.Count - 1 ? ",\n" : "\n");
+            }
+            sb.Append("  ],\n");
+
+            // biomeSeamArcs — smoothed sub-zone region-vs-region biome-transition contour
+            sb.Append("  \"biomeSeamArcs\": [\n");
+            for (int i = 0; i < biomeSeamArcs.Count; i++)
+            {
+                var a = biomeSeamArcs[i];
+                sb.Append($"    {{\"keyA\": \"{Esc(a.KeyA)}\", \"keyB\": \"{Esc(a.KeyB)}\", \"hugged\": {(a.Hugged ? "true" : "false")}, \"polyline\": [{Poly(a.Polyline, PR)}]}}");
+                sb.Append(i < biomeSeamArcs.Count - 1 ? ",\n" : "\n");
+            }
+            sb.Append("  ]\n");
+
+            sb.Append("}\n");
+            File.WriteAllText(path, sb.ToString());
+
+            Console.WriteLine($"      boundaries: {graph.Segments.Count} seams ({coastlineSegs} coast), " +
+                              $"{graph.Rings.Count} rings, {coastArcs.Count} coast arcs, {biomeSeamArcs.Count} biome-seam arcs");
         }
 
         // ─────────────────────────────────────────────────────────────────────────────

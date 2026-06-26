@@ -78,6 +78,62 @@ namespace WorldZones.Regions
         }
 
         /// <summary>
+        /// Biome-aware classification: identical to the depth-only <see cref="Classify(ZoneGrid, Func{float, float, float}, ZoneClassifierOptions)"/>
+        /// overload, EXCEPT a zone is ALSO Land when its biome is Swamp and its height is at or above
+        /// <paramref name="swampLandFloor"/> (world metres). Swamp terrain straddles the waterline, so the
+        /// depth-only test drops most of it from regions; this rescues it. The rule is gated to Swamp, so
+        /// no other biome's classification changes. Pure (height + biome are caller-supplied funcs), so it
+        /// stays headless-testable. Pass <paramref name="swampLandFloor"/> = null to fall back to the
+        /// depth-only behaviour exactly.
+        /// </summary>
+        /// <param name="grid">The zone grid to populate.</param>
+        /// <param name="heightSampler">Returns terrain height given (worldX, worldZ).</param>
+        /// <param name="biomeIsSwamp">Returns true iff the biome at (worldX, worldZ) is Swamp.</param>
+        /// <param name="swampLandFloor">Swamp rescue floor (m). Null disables the rescue.</param>
+        /// <param name="options">Classification thresholds. Uses defaults when null.</param>
+        public static void ClassifyWithSwampFloor(
+            ZoneGrid grid,
+            Func<float, float, float> heightSampler,
+            Func<float, float, bool> biomeIsSwamp,
+            float? swampLandFloor,
+            ZoneClassifierOptions options = null)
+        {
+            if (grid == null) throw new ArgumentNullException(nameof(grid));
+            if (heightSampler == null) throw new ArgumentNullException(nameof(heightSampler));
+            if (biomeIsSwamp == null) throw new ArgumentNullException(nameof(biomeIsSwamp));
+
+            var opts = options ?? new ZoneClassifierOptions();
+            float waterLevel = opts.WaterLevel;
+            // Shelf split: when no explicit options are passed, match the IWorldDataProvider overload
+            // (waterLevel - DefaultShelfMaxDepth) — that is the path WorldZonesRuntime actually uses, so
+            // a null swamp-floor here is byte-identical to the shipped depth-only classify. An explicit
+            // options object still wins (the func-overload's ShallowDepth semantics).
+            float shallowThreshold = options != null
+                ? waterLevel - opts.ShallowDepth
+                : waterLevel - DefaultShelfMaxDepth;
+
+            foreach (var coord in grid.AllCoords())
+            {
+                var center = ZoneGrid.ZoneCenter(coord);
+                float height = heightSampler(center.worldX, center.worldZ);
+
+                DepthClass depth;
+                if (height >= waterLevel)
+                    depth = DepthClass.Land;
+                else if (swampLandFloor.HasValue && height >= swampLandFloor.Value
+                         && biomeIsSwamp(center.worldX, center.worldZ))
+                    // Swamp rescue: below the waterline but within the swamp floor AND actually Swamp.
+                    depth = DepthClass.Land;
+                else if (height >= shallowThreshold)
+                    depth = DepthClass.Shallow;
+                else
+                    depth = DepthClass.Deep;
+
+                grid[coord] = depth;
+            }
+        }
+
+        /// <summary>
         /// Fills <paramref name="grid"/> with <see cref="DepthClass"/> values
         /// using depth-based classification:
         /// terrainY ≥ SeaLevel → Land;

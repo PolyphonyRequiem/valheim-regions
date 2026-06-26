@@ -54,7 +54,49 @@
 > refinements of a WORKING layer, and "how aggressive / does it read on the ground" is walk-gated. Only
 > coastlines are refined so far; biome-seam contour-hug (region-vs-region) is the next field type.
 >
-> **🔭 DEFERRED — the SEEDING lever (NOT done this session, by scope).** The multi-biome-blob oddity
+> **🔭 THE SEEDING lever — PROTOTYPED + MEASURED (2026-06-25, branch `feat/region-render-seam-tier1`).**
+> The multi-biome-blob oddity (Greater Nordadal = Mtn30/Mist30/Plns20/BFor18; Aesirvoll = 4-way blend)
+> is caused by where SEEDS land, not how borders route between them — confirmed THREE times (raw-slope,
+> symmetric v3, falsified home-biome-pin). This pass BUILT the seeding lever and measured it on real
+> Niflheim. **Headline: it is the FIRST lever that moves composition at all** (the 3 routing attempts
+> were dead flat at ~73% dominant-biome), **but the naive "more seeds" version buys purity mostly by
+> MULTIPLYING region count — Daniel's judgment call on the fork.**
+>
+> Architecture (mirrors the cost field exactly, so Regions stays biome-blind): an opaque
+> `SeedingField` (a per-zone biome-diversity `double[,]` + an `Aggressiveness` scalar + a `PlacementBias`
+> scalar) is consumed by `ProtoRegionGenerator` — it never sees a biome, only numbers.
+> `RegionSeedingFieldBuilder` (Runtime, has biomes) computes per-zone diversity = distinct LAND biomes
+> in a 5×5 window, normalised by a 4-biome cap. Two levers, both gated behind
+> `RegionBuildOptions.UseBiomeAwareSeeding` (default OFF → **byte-identical legacy seeding**, proven by
+> the gazetteer regression guard + Regions 73/73 unchanged):
+> 1. **Budget** — a diverse component's seed count scales `× (1 + Aggressiveness · meanDiversity)`, so a
+>    biome-mixed landmass gets more seeds → splits into smaller, more-mono-biome regions.
+> 2. **Placement bias** — among farthest-point candidates, discount junction cells (`score × (1 −
+>    PlacementBias · weight)`) so the extra seeds prefer biome INTERIORS, giving each biome patch its
+>    own seat. (NOTE: junction-SEEKING placement would make blobs worse — interiors is the right sign.)
+>
+> **Measured sweep on real Niflheim (ForTheWort), routing held ON throughout** (`seedlab` CLI command):
+>
+> | aggr | regions | meanDom% | blended<55% | on-feat% |
+> |--:|--:|--:|--:|--:|
+> | 0 (off) | 162 | 72.9% | 48 (29.6%) | 54.2% |
+> | 0.5 | 166 | 73.3% | 45 (27.1%) | 56.5% |
+> | 1.0 | 181 | 72.9% | 51 (28.2%) | 52.5% |
+> | 2.0 | 238 | 74.3% | 55 (23.1%) | 57.5% |
+> | 4.0 | 297 | 75.7% | 64 (21.5%) | 58.4% |
+>
+> Placement bias (budget aggr=2.0 held): bias 0→0.9 drops blended 55→50 at the SAME region count, +0.6pt
+> meanDom — a small, free sharpening (no extra regions). **Honest read:** the lever WORKS (meanDom up,
+> blended-fraction down, and on-feature% goes UP so routing isn't hurt) but the gain is modest and the
+> dominant cost is region-count inflation (162→297 at aggr 4). The blended-region *fraction* falls from
+> 30% to 21%; the absolute count barely moves because the map just gets busier. **This is a now-or-never
+> pre-ship window (RegionKey renumbers on any seed change), but the right aggressiveness is partly an
+> in-world-walk judgment** — does a 237-region Niflheim read as "more places" or "noise"? That's the
+> client-gated decision. Eye-validated colorblind-safe (biome by LIGHTNESS, blended blobs by HATCH not
+> hue): the hatched (blob) area thins under the lever but the map densifies. Lever code is gated + kept;
+> the aggressiveness/bias defaults are a starting dial, NOT locked. See `seedlab` + `RegionSeedingFieldBuilder`.
+
+> **🔭 DEFERRED (superseded above) — the SEEDING lever.** [Original deferral note kept for history; the lever is now built + measured, see the block immediately above.] The multi-biome-blob oddity
 > (Greater Nordadal = Mtn30/Mist30/Plns20/BFor18; Aesirvoll = 4-way blend) is caused by where SEEDS
 > land, not how borders route between them. Fix = biome-aware seed placement / region splitting (drop
 > more seeds in biome-diverse components, or split a region that spans N biomes). The border-model already
@@ -312,3 +354,50 @@ sign — another "only real terrain reveals it" save.
 > `cost(enter cell) = 12 if biome-edge, 8 if shore, 1 if interior` → multi-source Dijkstra from seeds.
 > Tunable: the 12/8/1 ratios are the per-feature "exaggeration" weights. Slope can return as a *small*
 > additive term for the dramatic-mountain tie-break, but it is NOT the driver.
+
+## The swamp land-floor (2026-06-26) — rescuing swamp into regions
+
+**Symptom (Daniel's walk):** swamp wasn't reliably showing up inside regions — patches of swamp had no
+fill and no borders, as if the region system didn't see them.
+
+**Root cause (measured, real Niflheim seed ForTheWort):** `ZoneClassifier` decides "is this zone land?"
+purely by depth — one height sample at the zone centre, `terrainY ≥ 30` (the waterline) → Land, else
+dropped to Shallow/Deep and excluded from every region. But **swamp terrain straddles the waterline**: its
+measured height band is **24.8–33.8 m** (swamp is the soggy biome; Bonemass/Sunken-Crypt spawn at
+"Altitude 0–2" above water, and it's full of standing-water pools). So the single centre-sample is a
+coin-flip and **64.4% of swamp zones (1268 / 1969) get dropped** — holes punched straight through solid
+swamp, not just trimmed at the edge. Swamp is uniquely wrecked because, unlike meadows/plains/black-forest
+(which have dry interiors well above 30 m and only lose their offshore fringe), swamp has **no dry
+interior** — the whole biome lives at the waterline.
+
+**The fix — a swamp-gated land floor (`RegionBuildOptions.SwampLandFloorMeters`, default 22 m).** A zone is
+Land if `height ≥ 30 OR (biome == Swamp AND height ≥ 22)`. Implemented as
+`ZoneClassifier.ClassifyWithSwampFloor` (pure: takes height + biome funcs, no Unity), wired in
+`WorldZonesRuntime.Build` (where the sampler is available; the topology layer stays biome-blind). A null
+floor falls back byte-identical to the legacy depth-only classify.
+
+**Why a swamp-gated floor and not the alternatives** (all three modelled + measured against real Niflheim,
+rendered to PNG for eyeball review):
+- **Multi-sample (centre + 4 corners, land if any ≥ 30):** heals most holes but inflates *every*
+  coastline by up to a zone (it's an OR over all biomes), and still leaves a fringe — broad shallow blast
+  radius. Rejected.
+- **Biome-aware (land if biome ≠ Ocean):** fully heals swamp but pulls *all* sub-waterline coastal shelf
+  of every biome into "land" (measured: BlackForest/Plains/Mistlands terrain tagged that biome reaches
+  down to y=0), growing regions out over the shallows and risking island-merge via the shelf. Biggest
+  blast radius. Rejected.
+- **Swamp-gated floor (chosen):** because the rule is gated `biome == Swamp`, it is *incapable* of
+  touching any other biome — **measured: 0 non-swamp zones change across the whole world.** The
+  "special-case" IS the containment. Floor 22 m sits just below swamp's measured 24.8 m floor, so it fully
+  heals swamp (**64.4% → 0% dropped at floor ≤ 22; 1.6% at the conservative 26**) without reaching into
+  open water.
+
+**Accepted consequence — RegionKey renumber.** Adding swamp land shifts seed placement + growth, so region
+keys/names move (e.g. Niflheim spawn went `r.3.-10` Meadows → `r.3.11` BlackForest "the Highlands of
+Jarnfjord"). Keys are seed-coordinate-derived, so any classification change does this — it's free
+pre-public-playtest but invalidates persisted discovery state, so it must land **before** players have
+discovery history. Accepted 2026-06-26 (pre-public-playtest).
+
+**Guarantees held (tested, `SwampLandFloorTests` + `GazetteerCompositionTests`):** the
+`SampledLandZones ≤ LandZones` fringe-leak invariant still holds (the rescue does not reopen the shallow-
+fringe contamination bug); every below-30 m region contains swamp (0 non-swamp dragged down); null floor is
+byte-identical to legacy. The fix only ever ADDS land (monotonic).

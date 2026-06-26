@@ -35,6 +35,7 @@ namespace WorldZones.Cli
             string? onlyStrategy = null;
             string? probePrefab = null;
             string? dumpPath = null;
+            bool emitBoundaries = false;
 
             for (int i = 1; i < args.Length; i++)
             {
@@ -58,6 +59,8 @@ namespace WorldZones.Cli
                     probePrefab = args[++i];
                 else if (args[i] == "--dump" && i + 1 < args.Length)
                     dumpPath = args[++i];
+                else if (args[i] == "--boundaries")
+                    emitBoundaries = true;
             }
 
             switch (command)
@@ -67,7 +70,9 @@ namespace WorldZones.Cli
                 case "regions":
                     return ExportRegions(seed, output, includeInlandWater, compareInland);
                 case "gazetteer":
-                    return Gazetteer.Export(seed, output ?? Directory.GetCurrentDirectory(), includeInlandWater, vegetationCatalogue);
+                    return Gazetteer.Export(seed, output ?? Directory.GetCurrentDirectory(), includeInlandWater, vegetationCatalogue, emitBoundaries);
+                case "seedlab":
+                    return SeedLab.Run(seed, output ?? Directory.GetCurrentDirectory());
                 case "locations":
                     if (locationCatalogue == null)
                     {
@@ -75,6 +80,13 @@ namespace WorldZones.Cli
                         return 1;
                     }
                     return LocationValidation.Run(seed, locationCatalogue, oracle, onlyStrategy, dumpPath);
+                case "locregion":
+                    if (locationCatalogue == null || oracle == null)
+                    {
+                        Console.Error.WriteLine("locregion: --catalogue <locations.json> and --oracle <raw.json> required");
+                        return 1;
+                    }
+                    return LocationRegionAccuracy.Run(seed, locationCatalogue, oracle);
                 case "probe":
                     if (locationCatalogue == null || oracle == null || onlyStrategy == null)
                     {
@@ -110,6 +122,7 @@ namespace WorldZones.Cli
             Console.WriteLine("  --inland-water   Enable inland-water attribution for proto region export");
             Console.WriteLine("  --compare-inland Export both baseline and inland-water candidate proto-region PNGs");
             Console.WriteLine("  --vegetation <catalogue.json>  (gazetteer) Emit a modeled ore/vegetation sidecar from an extracted catalogue");
+            Console.WriteLine("  --boundaries     (gazetteer) Also emit {seed}_boundaries.json — renderable seam/ring/contour geometry");
         }
 
         // ────────────────────────────────────────────────────────────

@@ -6,10 +6,12 @@ using BepInEx;
 using HarmonyLib;
 using UnityEngine;
 using WorldZones.Mod.RegionOverlay.Integration;
+using WorldZones.Mod.RegionOverlay.Overlay;
 using WorldZones.Mod.RegionOverlay.Patches;
 using WorldZones.Mod.RegionOverlay.Persistence;
 using WorldZones.Regions;
 using WorldZones.Runtime;
+using WorldZones.Runtime.Geometry;
 using WorldZones.WorldGen;
 
 namespace WorldZones.Mod.RegionOverlay
@@ -31,6 +33,15 @@ namespace WorldZones.Mod.RegionOverlay
         private string? lastWorldSeedName;
         private DiscoveryStore? discoveryStore;
         private Harmony? harmony;
+
+        // ── Tier-3 region overlay (borders-only live draw onto the large map) ───────────────────────
+        // The style dial (resting default = Borders), the controller that draws it, and the hotkey
+        // that cycles it. The controller mounts under Minimap.m_pinRootLarge and fog-gates via a
+        // reflected Minimap.IsExplored. See docs/design/region-render-seam.md (step 3).
+        private RegionOverlayController? overlayController;
+        private RegionOverlayStyle overlayStyle = RegionOverlayStyle.Borders;
+        private const KeyCode OverlayCycleKey = KeyCode.F8;
+        private bool overlayWorldCached;
         // Live realization overlay — non-null only when a location-bearing gazetteer has been built
         // (a consumer that opts into RegionBuildOptions.LocationSource). Until then the realization
         // signal is received but has nothing to update, so it is a no-op. See location-gazetteer-api.md.
@@ -48,6 +59,13 @@ namespace WorldZones.Mod.RegionOverlay
             this.minimapLabelController = new MinimapLabelController();
             this.regionLookupService = NullRegionLookupService.Instance;
             this.discoveryStore = new DiscoveryStore(this.Logger);
+            this.overlayController = new RegionOverlayController(this.Logger);
+            if (!this.overlayController.FogAvailable)
+            {
+                this.Logger.LogWarning(
+                    "RegionOverlay: fog gate (Minimap.IsExplored) did not resolve — the borders overlay will " +
+                    "stay disabled rather than draw the whole unfogged map.");
+            }
             this.Logger.LogInfo($"{PluginName} v{PluginVersion} loaded.");
         }
 
@@ -126,6 +144,11 @@ namespace WorldZones.Mod.RegionOverlay
 
         private void Update()
         {
+            // Hotkey + overlay render run EVERY frame (not on the 0.5s throttle): a throttled key poll
+            // drops presses, and the overlay must track pan/zoom smoothly. Cheap when the map is closed
+            // (the controller early-returns) — the per-seam fog filter only runs while the large map is open.
+            this.PumpRegionOverlay();
+
             this.updateTimer += Time.deltaTime;
             if (this.updateTimer < UpdateIntervalSeconds)
             {
@@ -225,7 +248,13 @@ namespace WorldZones.Mod.RegionOverlay
                 {
                     TargetZonesPerRegion = DefaultTargetZonesPerRegion,
                     SeedRng = seedRng,
-                    ComputeRegionInfo = false,    // point-query-only: no aggregation, no naming
+                    // ComputeRegionInfo=true: run the gazetteer aggregation + MultiSchemaRegionNamer so
+                    // the lookup service returns RICH multi-schema region names (threaded RegionKey→Name)
+                    // on the minimap + large-map hover labels, instead of the legacy flat catalogue. This
+                    // was deliberately OFF for point-query speed; it adds the GazetteerBuilder aggregation
+                    // + biome-sampler pass at world load. Daniel accepts the cost for the public demo
+                    // (locked 2026-06-25). The added load time is measured + reported in review.
+                    ComputeRegionInfo = true,
                     // Feature-aware borders ON: borders fall on biome edges / shores / rivers (watershed
                     // Dijkstra), matching the gazetteer dataset so the map a player sees == the dataset.
                     // See docs/design/region-borders.md. This is what Daniel asked for: the new
@@ -238,6 +267,16 @@ namespace WorldZones.Mod.RegionOverlay
                     ? worldIdentity
                     : seedName;
                 this.regionDataReady = true;
+
+                // Tier-3 overlay: build + cache the renderable boundary geometry ONCE per world load
+                // (AC-T3-DRAW-1 — not per frame). Source the id→key map from ProtoResult.Regions
+                // (always populated regardless of ComputeRegionInfo; ProtoRegion.Id is the grid label,
+                // ProtoRegion.RegionKey the durable key — the SAME mapping GazetteerBuilder uses), and
+                // call the Tier-1 extractor directly. ProtoResult is the stable source here, so this
+                // is unaffected by the ComputeRegionInfo flag (now true for rich naming). The live
+                // `sampler` is passed through so Layer-0 can refine the arcs off the SAME field source
+                // the headless gazetteer uses (AC-V2-L0-3).
+                this.CacheOverlayGeometry(regionWorld, sampler);
 
                 sw.Stop();
                 ProtoRegionResult protoResult = regionWorld.ProtoResult;
@@ -260,6 +299,108 @@ namespace WorldZones.Mod.RegionOverlay
             this.regionDataReady = false;
             this.regionLookupService = NullRegionLookupService.Instance;
             this.lastWorldSeedName = null;
+
+            // Tier-3 overlay: tear down the mount + drop the cached geometry so the next world rebuilds it.
+            this.overlayController?.Unmount();
+            this.overlayWorldCached = false;
+        }
+
+        /// <summary>
+        /// Per-frame overlay pump: poll the cycle hotkey + render the current style. Cheap when the
+        /// large map is closed (the controller early-returns without touching the fog gate). The hotkey
+        /// advances the style enum (AC-T3-DRAW-2); the render selects ink/fill per the locked table.
+        /// </summary>
+        private void PumpRegionOverlay()
+        {
+            if (this.overlayController == null) return;
+
+            // Cycle hotkey — every frame (GetKeyDown is edge-triggered). Suppressed while a text field
+            // has focus so it doesn't fire mid-typing (console / rename / chat).
+            if (Input.GetKeyDown(OverlayCycleKey) && !IsTextInputActive())
+            {
+                this.overlayStyle = this.overlayStyle.Next();
+                this.Logger.LogInfo($"RegionOverlay: style → {this.overlayStyle} (hotkey {OverlayCycleKey}).");
+            }
+
+            // Render only once a world's geometry is cached; otherwise keep the overlay hidden.
+            if (this.regionDataReady && this.overlayWorldCached)
+            {
+                this.overlayController.Render(this.overlayStyle);
+            }
+            else
+            {
+                this.overlayController.Render(RegionOverlayStyle.Vanilla); // hides content, keeps host alive
+            }
+        }
+
+        /// <summary>True if a uGUI/text field currently has keyboard focus (so the hotkey shouldn't fire).</summary>
+        private static bool IsTextInputActive()
+        {
+            try
+            {
+                if (global::Console.instance != null && global::Console.IsVisible()) return true;
+                if (global::Chat.instance != null && global::Chat.instance.HasFocus()) return true;
+                if (global::TextInput.IsVisible()) return true;
+            }
+            catch
+            {
+                // Defensive: any of these singletons can be absent in some scenes — never block the hotkey on a throw.
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Build the renderable boundary geometry for the loaded world and hand it (plus the refined
+        /// contour-hugging arcs + the region-id grid) to the overlay controller, ONCE per world load.
+        /// The id→key map comes from <c>ProtoResult.Regions</c> (always populated, independent of
+        /// <c>ComputeRegionInfo</c>; <c>ProtoRegion.Id</c> is the grid label, <c>ProtoRegion.RegionKey</c>
+        /// the durable key) so the extracted seams carry real durable keys regardless of the naming flag.
+        /// Mirrors <c>RegionWorld.BuildBoundaryGraph</c>'s logic against the populated proto set.
+        ///
+        /// <para>Layer 0 (v2): the same graph is refined into smooth coast ∪ biome-seam arcs via the
+        /// SAME two refiners + default isos the headless <c>gazetteer --boundaries</c> path uses
+        /// (<c>Gazetteer.WriteBoundaries</c>) — so the in-world arcs equal the shipped
+        /// <c>{seed}_boundaries.json</c> dataset (AC-V2-L0-3). Built once here, never per frame
+        /// (AC-V2-L0-1). The fields read the live <paramref name="sampler"/> directly.</para>
+        /// </summary>
+        private void CacheOverlayGeometry(RegionWorld regionWorld, IWorldSampler sampler)
+        {
+            if (this.overlayController == null) return;
+            if (!this.overlayController.FogAvailable)
+            {
+                // Fail-closed: without the fog mask we must not draw, so skip caching entirely.
+                this.overlayWorldCached = false;
+                return;
+            }
+
+            try
+            {
+                var idToKey = new Dictionary<int, string>();
+                foreach (ProtoRegion r in regionWorld.ProtoResult.Regions)
+                {
+                    if (!idToKey.ContainsKey(r.Id)) idToKey[r.Id] = r.RegionKey;
+                }
+
+                RegionBoundaryGraph graph = RegionBoundaryExtractor.Extract(
+                    regionWorld.RegionIdGrid, regionWorld.Grid.MinIndex, idToKey);
+
+                // Layer 0: refine the SAME graph into smooth arcs (coast ∪ biome-seam) off the live
+                // sampler — byte-for-byte the headless gazetteer path (Gazetteer.WriteBoundaries:294-297:
+                // same two refiners, same fields, same 25 m default coast iso). One flat List<RefinedBorder>.
+                var heightField = new HeightScalarField(sampler);   // default CoastIso = 25 m
+                var biomeField = new BiomeCategoryField(sampler);
+                var arcs = new List<RefinedBorder>();
+                arcs.AddRange(RegionBoundaryRefiner.RefineCoastlinesSmoothed(graph, heightField));
+                arcs.AddRange(RegionBoundaryRefiner.RefineBiomeSeams(graph, biomeField));
+
+                this.overlayController.SetWorld(graph, arcs, regionWorld.RegionIdGrid, regionWorld.Grid.MinIndex);
+                this.overlayWorldCached = true;
+            }
+            catch (Exception ex)
+            {
+                this.Logger.LogError($"RegionOverlay: failed to cache boundary geometry: {ex}");
+                this.overlayWorldCached = false;
+            }
         }
 
         /// <summary>
@@ -364,6 +505,7 @@ namespace WorldZones.Mod.RegionOverlay
         {
             MinimapUpdateBiomePatch.BiomeUpdated -= this.OnMinimapBiomeUpdated;
             PlayerUpdateBiomePatch.BiomeUpdated -= this.OnPlayerBiomeUpdated;
+            this.overlayController?.Unmount();
             this.harmony?.UnpatchSelf();
         }
 

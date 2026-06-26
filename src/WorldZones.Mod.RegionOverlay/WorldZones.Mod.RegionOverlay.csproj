@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\WorldZones.Regions\WorldZones.Regions.csproj" />
     <ProjectReference Include="..\WorldZones.Runtime\WorldZones.Runtime.csproj" />
+    <ProjectReference Include="..\WorldZones.Unity\WorldZones.Unity.csproj" />
   </ItemGroup>
 
   <ItemGroup>

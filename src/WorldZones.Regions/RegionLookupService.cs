@@ -10,9 +10,10 @@ namespace WorldZones.Regions
         private readonly string worldId;
         private readonly HashSet<int> knownRegionIds;
         private readonly Dictionary<int, Vector2i> identityById;
+        private readonly IReadOnlyDictionary<string, string> namesByKey;
 
         public RegionLookupService(ZoneGrid grid, int[,] regionIdGrid, string worldId, IEnumerable<int> knownRegionIds)
-            : this(grid, regionIdGrid, worldId, knownRegionIds, null)
+            : this(grid, regionIdGrid, worldId, knownRegionIds, null, null)
         {
         }
 
@@ -24,6 +25,21 @@ namespace WorldZones.Regions
         /// </summary>
         public RegionLookupService(ZoneGrid grid, int[,] regionIdGrid, string worldId,
             IEnumerable<int> knownRegionIds, Dictionary<int, Vector2i> identityById)
+            : this(grid, regionIdGrid, worldId, knownRegionIds, identityById, null)
+        {
+        }
+
+        /// <summary>
+        /// Constructs a lookup service that, in addition to durable identity, resolves the rich
+        /// display name via <paramref name="namesByKey"/> (RegionKey → name, produced by the active
+        /// <c>IRegionNamer.NameAll</c>). When that map is present, <see cref="ResolveCurrent"/>
+        /// PREFERS it over the legacy deterministic hash; when it is null (point-query-only consumers,
+        /// tests, identity-less callers) the legacy hash is used unchanged. This is the seam that
+        /// lets the multi-schema namer's output reach the live minimap labels.
+        /// </summary>
+        public RegionLookupService(ZoneGrid grid, int[,] regionIdGrid, string worldId,
+            IEnumerable<int> knownRegionIds, Dictionary<int, Vector2i> identityById,
+            IReadOnlyDictionary<string, string> namesByKey)
         {
             this.grid = grid ?? throw new ArgumentNullException(nameof(grid));
             this.regionIdGrid = regionIdGrid ?? throw new ArgumentNullException(nameof(regionIdGrid));
@@ -34,6 +50,7 @@ namespace WorldZones.Regions
                 ? throw new ArgumentNullException(nameof(knownRegionIds))
                 : new HashSet<int>(knownRegionIds);
             this.identityById = identityById;
+            this.namesByKey = namesByKey;
         }
 
         public RegionLookupResult ResolveCurrent(float worldX, float worldZ)
@@ -78,7 +95,10 @@ namespace WorldZones.Regions
                     HasRegion = true,
                     RegionId = regionId,
                     RegionKey = key,
-                    RegionName = RegionGuidNameService.CreateDeterministicName(this.worldId, key),
+                    // Prefer the rich, named-region map (multi-schema namer output) when threaded
+                    // through; fall back to the legacy deterministic hash when absent so tests and
+                    // point-query-only consumers keep their existing behaviour.
+                    RegionName = this.ResolveName(key),
                     ResolutionReason = RegionResolutionReason.Resolved
                 };
             }
@@ -90,6 +110,24 @@ namespace WorldZones.Regions
                 RegionName = RegionGuidNameService.CreateDeterministicName(this.worldId, regionId),
                 ResolutionReason = RegionResolutionReason.Resolved
             };
+        }
+
+        /// <summary>
+        /// Resolves the display name for a region identity key: the rich name from the threaded
+        /// <c>namesByKey</c> map when present and populated for this key, otherwise the legacy
+        /// deterministic hash over (worldId, key). Keeping the hash fallback means an identity-less
+        /// or naming-skipped build still yields a stable name.
+        /// </summary>
+        private string ResolveName(string key)
+        {
+            if (this.namesByKey != null
+                && this.namesByKey.TryGetValue(key, out var richName)
+                && !string.IsNullOrWhiteSpace(richName))
+            {
+                return richName;
+            }
+
+            return RegionGuidNameService.CreateDeterministicName(this.worldId, key);
         }
     }
 }

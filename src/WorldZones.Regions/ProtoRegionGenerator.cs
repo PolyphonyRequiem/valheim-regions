@@ -95,7 +95,8 @@ namespace WorldZones.Regions
             int minRegionZones = DefaultMinRegionZones,
             int minComponentZonesForProto = DefaultMinComponentZonesForProto,
             InlandWaterAttributionOptions inlandWaterOptions = null,
-            RegionCostField costField = null)
+            RegionCostField costField = null,
+            SeedingField seedingField = null)
         {
             if (grid == null) throw new ArgumentNullException(nameof(grid));
             if (landComponents == null) throw new ArgumentNullException(nameof(landComponents));
@@ -144,8 +145,27 @@ namespace WorldZones.Regions
 
             foreach (var lc in seededComponents)
             {
-                int componentSeedCount = Math.Max(1, lc.Zones.Count / targetZonesPerRegion);
-                var placed = PlaceSeeds(lc.Zones, lc.Zones.Count, componentSeedCount, rng);
+                // Legacy budget: one seed per `targetZonesPerRegion` land zones (area-only, biome-blind).
+                int baseSeedCount = Math.Max(1, lc.Zones.Count / targetZonesPerRegion);
+
+                // Biome-aware budget (opt-in): scale the budget UP for components that span many biomes,
+                // so a diverse landmass splits into more, smaller regions — each spanning fewer biomes.
+                // The field is opaque (Regions stays biome-blind); Runtime computed the per-zone diversity.
+                // A null field leaves baseSeedCount untouched → byte-identical to the legacy seeding.
+                int componentSeedCount = baseSeedCount;
+                if (seedingField != null && seedingField.Aggressiveness > 0.0)
+                {
+                    double sum = 0.0;
+                    foreach (var z in lc.Zones)
+                        sum += seedingField.Weight(z.x - min, z.y - min);
+                    double meanWeight = lc.Zones.Count > 0 ? sum / lc.Zones.Count : 0.0;
+                    // budget *= 1 + aggressiveness*meanWeight; round to nearest, never below the legacy
+                    // area budget (the lever only ADDS seeds — it never coarsens a region).
+                    double scaled = baseSeedCount * (1.0 + seedingField.Aggressiveness * meanWeight);
+                    componentSeedCount = Math.Max(baseSeedCount, (int)Math.Round(scaled, MidpointRounding.AwayFromZero));
+                }
+
+                var placed = PlaceSeeds(lc.Zones, lc.Zones.Count, componentSeedCount, rng, seedingField, min);
                 seeds.AddRange(placed);
             }
 
@@ -573,12 +593,21 @@ namespace WorldZones.Regions
         /// Places seed zones using farthest-point heuristic within a given
         /// list of candidate coordinates. First seed is random; each subsequent
         /// seed maximizes minimum Manhattan distance to all existing seeds.
+        /// <para>
+        /// When a <paramref name="seedingField"/> with a positive
+        /// <see cref="SeedingField.PlacementBias"/> is supplied, the farthest-point score is multiplied
+        /// by <c>1 − bias·weight</c> so seeds prefer biome INTERIORS (low-diversity cells) over junctions
+        /// — giving each biome patch its own seat. A null field or zero bias is byte-identical to the
+        /// legacy pure farthest-point placement (the field is never consulted).
+        /// </para>
         /// </summary>
         private static List<Vector2i> PlaceSeeds(
             List<Vector2i> landCoords,
             int landCount,
             int seedCount,
-            Random rng)
+            Random rng,
+            SeedingField seedingField = null,
+            int gridMin = 0)
         {
             var seeds = new List<Vector2i>(seedCount);
 
@@ -588,13 +617,15 @@ namespace WorldZones.Regions
             // First seed: random land zone from this group
             seeds.Add(landCoords[rng.Next(landCount)]);
 
+            bool biasPlacement = seedingField != null && seedingField.PlacementBias > 0.0;
+
             // Subsequent seeds: farthest-point sampling with 256 candidates
             const int CandidateCount = 256;
 
             for (int s = 1; s < seedCount; s++)
             {
                 Vector2i best = landCoords[0];
-                int bestScore = -1;
+                double bestScore = -1.0;
 
                 int candidatesThisRound = Math.Min(CandidateCount, landCount);
                 for (int c = 0; c < candidatesThisRound; c++)
@@ -609,10 +640,17 @@ namespace WorldZones.Regions
                             minDist = d;
                     }
 
-                    if (minDist > bestScore ||
-                        (minDist == bestScore && TieBreak(candidate, best)))
+                    // Legacy: score = minDist (integer). Biased: discount junction candidates so the
+                    // frontier prefers biome interiors. 1−bias·weight ∈ (0,1], so interiors keep their
+                    // full distance score and junctions are pushed down — interiors win ties of distance.
+                    double score = minDist;
+                    if (biasPlacement)
+                        score *= 1.0 - seedingField.PlacementBias * seedingField.Weight(candidate.x - gridMin, candidate.y - gridMin);
+
+                    if (score > bestScore ||
+                        (score == bestScore && TieBreak(candidate, best)))
                     {
-                        bestScore = minDist;
+                        bestScore = score;
                         best = candidate;
                     }
                 }
