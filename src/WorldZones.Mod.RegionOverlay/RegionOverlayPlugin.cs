@@ -425,8 +425,18 @@ namespace WorldZones.Mod.RegionOverlay
                 int haloH = (int)(gh * zone / haloCell);
                 var haloHeight = new HeightScalarField(sampler, CoastHaloField.SeaLevel);
                 CoastHaloField haloFld = CoastHaloField.Build(
-                    haloHeight, haloOriginX, haloOriginZ, haloCell, haloW, haloH);
+                    haloHeight, haloOriginX, haloOriginZ, haloCell, haloW, haloH,
+                    // Band 96 m + depth-gate 14 m: the validated Atlas glow that hugs the coast and dies
+                    // over deep water (no open-sea haze). docs/design/region-atlas-render.md. The F7
+                    // gold halo on the other styles also picks up the tighter band — an improvement.
+                    bandMeters: CoastHaloField.DefaultBandMeters, depthFadeMeters: 14.0);
                 this.overlayController.SetHaloField(haloFld);
+
+                // Atlas biome-fill palette: one wash colour per grid label (RegionInfo.TransientId),
+                // from each region's DominantBiome (ComputeRegionInfo=true above guarantees it). Built
+                // once per world; the controller scales alpha at draw. Falls back to the lightness ramp
+                // for any label without a rich region (shouldn't happen, but safe).
+                this.overlayController.SetBiomePalette(BuildBiomePalette(regionWorld));
 
                 this.overlayWorldCached = true;
             }
@@ -435,6 +445,32 @@ namespace WorldZones.Mod.RegionOverlay
                 this.Logger.LogError($"RegionOverlay: failed to cache boundary geometry: {ex}");
                 this.overlayWorldCached = false;
             }
+        }
+
+        /// <summary>
+        /// Build the Atlas biome-fill palette: a flat list indexed by grid label
+        /// (<c>RegionInfo.TransientId</c>) → that region's <c>DominantBiome</c> wash colour
+        /// (<see cref="BiomeRenderPalette.Wash"/>). Sized to the max label + 1 so the Tier-2 baker can
+        /// index it directly (same contract as the lightness ramp). Labels with no rich region get a
+        /// neutral grey (shouldn't happen with ComputeRegionInfo=true, but never index out of range).
+        /// </summary>
+        private static List<UnityEngine.Color32> BuildBiomePalette(RegionWorld regionWorld)
+        {
+            int maxLabel = -1;
+            foreach (RegionInfo r in regionWorld.Regions)
+                if (r.TransientId > maxLabel) maxLabel = r.TransientId;
+
+            var palette = new List<UnityEngine.Color32>(maxLabel + 1);
+            for (int i = 0; i <= maxLabel; i++)
+                palette.Add(new UnityEngine.Color32(150, 150, 150, 255)); // neutral default
+
+            foreach (RegionInfo r in regionWorld.Regions)
+            {
+                if (r.TransientId < 0 || r.TransientId > maxLabel) continue;
+                var (cr, cg, cb) = BiomeRenderPalette.Wash(r.DominantBiome);
+                palette[r.TransientId] = new UnityEngine.Color32(cr, cg, cb, 255);
+            }
+            return palette;
         }
 
         /// <summary>

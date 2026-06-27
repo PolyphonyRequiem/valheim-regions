@@ -55,18 +55,28 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
         /// <summary>Coast-halo colour (RGB) + peak alpha (A). Warm gold by default; A scales the whole fade.</summary>
         public Color32 HaloColor { get; set; } = new Color32(235, 180, 95, 200);
 
+        // ── TWEAK-ME Atlas dials (reversible; validated offline on Niflheim — region-atlas-render.md) ─
+        /// <summary>Atlas biome-fill alpha — low so the hillshaded terrain reads THROUGH the tint (0.28 → ~71).</summary>
+        public byte AtlasFillAlpha { get; set; } = 71;
+        /// <summary>Atlas coast-glow peak alpha (the glow uses each region's biome colour; A scales it).</summary>
+        public byte AtlasGlowAlpha { get; set; } = 242;
+        /// <summary>Atlas ink colour — near-black, only stroked on interior land↔land seams.</summary>
+        public Color32 AtlasInkColor { get; set; } = new Color32(15, 12, 10, 235);
+
         // ── Cached per-world geometry (built once per world, NOT per frame — AC-T3-DRAW-1) ───────────
         private RegionBoundaryGraph? graph;
         private IReadOnlyList<RefinedBorder>? arcs;   // v2: refined contour-hugging coast ∪ biome-seam arcs
         private int[,]? regionIdGrid;
         private int gridMinIndex;
-        private IReadOnlyList<Color32>? palette;
+        private IReadOnlyList<Color32>? palette;        // colourblind lightness ramp (BordersTint/Parchment)
+        private IReadOnlyList<Color32>? biomePalette;   // Atlas: per-label biome wash colour
         private CoastHaloField? haloField;            // cached per-world; null until SetHaloField
 
         // ── Fill bake cache ─────────────────────────────────────────────────────────────────────────
         private readonly RegionTextureBaker baker = new RegionTextureBaker();
         private Texture2D? fillTexture;
         private float lastFillBakeTime = float.NegativeInfinity;
+        private bool bakedFillWasBiome;   // which palette the cached fill was baked with (re-bake on switch)
 
         // ── Halo bake cache (re-baked only when the mode changes, NOT per frame) ─────────────────────
         private readonly CoastHaloBaker haloBaker = new CoastHaloBaker();
@@ -125,6 +135,18 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
         public bool HasWorld => this.graph != null && this.regionIdGrid != null && this.fog.Available;
 
         /// <summary>
+        /// Supply the Atlas biome-fill palette: one <see cref="Color32"/> per grid label
+        /// (<c>RegionInfo.TransientId</c>), at full alpha (the controller scales it by
+        /// <see cref="AtlasFillAlpha"/> at draw). Null leaves Atlas falling back to the lightness ramp.
+        /// Invalidates any baked fill so the next Atlas render re-bakes with biome colours.
+        /// </summary>
+        public void SetBiomePalette(IReadOnlyList<Color32>? labelToBiomeColor)
+        {
+            this.biomePalette = labelToBiomeColor;
+            this.InvalidateFill();
+        }
+
+        /// <summary>
         /// Cache the per-world coast-halo field (the signed-distance-to-shoreline field the soft fade
         /// bakes from). Built once per world load alongside <see cref="SetWorld"/>; null clears it (the
         /// halo then renders nothing). Invalidates any baked halo texture so the next render re-bakes.
@@ -173,10 +195,13 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
             MapFrame fullFrame = ValheimMapConventions.FullMapFrame(minimap.m_pixelSize, minimap.m_textureSize);
             Rect vanillaUvRect = minimap.m_mapImageLarge.uvRect;
 
-            // ── Coast halo (soft fade, F7 dial), below the fill + ink ────────────────────────────────
-            if (haloMode != CoastHaloMode.Off && this.haloField != null)
+            // ── Coast halo (soft fade, F7 dial OR implied-on by Atlas), below the fill + ink ─────────
+            CoastHaloMode effectiveHalo = style.ImpliesHalo() && haloMode == CoastHaloMode.Off
+                ? CoastHaloMode.Seaward   // Atlas implies the seaward glow even when F7 is Off
+                : haloMode;
+            if (effectiveHalo != CoastHaloMode.Off && this.haloField != null)
             {
-                EnsureHaloTexture(haloMode);
+                EnsureHaloTexture(effectiveHalo);
                 this.halo!.uvRect = this.haloBaker.WorldAlignedUvRect(DisplayedFrame(fullFrame, vanillaUvRect));
                 this.halo.gameObject.SetActive(this.haloTexture != null);
             }
@@ -188,8 +213,9 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
             // ── Ink (refined contour-hugging arcs), fog-gated per SUB-SEGMENT ─────────────────────────
             if (style.DrawsInk())
             {
-                BuildVisibleArcs(minimap);
-                this.ink!.SetBorders(this.visibleArcs, fullFrame, vanillaUvRect, this.StrokeWidthPx, this.InkColor);
+                BuildVisibleArcs(minimap, style.TerrestrialInkOnly());
+                Color32 inkColor = style == RegionOverlayStyle.Atlas ? this.AtlasInkColor : this.InkColor;
+                this.ink!.SetBorders(this.visibleArcs, fullFrame, vanillaUvRect, this.StrokeWidthPx, inkColor);
                 this.ink.gameObject.SetActive(true);
             }
             else
@@ -200,8 +226,10 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
             // ── Fill (baked texture), fog-gated per texel (pre-masked grid) ──────────────────────────
             if (style.DrawsFill())
             {
-                EnsureFillTexture(minimap);
-                byte alpha = style == RegionOverlayStyle.Parchment ? this.ParchmentAlpha : this.TintAlpha;
+                bool biome = style.UsesBiomeFill();
+                EnsureFillTexture(minimap, biome);
+                byte alpha = style == RegionOverlayStyle.Atlas ? this.AtlasFillAlpha
+                    : style == RegionOverlayStyle.Parchment ? this.ParchmentAlpha : this.TintAlpha;
                 this.fill!.color = new Color32(255, 255, 255, alpha);
                 this.fill.uvRect = this.baker.WorldAlignedUvRect(DisplayedFrame(fullFrame, vanillaUvRect));
                 this.fill.gameObject.SetActive(this.fillTexture != null);
@@ -230,7 +258,7 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
         /// produced <see cref="visibleArcs"/> are consumed by uGUI within the SAME frame — identical
         /// cross-frame-reuse contract to the prior <see cref="visibleSegments"/> path.</para>
         /// </summary>
-        private void BuildVisibleArcs(Minimap minimap)
+        private void BuildVisibleArcs(Minimap minimap, bool terrestrialOnly)
         {
             this.visibleArcs.Clear();
             this.fragmentPoolUsed = 0;
@@ -238,6 +266,11 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
 
             for (int a = 0; a < this.arcs.Count; a++)
             {
+                // Atlas: ink ONLY interior land↔land seams. A coastline arc (region-vs-void) carries
+                // KeyB == null; the seaward glow draws those, so the ink skips them. Biome-seam arcs
+                // (two real regions) keep both keys → kept. This is the terrestrial-vs-coastal axis.
+                if (terrestrialOnly && this.arcs[a].KeyB == null) continue;
+
                 IReadOnlyList<WzVec2> poly = this.arcs[a].Polyline;
                 if (poly == null || poly.Count < 2) continue;
 
@@ -297,11 +330,18 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
             // slot for this frame; harmless (reclaimed next frame's reset). Left explicit for clarity.
         }
 
-        /// <summary>(Re)bake the fog-masked fill texture on a throttle (fog advances as you explore).</summary>
-        private void EnsureFillTexture(Minimap minimap)
+        /// <summary>(Re)bake the fog-masked fill texture on a throttle (fog advances as you explore).
+        /// <paramref name="biome"/> selects the Atlas biome palette vs the colourblind lightness ramp;
+        /// switching palette forces an immediate re-bake (not just on the time throttle).</summary>
+        private void EnsureFillTexture(Minimap minimap, bool biome)
         {
-            if (this.regionIdGrid == null || this.palette == null) return;
+            if (this.regionIdGrid == null) return;
+            IReadOnlyList<Color32>? activePalette = biome ? (this.biomePalette ?? this.palette) : this.palette;
+            if (activePalette == null) return;
+
+            bool paletteSwitched = this.bakedFillWasBiome != biome;
             bool stale = this.fillTexture == null
+                         || paletteSwitched
                          || (Time.unscaledTime - this.lastFillBakeTime) > this.FillRebakeIntervalSeconds;
             if (!stale) return;
 
@@ -323,9 +363,10 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
             }
 
             if (this.fillTexture != null) Object.Destroy(this.fillTexture);
-            this.fillTexture = this.baker.Bake(masked, this.gridMinIndex, this.palette, new Color32(0, 0, 0, 0));
+            this.fillTexture = this.baker.Bake(masked, this.gridMinIndex, activePalette, new Color32(0, 0, 0, 0));
             this.fill!.texture = this.fillTexture;
             this.lastFillBakeTime = Time.unscaledTime;
+            this.bakedFillWasBiome = biome;
         }
 
         private void InvalidateFill()
