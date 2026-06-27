@@ -48,7 +48,8 @@ namespace WorldZones.Cli
         };
 
         public static int Export(string seed, string outputDir, bool inlandWater,
-            string? vegetationCatalogue = null, bool emitBoundaries = false)
+            string? vegetationCatalogue = null, bool emitBoundaries = false,
+            string? locationCatalogue = null)
         {
             string dir = outputDir ?? Directory.GetCurrentDirectory();
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
@@ -61,6 +62,18 @@ namespace WorldZones.Cli
             //       the worldId — names pinned to the legacy catalog to preserve byte-identical output. ──
             var worldGen = new WorldGenerator(seed);
             var sampler = new PortWorldSampler(worldGen, seed);
+
+            // Optional location source: when a catalogue is supplied, run the verified GenerateLocations
+            // port from the seed and JOIN every location to its region (RegionKey + PlacementStatus). This
+            // is what unlocks the {seed}_locations.json sidecar. Offline = Registered/Candidate only.
+            ILocationSource? locationSource = null;
+            if (!string.IsNullOrEmpty(locationCatalogue))
+            {
+                var configs = LocationCatalogue.Load(locationCatalogue);
+                locationSource = PortLocationSource.FromSeed(seed, configs);
+                Console.WriteLine($"Locations: catalogue '{Path.GetFileName(locationCatalogue)}' ({configs.Count} configs) — joining to regions");
+            }
+
             var world = WorldZonesRuntime.Build(sampler, new RegionBuildOptions
             {
                 IncludeInlandWater = inlandWater,
@@ -69,6 +82,7 @@ namespace WorldZones.Cli
                 // (the overlay plugin also enables this). Borders fall on biome edges / shores / rivers
                 // (watershed Dijkstra) instead of geometric midlines. See docs/design/region-borders.md.
                 UseFeatureAwareBorders = true,
+                LocationSource = locationSource,
             });
 
             ProtoRegionResult result = world.ProtoResult;
@@ -116,7 +130,94 @@ namespace WorldZones.Cli
                 Console.WriteLine($"VEG:  {vegPath} ({new FileInfo(vegPath).Length} bytes)");
             }
 
+            // ── 6. (optional) Emit the LOCATIONS sidecar — every POI/dungeon/boss/trader joined to its
+            //   region by RegionKey. Computed from the verified GenerateLocations port (source:computed);
+            //   offline so uniques are Candidate (the seed doesn't pick the winner). Keyed by regionKey to
+            //   JOIN the gazetteer. OPTIONAL (--catalogue) so existing consumers are unaffected.
+            if (locationSource != null)
+            {
+                string locPath = Path.Combine(dir, $"{seed}_locations.json");
+                WriteLocationsSidecar(locPath, seed, commit, Path.GetFileName(locationCatalogue!), world);
+                Console.WriteLine($"LOC:  {locPath} ({new FileInfo(locPath).Length} bytes)");
+            }
+
             return 0;
+        }
+
+        /// <summary>
+        /// Emit the per-region LOCATIONS dataset: every location the port placed, joined to its region by
+        /// RegionKey + carrying its PlacementStatus. Two views: a flat <c>locations</c> array (every site
+        /// with its region) and a <c>byRegion</c> map (regionKey → its location list + per-prefab counts),
+        /// so a consumer can either iterate sites or join straight onto the gazetteer. Locations outside
+        /// any region (ocean / minor islet) carry a null regionKey and are kept (not silently dropped).
+        /// </summary>
+        static void WriteLocationsSidecar(string path, string seed, string commit, string catalogueName,
+            RegionWorld world)
+        {
+            var ci = CultureInfo.InvariantCulture;
+            IReadOnlyList<GazetteerLocation> all = world.AllLocations;
+
+            // group by region for the byRegion view (null regionKey bucketed under "" = unattributed)
+            var byRegion = new Dictionary<string, List<GazetteerLocation>>(StringComparer.Ordinal);
+            foreach (GazetteerLocation l in all)
+            {
+                string key = l.RegionKey ?? "";
+                if (!byRegion.TryGetValue(key, out var list)) { list = new List<GazetteerLocation>(); byRegion[key] = list; }
+                list.Add(l);
+            }
+
+            var sb = new StringBuilder();
+            sb.Append("{\n");
+            sb.Append("  \"provenance\": {\n");
+            sb.Append($"    \"schemaVersion\": {SchemaVersion},\n");
+            sb.Append($"    \"seed\": \"{Esc(seed)}\",\n");
+            sb.Append("    \"source\": \"computed\",\n");
+            sb.Append($"    \"catalogue\": \"{Esc(catalogueName)}\",\n");
+            sb.Append("    \"catalogueSource\": \"assetripper-export\",\n");
+            sb.Append($"    \"commit\": \"{Esc(commit)}\",\n");
+            sb.Append($"    \"generatedUtc\": \"{DateTime.UtcNow.ToString("o", ci)}\",\n");
+            sb.Append($"    \"locationCount\": {all.Count},\n");
+            sb.Append("    \"note\": \"Locations/POIs computed from the verified GenerateLocations port and joined to regions by regionKey. OFFLINE: unique sites (traders, etc.) are status=Candidate — the seed does not pick the winner; a live game resolves one. regionKey=null = outside any region (ocean/islet).\"\n");
+            sb.Append("  },\n");
+
+            // flat array — every placed site
+            sb.Append("  \"locations\": [\n");
+            for (int i = 0; i < all.Count; i++)
+            {
+                GazetteerLocation l = all[i];
+                sb.Append("    {");
+                sb.Append($"\"prefab\": \"{Esc(l.PrefabName)}\", ");
+                sb.Append($"\"x\": {l.X.ToString("0.#", ci)}, \"z\": {l.Z.ToString("0.#", ci)}, ");
+                sb.Append($"\"regionKey\": {(l.RegionKey == null ? "null" : $"\"{Esc(l.RegionKey)}\"")}, ");
+                sb.Append($"\"status\": \"{l.Status}\"");
+                if (l.CandidateGroupKey != null) sb.Append($", \"candidateGroup\": \"{Esc(l.CandidateGroupKey)}\"");
+                sb.Append(i < all.Count - 1 ? "},\n" : "}\n");
+            }
+            sb.Append("  ],\n");
+
+            // byRegion map — regionKey → { count, prefabCounts, sites }
+            sb.Append("  \"byRegion\": {\n");
+            var keys = new List<string>(byRegion.Keys);
+            keys.Sort(StringComparer.Ordinal);
+            for (int k = 0; k < keys.Count; k++)
+            {
+                string rk = keys[k];
+                List<GazetteerLocation> list = byRegion[rk];
+                var prefabCounts = new Dictionary<string, int>(StringComparer.Ordinal);
+                foreach (GazetteerLocation l in list)
+                    prefabCounts[l.PrefabName] = prefabCounts.TryGetValue(l.PrefabName, out int c) ? c + 1 : 1;
+
+                sb.Append($"    \"{Esc(rk)}\": {{\"count\": {list.Count}, \"prefabCounts\": {{");
+                var pk = new List<string>(prefabCounts.Keys); pk.Sort(StringComparer.Ordinal);
+                for (int p = 0; p < pk.Count; p++)
+                    sb.Append($"\"{Esc(pk[p])}\": {prefabCounts[pk[p]]}{(p < pk.Count - 1 ? ", " : "")}");
+                sb.Append("}}");
+                sb.Append(k < keys.Count - 1 ? ",\n" : "\n");
+            }
+            sb.Append("  }\n");
+            sb.Append("}\n");
+
+            File.WriteAllText(path, sb.ToString());
         }
 
         // ─────────────────────────────────────────────────────────────────────────────

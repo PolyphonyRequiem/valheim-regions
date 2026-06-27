@@ -70,7 +70,7 @@ namespace WorldZones.Cli
                 case "regions":
                     return ExportRegions(seed, output, includeInlandWater, compareInland);
                 case "gazetteer":
-                    return Gazetteer.Export(seed, output ?? Directory.GetCurrentDirectory(), includeInlandWater, vegetationCatalogue, emitBoundaries);
+                    return Gazetteer.Export(seed, output ?? Directory.GetCurrentDirectory(), includeInlandWater, vegetationCatalogue, emitBoundaries, locationCatalogue);
                 case "seedlab":
                     return SeedLab.Run(seed, output ?? Directory.GetCurrentDirectory());
                 case "composite":
