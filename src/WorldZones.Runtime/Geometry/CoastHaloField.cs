@@ -53,6 +53,7 @@ namespace WorldZones.Runtime.Geometry
 
         private readonly double[,] signedDistance;   // [gy, gx], +land / −water, clamped to ±maxDist
         private readonly bool[,] isOceanSide;         // texel is water AND connected to the window edge
+        private readonly float[,] depthGate;          // [gy, gx], seaward glow scale ∈ [0,1]; 1 everywhere when gating off
 
         /// <summary>Texel size in world metres.</summary>
         public double Cell { get; }
@@ -72,11 +73,12 @@ namespace WorldZones.Runtime.Geometry
         /// <summary>The band width (m) the field was built for — the fade's reach from the shore.</summary>
         public double BandMeters { get; }
 
-        private CoastHaloField(double[,] signed, bool[,] oceanSide, double cell,
+        private CoastHaloField(double[,] signed, bool[,] oceanSide, float[,] depthGate, double cell,
                                double originX, double originZ, double band)
         {
             this.signedDistance = signed;
             this.isOceanSide = oceanSide;
+            this.depthGate = depthGate;
             this.Cell = cell;
             this.OriginX = originX;
             this.OriginZ = originZ;
@@ -99,11 +101,16 @@ namespace WorldZones.Runtime.Geometry
         /// <param name="width">Texel columns.</param>
         /// <param name="height_">Texel rows.</param>
         /// <param name="bandMeters">Fade reach from the shoreline (m). Distances are clamped here.</param>
+        /// <param name="depthFadeMeters">When &gt; 0, the SEAWARD glow additionally fades to 0 over water
+        ///   deeper than this many metres below sea level — so the glow hugs the coast and cannot haze
+        ///   the open sea (validated fix, docs/design/region-atlas-render.md). 0 disables depth-gating
+        ///   (byte-identical to the prior behaviour). Requires <paramref name="height"/> to sample depth.</param>
         public static CoastHaloField Build(
             IScalarField height,
             double originX, double originZ, double cell,
             int width, int height_,
-            double bandMeters = DefaultBandMeters)
+            double bandMeters = DefaultBandMeters,
+            double depthFadeMeters = 0.0)
         {
             if (height == null) throw new ArgumentNullException(nameof(height));
             if (cell <= 0) throw new ArgumentOutOfRangeException(nameof(cell));
@@ -112,19 +119,34 @@ namespace WorldZones.Runtime.Geometry
 
             int h = height_, w = width;
             var land = new bool[h, w];
+            var depthBelow = new float[h, w];   // metres below sea level per texel (0 on land)
             for (int gy = 0; gy < h; gy++)
             {
                 double wz = originZ + (gy + 0.5) * cell;
                 for (int gx = 0; gx < w; gx++)
                 {
                     double wx = originX + (gx + 0.5) * cell;
-                    land[gy, gx] = height.Sample(wx, wz) >= SeaLevel;
+                    double hm = height.Sample(wx, wz);
+                    land[gy, gx] = hm >= SeaLevel;
+                    depthBelow[gy, gx] = (float)Math.Max(0.0, SeaLevel - hm);
                 }
             }
 
             bool[,] ocean = FloodOceanFromEdge(land, h, w);
             double[,] signed = SignedShorelineDistance(land, ocean, h, w, cell, bandMeters);
-            return new CoastHaloField(signed, ocean, cell, originX, originZ, bandMeters);
+
+            // Per-texel seaward depth-gate ∈ [0,1]: 1 at the shoreline, fading to 0 by depthFadeMeters.
+            // When depthFadeMeters ≤ 0, gating is OFF → all 1 → no behavioural change.
+            var gate = new float[h, w];
+            for (int gy = 0; gy < h; gy++)
+                for (int gx = 0; gx < w; gx++)
+                {
+                    if (depthFadeMeters <= 0.0) { gate[gy, gx] = 1f; continue; }
+                    float g = (float)(1.0 - depthBelow[gy, gx] / depthFadeMeters);
+                    gate[gy, gx] = g <= 0f ? 0f : g >= 1f ? 1f : g;
+                }
+
+            return new CoastHaloField(signed, ocean, gate, cell, originX, originZ, bandMeters);
         }
 
         /// <summary>
@@ -247,9 +269,13 @@ namespace WorldZones.Runtime.Geometry
 
             if (mode == CoastHaloMode.Seaward)
             {
-                if (d <= 0.0 && d >= -band) return 1.0 - (-d / band);   // water side, peak at shore
-                if (d > 0.0 && d < this.Cell * 0.5) return 1.0;          // thin land lip = attached
-                return 0.0;
+                double a;
+                if (d <= 0.0 && d >= -band) a = 1.0 - (-d / band);   // water side, peak at shore
+                else if (d > 0.0 && d < this.Cell * 0.5) a = 1.0;     // thin land lip = attached
+                else return 0.0;
+                // Depth-gate the seaward fade so it hugs the coast and dies over deep open water
+                // (1.0 everywhere when the field was built with depthFadeMeters ≤ 0).
+                return a * this.depthGate[gy, gx];
             }
             // Inland
             if (d >= 0.0 && d <= band) return 1.0 - (d / band);          // land side, peak at shore

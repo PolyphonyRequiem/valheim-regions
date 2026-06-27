@@ -137,5 +137,43 @@ namespace WorldZones.Runtime.Tests
             Assert.Throws<ArgumentOutOfRangeException>(() =>
                 CoastHaloField.Build(new HalfPlaneSea(), 0, 0, Cell, N, N, bandMeters: 0));
         }
+
+        /// <summary>A coastline whose sea floor SLOPES: land (40) for worldX ≥ 0; on the water side the
+        /// height drops 1 m per metre offshore (height = 30 + worldX for worldX &lt; 0), so depth below
+        /// sea level grows linearly with distance from the x=0 shore. Lets the depth-gate be exercised
+        /// exactly: at −d metres offshore the depth below sea level is d metres.</summary>
+        private sealed class SlopedSea : IScalarField
+        {
+            public double IsoLevel => CoastHaloField.SeaLevel;
+            public double Sample(double worldX, double worldZ) => worldX >= 0 ? 40.0 : 30.0 + worldX;
+        }
+
+        [Fact]
+        public void DepthGate_FadesDeepWaterGlow_ButGatedOffDefaultIsUnchanged()
+        {
+            int gyMid = N / 2;
+            int gxShallow = (int)((-6 - (-300)) / Cell);   // ~6 m offshore → ~6 m deep
+            int gxDeep = (int)((-40 - (-300)) / Cell);     // ~40 m offshore → ~40 m deep
+
+            // Gated OFF (default depthFadeMeters=0): seaward glow depends ONLY on distance, so a point
+            // 40 m offshore (still inside a 96 m band) carries real alpha — byte-identical prior path.
+            var off = CoastHaloField.Build(new SlopedSea(), -300, -300, Cell, N, N, bandMeters: 96);
+            Assert.True(off.Alpha(CoastHaloMode.Seaward, gyMid, gxDeep) > 0.3,
+                "without depth-gating, deep-but-near water still glows (unchanged behaviour)");
+
+            // Gated ON (depthFadeMeters=14): the 40 m-deep texel is well past the fade → ~0, while the
+            // shallow near-shore texel still glows. This is the open-sea-haze fix.
+            var on = CoastHaloField.Build(new SlopedSea(), -300, -300, Cell, N, N,
+                                          bandMeters: 96, depthFadeMeters: 14);
+            Assert.True(on.Alpha(CoastHaloMode.Seaward, gyMid, gxDeep) <= 0.001,
+                "depth-gated: glow dies over deep water");
+            Assert.True(on.Alpha(CoastHaloMode.Seaward, gyMid, gxShallow) > 0.2,
+                "depth-gated: glow still hugs the shallow coast");
+
+            // Inland mode is unaffected by the seaward depth-gate.
+            int gxLand = (int)((40 - (-300)) / Cell);
+            Assert.True(on.Alpha(CoastHaloMode.Inland, gyMid, gxLand) > 0.2,
+                "depth-gate must not touch the inland fade");
+        }
     }
 }
