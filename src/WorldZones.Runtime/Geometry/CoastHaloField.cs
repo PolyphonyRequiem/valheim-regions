@@ -54,6 +54,7 @@ namespace WorldZones.Runtime.Geometry
         private readonly double[,] signedDistance;   // [gy, gx], +land / −water, clamped to ±maxDist
         private readonly bool[,] isOceanSide;         // texel is water AND connected to the window edge
         private readonly float[,] depthGate;          // [gy, gx], seaward glow scale ∈ [0,1]; 1 everywhere when gating off
+        private readonly int[,] nearestRegionId;      // [gy, gx], region id of the nearest owned-land coast, −1 when none / not provided
 
         /// <summary>Texel size in world metres.</summary>
         public double Cell { get; }
@@ -73,12 +74,13 @@ namespace WorldZones.Runtime.Geometry
         /// <summary>The band width (m) the field was built for — the fade's reach from the shore.</summary>
         public double BandMeters { get; }
 
-        private CoastHaloField(double[,] signed, bool[,] oceanSide, float[,] depthGate, double cell,
-                               double originX, double originZ, double band)
+        private CoastHaloField(double[,] signed, bool[,] oceanSide, float[,] depthGate, int[,] nearestRegionId,
+                               double cell, double originX, double originZ, double band)
         {
             this.signedDistance = signed;
             this.isOceanSide = oceanSide;
             this.depthGate = depthGate;
+            this.nearestRegionId = nearestRegionId;
             this.Cell = cell;
             this.OriginX = originX;
             this.OriginZ = originZ;
@@ -105,12 +107,17 @@ namespace WorldZones.Runtime.Geometry
         ///   deeper than this many metres below sea level — so the glow hugs the coast and cannot haze
         ///   the open sea (validated fix, docs/design/region-atlas-render.md). 0 disables depth-gating
         ///   (byte-identical to the prior behaviour). Requires <paramref name="height"/> to sample depth.</param>
+        /// <param name="regionIdAt">Optional: world (x,z) → owned-land region id (&lt; 0 = unowned). When
+        ///   supplied, every water texel within the band records the region id of the NEAREST owned-land
+        ///   coast, so a consumer can colour the seaward glow per region (Atlas biome glow). Null leaves
+        ///   <see cref="NearestRegionIdAt"/> returning −1 everywhere (single-colour glow, prior behaviour).</param>
         public static CoastHaloField Build(
             IScalarField height,
             double originX, double originZ, double cell,
             int width, int height_,
             double bandMeters = DefaultBandMeters,
-            double depthFadeMeters = 0.0)
+            double depthFadeMeters = 0.0,
+            Func<double, double, int> regionIdAt = null)
         {
             if (height == null) throw new ArgumentNullException(nameof(height));
             if (cell <= 0) throw new ArgumentOutOfRangeException(nameof(cell));
@@ -120,6 +127,7 @@ namespace WorldZones.Runtime.Geometry
             int h = height_, w = width;
             var land = new bool[h, w];
             var depthBelow = new float[h, w];   // metres below sea level per texel (0 on land)
+            var ownedLand = new int[h, w];      // region id at a land texel, −1 if unowned / no sampler
             for (int gy = 0; gy < h; gy++)
             {
                 double wz = originZ + (gy + 0.5) * cell;
@@ -127,8 +135,10 @@ namespace WorldZones.Runtime.Geometry
                 {
                     double wx = originX + (gx + 0.5) * cell;
                     double hm = height.Sample(wx, wz);
-                    land[gy, gx] = hm >= SeaLevel;
+                    bool isLand = hm >= SeaLevel;
+                    land[gy, gx] = isLand;
                     depthBelow[gy, gx] = (float)Math.Max(0.0, SeaLevel - hm);
+                    ownedLand[gy, gx] = (isLand && regionIdAt != null) ? regionIdAt(wx, wz) : -1;
                 }
             }
 
@@ -146,7 +156,68 @@ namespace WorldZones.Runtime.Geometry
                     gate[gy, gx] = g <= 0f ? 0f : g >= 1f ? 1f : g;
                 }
 
-            return new CoastHaloField(signed, ocean, gate, cell, originX, originZ, bandMeters);
+            // Per-texel nearest owned-land region id, propagated across water by multi-source BFS from
+            // every owned-land coast texel (the same hop walk the distance transform uses). A water
+            // texel within the band ends up tagged with the region whose coast is nearest — so the
+            // seaward glow can be coloured per region (Atlas biome glow). −1 everywhere when no
+            // regionIdAt sampler was supplied (single-colour glow, prior behaviour preserved).
+            var nearestRegion = BuildNearestRegion(land, ocean, ownedLand, h, w, cell, bandMeters, regionIdAt != null);
+
+            return new CoastHaloField(signed, ocean, gate, nearestRegion, cell, originX, originZ, bandMeters);
+        }
+
+        /// <summary>
+        /// Propagate the nearest owned-land region id outward across water within the band. Multi-source
+        /// BFS seeded at owned-land texels that border ocean (a coast with a known region); each water
+        /// texel takes the region of the first (nearest) seed to reach it. Returns all −1 when
+        /// <paramref name="enabled"/> is false (no region sampler).
+        /// </summary>
+        private static int[,] BuildNearestRegion(
+            bool[,] land, bool[,] ocean, int[,] ownedLand, int h, int w, double cell, double band, bool enabled)
+        {
+            var region = new int[h, w];
+            for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) region[y, x] = -1;
+            if (!enabled) return region;
+
+            var dist = new double[h, w];
+            for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) dist[y, x] = double.MaxValue;
+            var queue = new Queue<(int, int)>();
+
+            // Seed: an owned-land texel (region ≥ 0) that is 4-adjacent to ocean — a coast with identity.
+            for (int y = 0; y < h; y++)
+                for (int x = 0; x < w; x++)
+                {
+                    if (!land[y, x] || ownedLand[y, x] < 0) continue;
+                    bool bordersOcean = false;
+                    for (int d = 0; d < 4 && !bordersOcean; d++)
+                    {
+                        int ny = y + (d == 0 ? -1 : d == 1 ? 1 : 0);
+                        int nx = x + (d == 2 ? -1 : d == 3 ? 1 : 0);
+                        if (ny < 0 || ny >= h || nx < 0 || nx >= w) continue;
+                        if (ocean[ny, nx]) bordersOcean = true;
+                    }
+                    if (bordersOcean) { region[y, x] = ownedLand[y, x]; dist[y, x] = 0.0; queue.Enqueue((y, x)); }
+                }
+
+            // BFS outward across water up to the band (land texels are not overwritten; they keep their own id).
+            while (queue.Count > 0)
+            {
+                var (y, x) = queue.Dequeue();
+                double dnext = dist[y, x] + cell;
+                if (dnext > band + cell) continue;
+                for (int d = 0; d < 4; d++)
+                {
+                    int ny = y + (d == 0 ? -1 : d == 1 ? 1 : 0);
+                    int nx = x + (d == 2 ? -1 : d == 3 ? 1 : 0);
+                    if (ny < 0 || ny >= h || nx < 0 || nx >= w) continue;
+                    if (land[ny, nx]) continue;               // only propagate across water
+                    if (dist[ny, nx] <= dnext) continue;
+                    dist[ny, nx] = dnext;
+                    region[ny, nx] = region[y, x];
+                    queue.Enqueue((ny, nx));
+                }
+            }
+            return region;
         }
 
         /// <summary>
@@ -287,5 +358,10 @@ namespace WorldZones.Runtime.Geometry
 
         /// <summary>True if the texel is ocean (edge-connected water), false for land or lake.</summary>
         public bool IsOceanAt(int gy, int gx) => this.isOceanSide[gy, gx];
+
+        /// <summary>The nearest owned-land region id whose coast this texel's seaward glow belongs to,
+        /// or −1 when out of band / no region sampler was supplied at build. A consumer colours the
+        /// glow by this region's biome (Atlas) instead of a single halo colour.</summary>
+        public int NearestRegionIdAt(int gy, int gx) => this.nearestRegionId[gy, gx];
     }
 }

@@ -69,7 +69,8 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
         private int[,]? regionIdGrid;
         private int gridMinIndex;
         private IReadOnlyList<Color32>? palette;        // colourblind lightness ramp (BordersTint/Parchment)
-        private IReadOnlyList<Color32>? biomePalette;   // Atlas: per-label biome wash colour
+        private IReadOnlyList<Color32>? biomePalette;   // Atlas: per-label biome wash colour (fill)
+        private IReadOnlyList<Color32>? glowPalette;    // Atlas: per-label biome GLOW colour (sat-floored)
         private CoastHaloField? haloField;            // cached per-world; null until SetHaloField
 
         // ── Fill bake cache ─────────────────────────────────────────────────────────────────────────
@@ -82,6 +83,7 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
         private readonly CoastHaloBaker haloBaker = new CoastHaloBaker();
         private Texture2D? haloTexture;
         private CoastHaloMode bakedHaloMode = CoastHaloMode.Off;
+        private bool bakedHaloWasBiome;   // whether the cached halo was baked per-region (Atlas) vs single-colour
 
         // ── v2 reusable refined-arc fog-gate buffers ─────────────────────────────────────────────────
         // The visible fragments handed to the ink each frame, plus a pool of fragment polylines (and a
@@ -135,15 +137,18 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
         public bool HasWorld => this.graph != null && this.regionIdGrid != null && this.fog.Available;
 
         /// <summary>
-        /// Supply the Atlas biome-fill palette: one <see cref="Color32"/> per grid label
-        /// (<c>RegionInfo.TransientId</c>), at full alpha (the controller scales it by
-        /// <see cref="AtlasFillAlpha"/> at draw). Null leaves Atlas falling back to the lightness ramp.
-        /// Invalidates any baked fill so the next Atlas render re-bakes with biome colours.
+        /// Supply the Atlas biome palettes: <paramref name="fillColors"/> (per grid label, the region
+        /// wash for the fill) and <paramref name="glowColors"/> (per grid label, the sat-floored coast
+        /// glow colour). Both indexed by <c>RegionInfo.TransientId</c>, full alpha; the controller scales
+        /// alpha at draw. Null leaves Atlas falling back to the lightness ramp / single halo colour.
+        /// Invalidates the baked fill + halo so the next Atlas render re-bakes with biome colours.
         /// </summary>
-        public void SetBiomePalette(IReadOnlyList<Color32>? labelToBiomeColor)
+        public void SetBiomePalette(IReadOnlyList<Color32>? fillColors, IReadOnlyList<Color32>? glowColors)
         {
-            this.biomePalette = labelToBiomeColor;
+            this.biomePalette = fillColors;
+            this.glowPalette = glowColors;
             this.InvalidateFill();
+            this.InvalidateHalo();
         }
 
         /// <summary>
@@ -201,7 +206,7 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
                 : haloMode;
             if (effectiveHalo != CoastHaloMode.Off && this.haloField != null)
             {
-                EnsureHaloTexture(effectiveHalo);
+                EnsureHaloTexture(effectiveHalo, style.UsesBiomeFill());
                 this.halo!.uvRect = this.haloBaker.WorldAlignedUvRect(DisplayedFrame(fullFrame, vanillaUvRect));
                 this.halo.gameObject.SetActive(this.haloTexture != null);
             }
@@ -376,25 +381,38 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
         }
 
         /// <summary>
-        /// (Re)bake the coast-halo texture when the mode changes. The halo field is static per world, so
-        /// unlike the fill there is no time throttle — we only re-bake when <paramref name="mode"/>
-        /// differs from the baked one. The bake is fog-agnostic here (the halo traces coastlines, and the
-        /// field is pure); fog-gating the halo per-texel is a deferred v2 nicety tracked in the design doc.
+        /// (Re)bake the coast-halo texture when the mode (or biome-glow choice) changes. The halo field
+        /// is static per world, so unlike the fill there is no time throttle — we only re-bake when
+        /// <paramref name="mode"/> or <paramref name="biomeGlow"/> differs from what was baked.
+        /// <paramref name="biomeGlow"/> = true (Atlas) colours each coast by its region's biome
+        /// (sat-floored glow palette); false uses the single <see cref="HaloColor"/> (F7 gold halo).
         /// </summary>
-        private void EnsureHaloTexture(CoastHaloMode mode)
+        private void EnsureHaloTexture(CoastHaloMode mode, bool biomeGlow)
         {
             if (this.haloField == null) return;
-            if (this.haloTexture != null && this.bakedHaloMode == mode) return;
+            if (this.haloTexture != null && this.bakedHaloMode == mode && this.bakedHaloWasBiome == biomeGlow) return;
 
             if (this.haloTexture != null) Object.Destroy(this.haloTexture);
-            this.haloTexture = this.haloBaker.Bake(this.haloField, mode, this.HaloColor);
+            if (biomeGlow && this.glowPalette != null)
+            {
+                // Atlas: per-region biome glow. Fallback = the HaloColor's RGB for any out-of-band /
+                // unowned texel (shouldn't paint — alpha there is 0 — but keeps the call total).
+                this.haloTexture = this.haloBaker.BakeBiome(
+                    this.haloField, mode, this.glowPalette, this.HaloColor, this.AtlasGlowAlpha);
+            }
+            else
+            {
+                this.haloTexture = this.haloBaker.Bake(this.haloField, mode, this.HaloColor);
+            }
             this.halo!.texture = this.haloTexture;
             this.bakedHaloMode = mode;
+            this.bakedHaloWasBiome = biomeGlow;
         }
 
         private void InvalidateHalo()
         {
             this.bakedHaloMode = CoastHaloMode.Off;
+            this.bakedHaloWasBiome = false;
             if (this.haloTexture != null) { Object.Destroy(this.haloTexture); this.haloTexture = null; }
         }
 

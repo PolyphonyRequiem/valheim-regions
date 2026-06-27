@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using WorldZones.Runtime.Geometry;
 
@@ -67,6 +68,55 @@ namespace WorldZones.Unity
                 name = "WZ_CoastHalo",
                 wrapMode = TextureWrapMode.Clamp,    // rim texel doesn't wrap
                 filterMode = FilterMode.Bilinear,    // smooth the alpha ramp (no palette purity to guard)
+            };
+            tex.SetPixels32(pixels);
+            tex.Apply(updateMipmaps: false, makeNoLongerReadable: false);
+            return tex;
+        }
+
+        /// <summary>
+        /// Bake the halo with PER-REGION biome colour (Atlas): texel <c>[gy,gx]</c> gets the glow colour
+        /// of the region whose coast is nearest (<see cref="CoastHaloField.NearestRegionIdAt"/>), looked
+        /// up in <paramref name="glowColorByLabel"/> (indexed by <c>RegionInfo.TransientId</c>), with
+        /// alpha = <c>field.Alpha(mode, gy, gx) · peakAlpha/255</c>. A texel with no nearest region (−1)
+        /// or an out-of-range label falls back to <paramref name="fallback"/>. Same lattice/origin
+        /// contract as <see cref="Bake"/>, so the consumer's uvRect math is identical.
+        /// </summary>
+        public Texture2D BakeBiome(CoastHaloField field, CoastHaloMode mode,
+                                   IReadOnlyList<Color32> glowColorByLabel, Color32 fallback, byte peakAlpha)
+        {
+            int w = field.Width, h = field.Height;
+            this.bakedOriginX = field.OriginX;
+            this.bakedOriginZ = field.OriginZ;
+            this.bakedSpanX = w * field.Cell;
+            this.bakedSpanZ = h * field.Cell;
+            this.baked = true;
+
+            double peak = peakAlpha / 255.0;
+            int paletteCount = glowColorByLabel?.Count ?? 0;
+            var pixels = new Color32[w * h];
+            for (int gy = 0; gy < h; gy++)
+            {
+                int row = gy * w;
+                for (int gx = 0; gx < w; gx++)
+                {
+                    double a = field.Alpha(mode, gy, gx) * peak;
+                    byte alpha = (byte)(a <= 0 ? 0 : a >= 1 ? 255 : (int)(a * 255 + 0.5));
+                    Color32 rgb = fallback;
+                    if (alpha > 0)
+                    {
+                        int rid = field.NearestRegionIdAt(gy, gx);
+                        if (rid >= 0 && rid < paletteCount) rgb = glowColorByLabel[rid];
+                    }
+                    pixels[row + gx] = new Color32(rgb.r, rgb.g, rgb.b, alpha);
+                }
+            }
+
+            var tex = new Texture2D(w, h, TextureFormat.RGBA32, mipChain: false)
+            {
+                name = "WZ_CoastHaloBiome",
+                wrapMode = TextureWrapMode.Clamp,
+                filterMode = FilterMode.Bilinear,
             };
             tex.SetPixels32(pixels);
             tex.Apply(updateMipmaps: false, makeNoLongerReadable: false);

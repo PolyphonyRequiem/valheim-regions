@@ -34,6 +34,14 @@ namespace WorldZones.Runtime.Tests
             }
         }
 
+        /// <summary>Two land masses (height 40) facing each other across open ocean (height 10): land for
+        /// worldX ≤ −120 and worldX ≥ 120, water in between. Both coasts are edge-connected ocean.</summary>
+        private sealed class TwoRegionCoasts : IScalarField
+        {
+            public double IsoLevel => CoastHaloField.SeaLevel;
+            public double Sample(double worldX, double worldZ) => (worldX <= -120 || worldX >= 120) ? 40.0 : 10.0;
+        }
+
         // A 600×600 m window at 8 m texels, origin at the world origin.
         private const double Origin = 0.0, Cell = 8.0;
         private const int N = 75; // 600 / 8
@@ -174,6 +182,30 @@ namespace WorldZones.Runtime.Tests
             int gxLand = (int)((40 - (-300)) / Cell);
             Assert.True(on.Alpha(CoastHaloMode.Inland, gyMid, gxLand) > 0.2,
                 "depth-gate must not touch the inland fade");
+        }
+
+        [Fact]
+        public void NearestRegion_TagsWaterByNearestOwnedCoast_AndOffByDefault()
+        {
+            // Two land masses with DIFFERENT region ids facing each other across water, so a water texel
+            // is tagged by whichever coast is nearer. Land for worldX ≤ −120 (region 7) and worldX ≥ 120
+            // (region 9); open water between. Sea floor flat-deep so both are real ocean coasts.
+            var twoCoasts = new TwoRegionCoasts();
+            System.Func<double, double, int> regionAt = (wx, wz) => wx <= -120 ? 7 : wx >= 120 ? 9 : -1;
+
+            // WITHOUT a region sampler: every texel returns −1 (single-colour glow, prior behaviour).
+            var noRegion = CoastHaloField.Build(twoCoasts, -300, -300, Cell, N, N, bandMeters: 96);
+            int gyMid = N / 2;
+            for (int gx = 0; gx < noRegion.Width; gx += 13)
+                Assert.Equal(-1, noRegion.NearestRegionIdAt(gyMid, gx));
+
+            // WITH the sampler: a water texel just off the WEST coast is tagged 7; just off the EAST is 9.
+            var withRegion = CoastHaloField.Build(twoCoasts, -300, -300, Cell, N, N,
+                                                  bandMeters: 96, regionIdAt: regionAt);
+            int gxWestWater = (int)((-110 - (-300)) / Cell);  // ~10 m east of the west coast
+            int gxEastWater = (int)((110 - (-300)) / Cell);   // ~10 m west of the east coast
+            Assert.Equal(7, withRegion.NearestRegionIdAt(gyMid, gxWestWater));
+            Assert.Equal(9, withRegion.NearestRegionIdAt(gyMid, gxEastWater));
         }
     }
 }

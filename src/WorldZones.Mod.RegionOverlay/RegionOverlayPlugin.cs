@@ -424,19 +424,34 @@ namespace WorldZones.Mod.RegionOverlay
                 int haloW = (int)(gw * zone / haloCell);
                 int haloH = (int)(gh * zone / haloCell);
                 var haloHeight = new HeightScalarField(sampler, CoastHaloField.SeaLevel);
+                // Atlas per-region glow needs the halo field to know WHICH region each coast belongs to.
+                // Supply a world(x,z) → grid-label sampler over the region-id grid (same 64 m lattice the
+                // fill bakes from). Nearest-owned-coast propagation across water happens inside Build.
+                int[,] ridGrid = regionWorld.RegionIdGrid;
+                int ridMin = regionWorld.Grid.MinIndex;
+                int ridH = ridGrid.GetLength(0), ridW = ridGrid.GetLength(1);
+                System.Func<double, double, int> regionIdAt = (wx, wz) =>
+                {
+                    // world metre → zone index → grid index (round to nearest zone centre).
+                    int gx = (int)System.Math.Round(wx / zone) - ridMin;
+                    int gy = (int)System.Math.Round(wz / zone) - ridMin;
+                    if (gx < 0 || gy < 0 || gx >= ridW || gy >= ridH) return -1;
+                    return ridGrid[gy, gx];
+                };
                 CoastHaloField haloFld = CoastHaloField.Build(
                     haloHeight, haloOriginX, haloOriginZ, haloCell, haloW, haloH,
                     // Band 96 m + depth-gate 14 m: the validated Atlas glow that hugs the coast and dies
                     // over deep water (no open-sea haze). docs/design/region-atlas-render.md. The F7
                     // gold halo on the other styles also picks up the tighter band — an improvement.
-                    bandMeters: CoastHaloField.DefaultBandMeters, depthFadeMeters: 14.0);
+                    bandMeters: CoastHaloField.DefaultBandMeters, depthFadeMeters: 14.0,
+                    regionIdAt: regionIdAt);
                 this.overlayController.SetHaloField(haloFld);
 
-                // Atlas biome-fill palette: one wash colour per grid label (RegionInfo.TransientId),
-                // from each region's DominantBiome (ComputeRegionInfo=true above guarantees it). Built
-                // once per world; the controller scales alpha at draw. Falls back to the lightness ramp
-                // for any label without a rich region (shouldn't happen, but safe).
-                this.overlayController.SetBiomePalette(BuildBiomePalette(regionWorld));
+                // Atlas biome palettes (fill wash + sat-floored coast glow), one colour per grid label
+                // (RegionInfo.TransientId) from each region's DominantBiome (ComputeRegionInfo=true
+                // guarantees it). Built once per world; the controller scales alpha at draw.
+                var (fillPalette, glowPalette) = BuildBiomePalettes(regionWorld);
+                this.overlayController.SetBiomePalette(fillPalette, glowPalette);
 
                 this.overlayWorldCached = true;
             }
@@ -448,29 +463,40 @@ namespace WorldZones.Mod.RegionOverlay
         }
 
         /// <summary>
-        /// Build the Atlas biome-fill palette: a flat list indexed by grid label
-        /// (<c>RegionInfo.TransientId</c>) → that region's <c>DominantBiome</c> wash colour
-        /// (<see cref="BiomeRenderPalette.Wash"/>). Sized to the max label + 1 so the Tier-2 baker can
-        /// index it directly (same contract as the lightness ramp). Labels with no rich region get a
-        /// neutral grey (shouldn't happen with ComputeRegionInfo=true, but never index out of range).
+        /// Build the Atlas biome palettes — both indexed by grid label (<c>RegionInfo.TransientId</c>):
+        /// <list type="bullet">
+        ///   <item><b>fill</b>: each region's <c>DominantBiome</c> wash colour
+        ///     (<see cref="BiomeRenderPalette.Wash"/>) for the low-alpha territory tint.</item>
+        ///   <item><b>glow</b>: the sat-floored coast-glow colour (<see cref="BiomeRenderPalette.Glow"/>)
+        ///     so muted biomes still read at the shore.</item>
+        /// </list>
+        /// Sized to max label + 1 so the Tier-2 bakers index them directly. Labels with no rich region
+        /// get a neutral grey (shouldn't happen with ComputeRegionInfo=true, but never index OOB).
         /// </summary>
-        private static List<UnityEngine.Color32> BuildBiomePalette(RegionWorld regionWorld)
+        private static (List<UnityEngine.Color32> fill, List<UnityEngine.Color32> glow) BuildBiomePalettes(
+            RegionWorld regionWorld)
         {
             int maxLabel = -1;
             foreach (RegionInfo r in regionWorld.Regions)
                 if (r.TransientId > maxLabel) maxLabel = r.TransientId;
 
-            var palette = new List<UnityEngine.Color32>(maxLabel + 1);
+            var fill = new List<UnityEngine.Color32>(maxLabel + 1);
+            var glow = new List<UnityEngine.Color32>(maxLabel + 1);
             for (int i = 0; i <= maxLabel; i++)
-                palette.Add(new UnityEngine.Color32(150, 150, 150, 255)); // neutral default
+            {
+                fill.Add(new UnityEngine.Color32(150, 150, 150, 255));
+                glow.Add(new UnityEngine.Color32(150, 150, 150, 255));
+            }
 
             foreach (RegionInfo r in regionWorld.Regions)
             {
                 if (r.TransientId < 0 || r.TransientId > maxLabel) continue;
-                var (cr, cg, cb) = BiomeRenderPalette.Wash(r.DominantBiome);
-                palette[r.TransientId] = new UnityEngine.Color32(cr, cg, cb, 255);
+                var (fr, fg, fb) = BiomeRenderPalette.Wash(r.DominantBiome);
+                var (gr, gg, gb) = BiomeRenderPalette.Glow(r.DominantBiome);
+                fill[r.TransientId] = new UnityEngine.Color32(fr, fg, fb, 255);
+                glow[r.TransientId] = new UnityEngine.Color32(gr, gg, gb, 255);
             }
-            return palette;
+            return (fill, glow);
         }
 
         /// <summary>
