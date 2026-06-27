@@ -73,6 +73,10 @@ namespace WorldZones.Cli
                     return Gazetteer.Export(seed, output ?? Directory.GetCurrentDirectory(), includeInlandWater, vegetationCatalogue, emitBoundaries);
                 case "seedlab":
                     return SeedLab.Run(seed, output ?? Directory.GetCurrentDirectory());
+                case "composite":
+                    return CompositeDump.Run(seed, output ?? Path.Combine(Directory.GetCurrentDirectory(), $"{seed}_composite.json"));
+                case "basemap":
+                    return CompositeDump.Basemap(seed, output ?? Path.Combine(Directory.GetCurrentDirectory(), $"{seed}_basemap.bin"), 8);
                 case "locations":
                     if (locationCatalogue == null)
                     {
