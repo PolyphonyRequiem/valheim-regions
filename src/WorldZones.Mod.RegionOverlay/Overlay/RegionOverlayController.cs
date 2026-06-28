@@ -427,7 +427,12 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
                 && Mathf.Approximately(this.bakedHaloIntensity, this.glowIntensity)) return;
 
             if (this.haloTexture != null) Object.Destroy(this.haloTexture);
-            if (biomeGlow && this.glowPalette != null)
+            bool didBiome = biomeGlow && this.glowPalette != null;
+            // DIAG (2026-06-28 glow-flat hunt): log the actual bake branch ONCE per bake so the live
+            // build self-reports instead of us theorizing. If 'didBiome=False' on Atlas, glowPalette was
+            // null at bake time (delivery/timing); if True but still flat in-game, the bug is in BakeBiome.
+            this.logger?.LogInfo($"WZ-GLOW bake: requestedBiome={biomeGlow} glowPalette={(this.glowPalette == null ? "NULL" : this.glowPalette.Count.ToString())} mode={mode} → {(didBiome ? "PER-REGION BakeBiome" : "FLAT single-colour Bake")}");
+            if (didBiome)
             {
                 // Atlas: per-region biome glow. Fallback = the HaloColor's RGB for any out-of-band /
                 // unowned texel (shouldn't paint — alpha there is 0 — but keeps the call total).
@@ -440,7 +445,10 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
             }
             this.halo!.texture = this.haloTexture;
             this.bakedHaloMode = mode;
-            this.bakedHaloWasBiome = biomeGlow;
+            // Cache the ACTUAL bake kind, not the request: if glowPalette was null we baked FLAT, so record
+            // FLAT — otherwise the cache key would claim biome and never re-bake once glowPalette arrives
+            // (without an explicit InvalidateHalo). Latent flat-glow trap, fixed 2026-06-28.
+            this.bakedHaloWasBiome = didBiome;
             this.bakedHaloIntensity = this.glowIntensity;
         }
 

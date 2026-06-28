@@ -75,6 +75,8 @@ namespace WorldZones.Cli
                     return SeedLab.Run(seed, output ?? Directory.GetCurrentDirectory());
                 case "composite":
                     return CompositeDump.Run(seed, output ?? Path.Combine(Directory.GetCurrentDirectory(), $"{seed}_composite.json"));
+                case "glowprobe":
+                    return GlowProbe.Run(seed);
                 case "basemap":
                     return CompositeDump.Basemap(seed, output ?? Path.Combine(Directory.GetCurrentDirectory(), $"{seed}_basemap.bin"), 8);
                 case "locations":

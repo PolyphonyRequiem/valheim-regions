@@ -53,8 +53,15 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
         /// <summary>True if this style implies the coast halo is ON regardless of the F7 dial (Atlas).</summary>
         public static bool ImpliesHalo(this RegionOverlayStyle s) => s == RegionOverlayStyle.Atlas;
 
-        /// <summary>Advance to the next style in the cycle order, wrapping to <see cref="RegionOverlayStyle.Vanilla"/>.</summary>
+        /// <summary>
+        /// F8 toggle: <see cref="RegionOverlayStyle.Atlas"/> ⇄ <see cref="RegionOverlayStyle.Vanilla"/> (off).
+        /// Decided 2026-06-28 (Daniel): Atlas is THE mode; Borders/BordersTint/Parchment are cut from the
+        /// reachable cycle (the vector-ink line modes ride a zoom-registration drift Atlas doesn't). The
+        /// enum members + their draw branches still exist internally pending the deeper cleanup ("nuance
+        /// later") — this just makes F8 a clean Atlas/off toggle so the buggy modes can't be reached.
+        /// Any non-Atlas state (incl. a legacy Borders value) toggles UP to Atlas; Atlas toggles to off.
+        /// </summary>
         public static RegionOverlayStyle Next(this RegionOverlayStyle s) =>
-            s == RegionOverlayStyle.Atlas ? RegionOverlayStyle.Vanilla : (s + 1);
+            s == RegionOverlayStyle.Atlas ? RegionOverlayStyle.Vanilla : RegionOverlayStyle.Atlas;
     }
 }

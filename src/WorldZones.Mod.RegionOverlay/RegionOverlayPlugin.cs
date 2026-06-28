@@ -39,7 +39,11 @@ namespace WorldZones.Mod.RegionOverlay
         // that cycles it. The controller mounts under Minimap.m_pinRootLarge and fog-gates via a
         // reflected Minimap.IsExplored. See docs/design/region-render-seam.md (step 3).
         private RegionOverlayController? overlayController;
-        private RegionOverlayStyle overlayStyle = RegionOverlayStyle.Borders;
+        // Resting default = Atlas (overlay ON at load). Decided 2026-06-28: Atlas is THE mode; F8 now
+        // toggles Atlas ⇄ Vanilla(off). Was Borders (a now-cut line mode) — leaving it Borders would have
+        // shown a dead, zoom-buggy mode on load until the first F8. Flip this to Vanilla if you'd rather
+        // the overlay start OFF.
+        private RegionOverlayStyle overlayStyle = RegionOverlayStyle.Atlas;
         private const KeyCode OverlayCycleKey = KeyCode.F8;
         // Coast-halo dial (F7) — independent of the F8 style. Resting default = Off (opt-in soft fade).
         private CoastHaloMode haloMode = CoastHaloMode.Off;
