@@ -44,6 +44,20 @@ namespace WorldZones.Mod.RegionOverlay
         // Coast-halo dial (F7) — independent of the F8 style. Resting default = Off (opt-in soft fade).
         private CoastHaloMode haloMode = CoastHaloMode.Off;
         private const KeyCode HaloCycleKey = KeyCode.F7;
+        // Glow-intensity dial (F6) — scales the F7 gold halo + Atlas glow so Daniel can A/B "kinda faint"
+        // in-world. Walks named stops Full→Strong→Medium→Faint→Whisper→(wrap). Resting = Full (ship default).
+        private const KeyCode GlowIntensityCycleKey = KeyCode.F6;
+        private int glowIntensityStop;   // index into GlowIntensityStops; 0 = Full (1.0)
+        // Named intensity stops (label + multiplier). Full=1.0 is the current ship value; the lower stops
+        // bracket the "make it faint" hypothesis. Tune freely — pure reversible render dial.
+        private static readonly (string Label, float Mul)[] GlowIntensityStops =
+        {
+            ("Full", 1.00f),
+            ("Strong", 0.70f),
+            ("Medium", 0.45f),
+            ("Faint", 0.25f),
+            ("Whisper", 0.12f),
+        };
         private bool overlayWorldCached;
         // Live realization overlay — non-null only when a location-bearing gazetteer has been built
         // (a consumer that opts into RegionBuildOptions.LocationSource). Until then the realization
@@ -330,6 +344,17 @@ namespace WorldZones.Mod.RegionOverlay
             {
                 this.haloMode = NextHaloMode(this.haloMode);
                 this.Logger.LogInfo($"RegionOverlay: coast halo → {this.haloMode} (hotkey {HaloCycleKey}).");
+            }
+
+            // Glow-intensity hotkey (F6) — walks the named stops and pushes the multiplier to the controller,
+            // which re-bakes the halo at the new peak alpha. Lets Daniel A/B "kinda faint" live. Same guard.
+            if (Input.GetKeyDown(GlowIntensityCycleKey) && !IsTextInputActive())
+            {
+                this.glowIntensityStop = (this.glowIntensityStop + 1) % GlowIntensityStops.Length;
+                var stop = GlowIntensityStops[this.glowIntensityStop];
+                this.overlayController.GlowIntensity = stop.Mul;
+                this.Logger.LogInfo(
+                    $"RegionOverlay: glow intensity → {stop.Label} ({stop.Mul:0.00}×) (hotkey {GlowIntensityCycleKey}).");
             }
 
             // Render only once a world's geometry is cached; otherwise keep the overlay hidden.

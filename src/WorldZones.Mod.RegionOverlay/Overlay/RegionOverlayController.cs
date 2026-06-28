@@ -55,6 +55,37 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
         /// <summary>Coast-halo colour (RGB) + peak alpha (A). Warm gold by default; A scales the whole fade.</summary>
         public Color32 HaloColor { get; set; } = new Color32(235, 180, 95, 200);
 
+        /// <summary>
+        /// Global glow-intensity multiplier (F6 dial), applied to BOTH the F7 gold halo
+        /// (<see cref="HaloColor"/>.a) and the Atlas per-region glow (<see cref="AtlasGlowAlpha"/>) at bake
+        /// time. 1.0 = ship default ("Full"); lower stops walk the glow down toward faint. Lives here (not
+        /// baked into the colours) so F6 composes with whatever F7/F8 are showing and is a pure reversible
+        /// dial. Changing it invalidates the halo bake cache (alpha is baked into the texture).
+        /// </summary>
+        public float GlowIntensity
+        {
+            get => this.glowIntensity;
+            set
+            {
+                float v = Mathf.Clamp01(value);
+                if (Mathf.Approximately(v, this.glowIntensity)) return;
+                this.glowIntensity = v;
+                this.InvalidateHalo();   // alpha is baked in → force a re-bake at the new intensity
+            }
+        }
+        private float glowIntensity = 1f;
+
+        /// <summary>The F7 gold halo colour with its peak alpha scaled by the F6 intensity dial.</summary>
+        private Color32 ScaledHaloColor()
+        {
+            byte a = (byte)Mathf.Clamp(Mathf.RoundToInt(this.HaloColor.a * this.glowIntensity), 0, 255);
+            return new Color32(this.HaloColor.r, this.HaloColor.g, this.HaloColor.b, a);
+        }
+
+        /// <summary>The Atlas per-region glow peak alpha scaled by the F6 intensity dial.</summary>
+        private byte ScaledAtlasGlowAlpha()
+            => (byte)Mathf.Clamp(Mathf.RoundToInt(this.AtlasGlowAlpha * this.glowIntensity), 0, 255);
+
         // ── TWEAK-ME Atlas dials (reversible; validated offline on Niflheim — region-atlas-render.md) ─
         /// <summary>Atlas biome-fill alpha — low so the hillshaded terrain reads THROUGH the tint (0.28 → ~71).</summary>
         public byte AtlasFillAlpha { get; set; } = 71;
@@ -84,6 +115,7 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
         private Texture2D? haloTexture;
         private CoastHaloMode bakedHaloMode = CoastHaloMode.Off;
         private bool bakedHaloWasBiome;   // whether the cached halo was baked per-region (Atlas) vs single-colour
+        private float bakedHaloIntensity = 1f;  // F6 intensity the cached halo was baked at (re-bake on change)
 
         // ── v2 reusable refined-arc fog-gate buffers ─────────────────────────────────────────────────
         // The visible fragments handed to the ink each frame, plus a pool of fragment polylines (and a
@@ -390,7 +422,10 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
         private void EnsureHaloTexture(CoastHaloMode mode, bool biomeGlow)
         {
             if (this.haloField == null) return;
-            if (this.haloTexture != null && this.bakedHaloMode == mode && this.bakedHaloWasBiome == biomeGlow) return;
+            // Cache key includes the F6 intensity: alpha is baked into the texture, so a different
+            // intensity must re-bake even when mode + palette are unchanged.
+            if (this.haloTexture != null && this.bakedHaloMode == mode && this.bakedHaloWasBiome == biomeGlow
+                && Mathf.Approximately(this.bakedHaloIntensity, this.glowIntensity)) return;
 
             if (this.haloTexture != null) Object.Destroy(this.haloTexture);
             if (biomeGlow && this.glowPalette != null)
@@ -398,15 +433,16 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
                 // Atlas: per-region biome glow. Fallback = the HaloColor's RGB for any out-of-band /
                 // unowned texel (shouldn't paint — alpha there is 0 — but keeps the call total).
                 this.haloTexture = this.haloBaker.BakeBiome(
-                    this.haloField, mode, this.glowPalette, this.HaloColor, this.AtlasGlowAlpha);
+                    this.haloField, mode, this.glowPalette, this.HaloColor, this.ScaledAtlasGlowAlpha());
             }
             else
             {
-                this.haloTexture = this.haloBaker.Bake(this.haloField, mode, this.HaloColor);
+                this.haloTexture = this.haloBaker.Bake(this.haloField, mode, this.ScaledHaloColor());
             }
             this.halo!.texture = this.haloTexture;
             this.bakedHaloMode = mode;
             this.bakedHaloWasBiome = biomeGlow;
+            this.bakedHaloIntensity = this.glowIntensity;
         }
 
         private void InvalidateHalo()
