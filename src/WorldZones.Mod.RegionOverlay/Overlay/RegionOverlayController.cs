@@ -45,7 +45,6 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
         private Minimap? boundMinimap;
         private GameObject? root;       // stable host under m_pinRootLarge — never SetActive(false)
         private GameObject? content;    // toggled child holding the graphics
-        private GameObject? discClip;   // circular uGUI Mask clipping fill+ink to the inscribed disc
         private RegionInkGraphic? ink;
         private RawImage? fill;
         private RawImage? halo;          // soft coast-fade layer (below ink, beside fill)
@@ -487,41 +486,28 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
             contentRt.SetParent(rootRt, worldPositionStays: false);
             StretchFull(contentRt);
 
-            // ── Disc clip (THE bleed fix) ─────────────────────────────────────────────────────────────
-            // A single circular uGUI Mask between _content and the graphics clips BOTH the fill RawImage
-            // and the ink graphic to the inscribed disc, so nothing spills into the black starfield
-            // corners (AC-V2-A-CLIP-1). The mask root is stretch-full under m_pinRootLarge (co-extensive
-            // with m_mapImageLarge.rect — the same registration the existing borders rely on), and
-            // preserveAspect keeps the circle round + concentric with the vanilla disc (AC-V2-A-CLIP-2).
-            // showMaskGraphic=false so the circle itself never paints — it only defines the stencil.
-            var maskGo = new GameObject("WZ_DiscClip", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Mask));
-            var maskRt = (RectTransform)maskGo.transform;
-            maskRt.SetParent(contentRt, worldPositionStays: false);
-            StretchFull(maskRt);
-            var maskImage = maskGo.GetComponent<Image>();
-            maskImage.sprite = GetCircleMaskSprite();
-            maskImage.preserveAspect = true;       // round disc even if the map rect is non-square
-            maskImage.raycastTarget = false;
-            var mask = maskGo.GetComponent<Mask>();
-            mask.showMaskGraphic = false;          // stencil only — the circle sprite never draws
-            this.discClip = maskGo;
-
-            // Halo (lowest), then fill, then ink — all inside the MASK (so all clipped to the disc).
-            // Coast halo sits beneath the region fill + ink so the fade reads as a backdrop the borders
-            // and tints draw over.
+            // ── No clip mask ────────────────────────────────────────────────────────────────────────────
+            // The bleed is killed AT THE SOURCE: every Clamp-sampled layer (fill + halo) bakes a
+            // transparent border, so when the displayed uvRect runs past [0,1] (the ±8192 m vanilla map
+            // texture is smaller than the ~±10500 m world, so zoom-out/pan does this routinely) Clamp
+            // repeats an alpha-0 edge texel and there is NOTHING to smear. A circular uGUI Mask was tried
+            // here and REMOVED: it only clipped the smear to a disc (bars still ran out to the disc edge),
+            // it forced a round clip on a rectangular map, and it relied on a runtime sprite. Source-side
+            // transparent borders need no stencil and leave the full rectangular map visible.
+            // Halo (lowest), then fill, then ink — stacked directly under _content.
             var haloGo = new GameObject("WZ_CoastHalo", typeof(RectTransform), typeof(CanvasRenderer), typeof(RawImage));
             var haloRt = (RectTransform)haloGo.transform;
-            haloRt.SetParent(maskRt, worldPositionStays: false);
+            haloRt.SetParent(contentRt, worldPositionStays: false);
             StretchFull(haloRt);
             this.halo = haloGo.GetComponent<RawImage>();
             this.halo.raycastTarget = false;
             this.halo.color = new Color32(255, 255, 255, 255); // texture carries its own per-texel alpha
             haloGo.SetActive(false);
 
-            // Fill (below) then ink (above) inside the MASK (so both are clipped to the disc).
+            // Fill (below) then ink (above), stacked under _content.
             var fillGo = new GameObject("WZ_RegionFill", typeof(RectTransform), typeof(CanvasRenderer), typeof(RawImage));
             var fillRt = (RectTransform)fillGo.transform;
-            fillRt.SetParent(maskRt, worldPositionStays: false);
+            fillRt.SetParent(contentRt, worldPositionStays: false);
             StretchFull(fillRt);
             this.fill = fillGo.GetComponent<RawImage>();
             this.fill.raycastTarget = false;
@@ -530,7 +516,7 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
 
             var inkGo = new GameObject("WZ_RegionInk", typeof(RectTransform), typeof(CanvasRenderer));
             var inkRt = (RectTransform)inkGo.transform;
-            inkRt.SetParent(maskRt, worldPositionStays: false);
+            inkRt.SetParent(contentRt, worldPositionStays: false);
             StretchFull(inkRt);
             this.ink = inkGo.AddComponent<RegionInkGraphic>();
             inkGo.SetActive(false);
@@ -561,65 +547,12 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
             rt.pivot = new Vector2(0.5f, 0.5f);
         }
 
-        // ── Disc clip (THE bleed fix) ─────────────────────────────────────────────────────────────────
-        /// <summary>
-        /// The runtime-generated circular Mask sprite — painted ONCE (white inside an AA'd radius,
-        /// transparent outside) and reused for every mount. Generated in code so there is NO asset
-        /// bundle and NO builtin Unity sprite (sidesteps the <c>Knob.psd</c>-class builtin-sprite load
-        /// failure on Valheim's 0.221.x Unity — AC-V2-A-CLIP-3), the same way <see cref="RegionInkGraphic"/>
-        /// leans on <c>s_WhiteTexture</c> instead of a sprite. This is the JotunnLib <c>CircleMask</c>
-        /// technique minus the bundle.
-        /// </summary>
-        private static Sprite? s_circleMaskSprite;
-
-        /// <summary>Lazily build (and cache process-wide) the circular mask sprite.</summary>
-        private static Sprite GetCircleMaskSprite()
-        {
-            if (s_circleMaskSprite != null) return s_circleMaskSprite;
-
-            const int size = 512;                    // ample resolution for a clean disc edge on the large map
-            const float r = size * 0.5f;             // inscribed radius = half the texture (fills the square)
-            const float edge = 1.5f;                 // AA ramp width in texels
-
-            var tex = new Texture2D(size, size, TextureFormat.RGBA32, mipChain: false)
-            {
-                // Bilinear is fine here: this is the CLIP sprite, NOT the region fill (whose Point filter
-                // guards the colourblind lightness palette). The clip never touches region colours.
-                filterMode = FilterMode.Bilinear,
-                wrapMode = TextureWrapMode.Clamp,
-                name = "WZ_CircleMaskTex",
-            };
-
-            var px = new Color32[size * size];
-            float cx = r - 0.5f, cy = r - 0.5f;
-            for (int y = 0; y < size; y++)
-            {
-                for (int x = 0; x < size; x++)
-                {
-                    float dx = x - cx, dy = y - cy;
-                    float dist = Mathf.Sqrt(dx * dx + dy * dy);
-                    // alpha = 1 well inside the radius, ramps to 0 across the AA edge just inside r.
-                    float a = Mathf.Clamp01((r - dist) / edge);
-                    byte alpha = (byte)Mathf.RoundToInt(a * 255f);
-                    px[y * size + x] = new Color32(255, 255, 255, alpha);
-                }
-            }
-            tex.SetPixels32(px);
-            tex.Apply(updateMipmaps: false, makeNoLongerReadable: true);
-
-            s_circleMaskSprite = Sprite.Create(
-                tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), pixelsPerUnit: 100f);
-            s_circleMaskSprite.name = "WZ_CircleMask";
-            return s_circleMaskSprite;
-        }
-
         /// <summary>Tear down the mounted objects (world reload / shutdown).</summary>
         public void Unmount()
         {
             if (this.root != null) Object.Destroy(this.root);
             this.root = null;
             this.content = null;
-            this.discClip = null;
             this.ink = null;
             this.fill = null;
             this.halo = null;
