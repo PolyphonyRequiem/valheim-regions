@@ -55,9 +55,14 @@ namespace WorldZones.Unity
             for (int gy = 0; gy < h; gy++)
             {
                 int row = gy * w;   // row gy → texture-Y gy (no flip), matching RegionTextureBaker
+                bool edgeRow = gy == 0 || gy == h - 1;
                 for (int gx = 0; gx < w; gx++)
                 {
-                    double a = field.Alpha(mode, gy, gx) * peak;
+                    // Force the outermost texel RING fully transparent so WrapMode.Clamp has only alpha-0
+                    // to repeat past the texture edge (the ±8192 m map texture is smaller than the world,
+                    // so zoom-out/pan runs the uvRect past [0,1] routinely). Without this the rim glow
+                    // Clamp-smears into long biome-coloured BARS across the void — the "fill/halo beams" bug.
+                    double a = (edgeRow || gx == 0 || gx == w - 1) ? 0.0 : field.Alpha(mode, gy, gx) * peak;
                     byte alpha = (byte)(a <= 0 ? 0 : a >= 1 ? 255 : (int)(a * 255 + 0.5));
                     pixels[row + gx] = new Color32(haloColor.r, haloColor.g, haloColor.b, alpha);
                 }
@@ -98,9 +103,12 @@ namespace WorldZones.Unity
             for (int gy = 0; gy < h; gy++)
             {
                 int row = gy * w;
+                bool edgeRow = gy == 0 || gy == h - 1;
                 for (int gx = 0; gx < w; gx++)
                 {
-                    double a = field.Alpha(mode, gy, gx) * peak;
+                    // Outermost texel RING forced transparent — Clamp repeats alpha-0 past the edge, so the
+                    // Atlas biome glow can't smear into coloured BARS across the void (see Bake()).
+                    double a = (edgeRow || gx == 0 || gx == w - 1) ? 0.0 : field.Alpha(mode, gy, gx) * peak;
                     byte alpha = (byte)(a <= 0 ? 0 : a >= 1 ? 255 : (int)(a * 255 + 0.5));
                     Color32 rgb = fallback;
                     if (alpha > 0)

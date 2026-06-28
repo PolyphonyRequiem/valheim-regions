@@ -48,31 +48,48 @@ namespace WorldZones.Unity
         public Texture2D Bake(int[,] regionIdGrid, int minIndex, IReadOnlyList<Color32> paletteByLabel,
                               Color32 unassigned)
         {
-            int height = regionIdGrid.GetLength(0); // gy extent (rows)
-            int width = regionIdGrid.GetLength(1);  // gx extent (cols)
+            int gridH = regionIdGrid.GetLength(0); // gy extent (rows)
+            int gridW = regionIdGrid.GetLength(1); // gx extent (cols)
 
-            // Identical lattice origin/span as RegionBoundaryExtractor.Corner: corner (0,0) sits at
-            // world ((0+minIndex)·64 − 32); the texture covers width·64 × height·64 metres.
+            // 🔴 Bake a ONE-TEXEL TRANSPARENT BORDER around the grid (texture = grid + 2). The texture is
+            // sampled WrapMode.Clamp, so when the displayed uvRect runs past [0,1] (zoom-out / pan, and the
+            // ±8192 m vanilla map texture is SMALLER than the ~±10500 m world so this happens routinely),
+            // Clamp repeats the OUTERMOST texel outward. Without the border, a region that reaches the grid
+            // edge (ForTheWort regions reach ±10016 m) bakes a COLOURED edge texel, and Clamp smears it into
+            // long biome-coloured BARS across the void — the old "fill beams" bug. With a transparent border
+            // the repeated texel is always alpha-0, so the smear is invisible. Universal: independent of map
+            // extent or any clip shape. Cost: one 64 m ring (ocean / world-wall), no real territory lost.
+            const int pad = 1;
+            int width = gridW + 2 * pad;
+            int height = gridH + 2 * pad;
+
+            // Identical lattice origin/span as RegionBoundaryExtractor.Corner, shifted OUT by the pad ring:
+            // grid corner (0,0) sits at world ((0+minIndex)·64 − 32); the padded texture's corner sits one
+            // cell further out so the grid maps to the texture interior with no drift.
             const double cell = ZoneGrid.ZoneSize;            // 64 — single source of truth
             const double half = ZoneGrid.ZoneSize / 2.0;      // 32 — corner offset off the zone centre
-            this.bakedOriginX = minIndex * cell - half;
-            this.bakedOriginZ = minIndex * cell - half;
+            this.bakedOriginX = (minIndex - pad) * cell - half;
+            this.bakedOriginZ = (minIndex - pad) * cell - half;
             this.bakedSpanX = width * cell;
             this.bakedSpanZ = height * cell;
             this.baked = true;
 
             var pixels = new Color32[width * height];
+            // Seed EVERYTHING (interior + the border ring) to the transparent unassigned colour; the loop
+            // below overwrites only the interior cells that carry a real region label.
+            for (int i = 0; i < pixels.Length; i++) pixels[i] = unassigned;
+
             IReadOnlyList<Color32> palette = paletteByLabel ?? System.Array.Empty<Color32>();
             int paletteCount = palette.Count;
-            for (int gy = 0; gy < height; gy++)
+            for (int gy = 0; gy < gridH; gy++)
             {
-                int row = gy * width;
-                for (int gx = 0; gx < width; gx++)
+                int row = (gy + pad) * width; // grid row gy → texture row gy+pad (inside the border)
+                for (int gx = 0; gx < gridW; gx++)
                 {
                     int label = regionIdGrid[gy, gx];
                     // Texture2D pixel index = y*width + x with y=0 the BOTTOM row; gy already increases
-                    // with world-Z, so row gy maps directly to texture-Y gy (no flip).
-                    pixels[row + gx] = (label >= 0 && label < paletteCount)
+                    // with world-Z, so row gy maps directly to texture-Y gy+pad (no flip).
+                    pixels[row + (gx + pad)] = (label >= 0 && label < paletteCount)
                         ? palette[label]
                         : unassigned;
                 }
@@ -81,9 +98,9 @@ namespace WorldZones.Unity
             var tex = new Texture2D(width, height, TextureFormat.RGBA32, mipChain: false)
             {
                 name = "WZ_RegionFill",
-                // Clamp so the rim texel doesn't wrap; Point so adjacent region colours stay pure
-                // (no cross-seam bleed under colourblind lightness stepping). Tier-3 may override to
-                // Bilinear for a softer drawn-map edge — a styling choice, reversible.
+                // Clamp so the (now TRANSPARENT) rim texel doesn't wrap; Point so adjacent region colours
+                // stay pure (no cross-seam bleed under colourblind lightness stepping). Tier-3 may override
+                // to Bilinear for a softer drawn-map edge — a styling choice, reversible.
                 wrapMode = TextureWrapMode.Clamp,
                 filterMode = FilterMode.Point,
             };
