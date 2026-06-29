@@ -438,7 +438,13 @@ namespace WorldZones.Mod.RegionOverlay
                 arcs.AddRange(RegionBoundaryRefiner.RefineCoastlinesSmoothed(graph, heightField));
                 arcs.AddRange(RegionBoundaryRefiner.RefineBiomeSeams(graph, biomeField));
 
-                this.overlayController.SetWorld(graph, arcs, regionWorld.RegionIdGrid, regionWorld.Grid.MinIndex);
+                // ── Main-only strip (render-time, 2026-06-28): keep each region's LARGEST contiguous land
+                // component, drop detached chunks → unowned. Visual-only: the engine's RegionIdGrid is
+                // untouched (gazetteer/names/count unchanged); we hand the overlay a stripped COPY so fill +
+                // glow stop teleporting across water. Engine-strip is a separate domain task. Safety-checked
+                // on Niflheim: 0 regions collapse to empty, 164 preserved, worst loses 81% but survives.
+                int[,] mainGrid = StripToMainComponent(regionWorld.RegionIdGrid);
+                this.overlayController.SetWorld(graph, arcs, mainGrid, regionWorld.Grid.MinIndex);
 
                 // Coast-halo field (F7 soft fade) — built once over the SAME world window the region grid
                 // covers, at a 16 m cell for a smooth fade (4× finer than the 64 m zone lattice). Reads the
@@ -454,9 +460,9 @@ namespace WorldZones.Mod.RegionOverlay
                 int haloH = (int)(gh * zone / haloCell);
                 var haloHeight = new HeightScalarField(sampler, CoastHaloField.SeaLevel);
                 // Atlas per-region glow needs the halo field to know WHICH region each coast belongs to.
-                // Supply a world(x,z) → grid-label sampler over the region-id grid (same 64 m lattice the
-                // fill bakes from). Nearest-owned-coast propagation across water happens inside Build.
-                int[,] ridGrid = regionWorld.RegionIdGrid;
+                // Supply a world(x,z) → grid-label sampler over the MAIN-ONLY grid (matches the fill, so the
+                // glow attributes only to a region's contiguous body — orphan-island coasts read unowned).
+                int[,] ridGrid = mainGrid;
                 int ridMin = regionWorld.Grid.MinIndex;
                 int ridH = ridGrid.GetLength(0), ridW = ridGrid.GetLength(1);
                 System.Func<double, double, int> regionIdAt = (wx, wz) =>
@@ -492,6 +498,34 @@ namespace WorldZones.Mod.RegionOverlay
                 this.Logger.LogError($"RegionOverlay: failed to cache boundary geometry: {ex}");
                 this.overlayWorldCached = false;
             }
+        }
+
+        /// <summary>
+        /// Render-time main-only strip: return a COPY of the region-id grid where each region keeps only
+        /// its LARGEST 8-connected land component; detached chunks become −1 (unowned). The engine grid is
+        /// never mutated — this is a visual contiguity pass so fill + glow don't teleport across water to
+        /// island fragments that share an id. Decided 2026-06-28; engine-strip is a separate domain task.
+        /// </summary>
+        private static int[,] StripToMainComponent(int[,] grid)
+        {
+            int h = grid.GetLength(0), w = grid.GetLength(1);
+            var compId = new int[h, w]; for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) compId[y, x] = -1;
+            var seen = new bool[h, w];
+            var biggest = new System.Collections.Generic.Dictionary<int, (int sz, int id)>();
+            int cid = 0;
+            for (int y = 0; y < h; y++) for (int x = 0; x < w; x++)
+            {
+                int lab = grid[y, x]; if (lab < 0 || seen[y, x]) continue;
+                var st = new System.Collections.Generic.Stack<(int, int)>(); st.Push((y, x)); seen[y, x] = true; int n = 0;
+                while (st.Count > 0) { var (cy, cx) = st.Pop(); n++; compId[cy, cx] = cid;
+                    for (int dy = -1; dy <= 1; dy++) for (int dx = -1; dx <= 1; dx++) { int ny = cy + dy, nx = cx + dx;
+                        if (ny < 0 || nx < 0 || ny >= h || nx >= w || seen[ny, nx] || grid[ny, nx] != lab) continue; seen[ny, nx] = true; st.Push((ny, nx)); } }
+                if (!biggest.TryGetValue(lab, out var b) || n > b.sz) biggest[lab] = (n, cid);
+                cid++;
+            }
+            var outg = new int[h, w];
+            for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) { int lab = grid[y, x]; outg[y, x] = (lab >= 0 && biggest[lab].id == compId[y, x]) ? lab : -1; }
+            return outg;
         }
 
         /// <summary>
