@@ -85,6 +85,8 @@ namespace WorldZones.Cli
                     return IslandLoss.Run(seed);
                 case "bridgeprobe":
                     return BridgeProbe.Run(seed);
+                case "fillmaskviz":
+                    return FillMaskViz.Run(seed, output ?? "/tmp");
                 case "basemap":
                     return CompositeDump.Basemap(seed, output ?? Path.Combine(Directory.GetCurrentDirectory(), $"{seed}_basemap.bin"), 8);
                 case "locations":

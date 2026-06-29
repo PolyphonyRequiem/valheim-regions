@@ -132,5 +132,75 @@ namespace WorldZones.Unity
             float vH = (float)(mapFrame.SpanZ / this.bakedSpanZ);
             return new Rect(uMin, vMin, uW, vH);
         }
+
+        /// <summary>
+        /// Bake a FINE region-id raster (sub-zone, e.g. 16 m from <see cref="WorldZones.Runtime.RegionFillMaskBaker"/>)
+        /// into a texture. Identical contract to <see cref="Bake"/> — same transparent pad ring, Clamp +
+        /// Point, world-aligned origin/span — but the lattice cell is <paramref name="texelMeters"/>
+        /// (NOT the 64 m zone), so a fine fill whose coast follows the 30 m waterline registers under the
+        /// map at the right size. <paramref name="minIndex"/> is still the ZONE min index (the fine raster
+        /// shares the coarse grid's origin corner: <c>minIndex·64 − 32</c>), so the fine texture lines up
+        /// exactly under the ink + the coarse halo with no half-texel drift.
+        ///
+        /// <para>This exists as a SEPARATE method (not a refactor of <see cref="Bake"/>) on purpose: the
+        /// shipped 64 m path is visually verified and must not regress while the fine path is added — they
+        /// share the registration MATH (origin/span/uvRect) but differ only in the cell size, which is now
+        /// a parameter here.</para>
+        /// </summary>
+        /// <param name="fineGrid">Region-id raster at <paramref name="texelMeters"/> resolution; &lt;0 = transparent.</param>
+        /// <param name="minIndex">The ZONE grid min index (same as <see cref="Bake"/>); the fine raster's
+        ///   corner is <c>minIndex·64 − 32</c>.</param>
+        /// <param name="texelMeters">Fine texel size in world m (e.g. 16). Must divide 64 with no remainder
+        ///   so the fine raster tiles the zone lattice exactly.</param>
+        /// <param name="paletteByLabel">Colour per int label (same label the fine raster carries).</param>
+        /// <param name="unassigned">Colour for &lt;0 / out-of-palette texels (transparent for an overlay).</param>
+        public Texture2D BakeFine(int[,] fineGrid, int minIndex, double texelMeters,
+                                  IReadOnlyList<Color32> paletteByLabel, Color32 unassigned)
+        {
+            int gridH = fineGrid.GetLength(0); // fy extent
+            int gridW = fineGrid.GetLength(1); // fx extent
+
+            const int pad = 1;
+            int width = gridW + 2 * pad;
+            int height = gridH + 2 * pad;
+
+            // SAME origin corner as the coarse bake (minIndex·64 − 32), so the fine texture shares the
+            // zone-corner lattice; the per-texel span is texelMeters, not 64.
+            const double zone = ZoneGrid.ZoneSize;        // 64 — the corner offset is still off the zone grid
+            const double half = ZoneGrid.ZoneSize / 2.0;  // 32
+            double cell = texelMeters;
+            this.bakedOriginX = (minIndex * zone - half) - pad * cell;   // shift out by one FINE ring
+            this.bakedOriginZ = (minIndex * zone - half) - pad * cell;
+            this.bakedSpanX = width * cell;
+            this.bakedSpanZ = height * cell;
+            this.baked = true;
+
+            var pixels = new Color32[width * height];
+            for (int i = 0; i < pixels.Length; i++) pixels[i] = unassigned;
+
+            IReadOnlyList<Color32> palette = paletteByLabel ?? System.Array.Empty<Color32>();
+            int paletteCount = palette.Count;
+            for (int fy = 0; fy < gridH; fy++)
+            {
+                int row = (fy + pad) * width;
+                for (int fx = 0; fx < gridW; fx++)
+                {
+                    int label = fineGrid[fy, fx];
+                    pixels[row + (fx + pad)] = (label >= 0 && label < paletteCount)
+                        ? palette[label]
+                        : unassigned;
+                }
+            }
+
+            var tex = new Texture2D(width, height, TextureFormat.RGBA32, mipChain: false)
+            {
+                name = "WZ_RegionFillFine",
+                wrapMode = TextureWrapMode.Clamp,
+                filterMode = FilterMode.Point,
+            };
+            tex.SetPixels32(pixels);
+            tex.Apply(updateMipmaps: false, makeNoLongerReadable: false);
+            return tex;
+        }
     }
 }

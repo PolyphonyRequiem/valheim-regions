@@ -109,6 +109,13 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
         private float lastFillBakeTime = float.NegativeInfinity;
         private bool bakedFillWasBiome;   // which palette the cached fill was baked with (re-bake on switch)
 
+        // ── Fine fill mask (phase 2, 2026-06-29): a sub-zone region-id raster whose land/water edge follows
+        // the 30 m waterline (RegionFillMaskBaker), so the terrestrial fill stops AT the coast instead of
+        // the 64 m zone staircase overhanging into water. Null = fall back to the coarse 64 m baker.
+        private int[,]? fineFillMask;      // [fy, fx] region label, −1 = water/unassigned; already height-clipped
+        private double fineTexelMeters;    // world m per fine texel (e.g. 16)
+        private int fineSubdivisions;      // fine texels per zone edge (64 / texel) — for the per-zone fog gate
+
         // ── Halo bake cache (re-baked only when the mode changes, NOT per frame) ─────────────────────
         private readonly CoastHaloBaker haloBaker = new CoastHaloBaker();
         private Texture2D? haloTexture;
@@ -166,6 +173,24 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
 
         /// <summary>True once a world's geometry has been cached (and the fog gate is usable).</summary>
         public bool HasWorld => this.graph != null && this.regionIdGrid != null && this.fog.Available;
+
+        /// <summary>
+        /// Supply the FINE fill mask (phase 2): a sub-zone region-id raster (from
+        /// <c>WorldZones.Runtime.RegionFillMaskBaker</c>) whose land/water edge already follows the 30 m
+        /// waterline, so the terrestrial fill stops at the real coast instead of the 64 m zone staircase.
+        /// <paramref name="texelMeters"/> is the fine cell size (e.g. 16); it must divide 64 evenly.
+        /// Pass null to revert to the coarse 64 m baker. Invalidates the cached fill.
+        /// </summary>
+        public void SetFineFillMask(int[,]? fineMask, double texelMeters)
+        {
+            this.fineFillMask = fineMask;
+            this.fineTexelMeters = texelMeters;
+            this.fineSubdivisions = texelMeters > 0 ? (int)System.Math.Round(64.0 / texelMeters) : 0;
+            this.InvalidateFill();
+            if (fineMask != null)
+                this.logger?.LogInfo($"RegionOverlay: fine fill mask set — {fineMask.GetLength(1)}x{fineMask.GetLength(0)} "
+                                   + $"@ {texelMeters} m ({this.fineSubdivisions}× per zone). Fill clips to the 30 m waterline.");
+        }
 
         /// <summary>
         /// Supply the Atlas biome palettes: <paramref name="fillColors"/> (per grid label, the region
@@ -381,6 +406,46 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
                          || (Time.unscaledTime - this.lastFillBakeTime) > this.FillRebakeIntervalSeconds;
             if (!stale) return;
 
+            if (this.fillTexture != null) Object.Destroy(this.fillTexture);
+
+            // ── FINE path (phase 2): the fill mask already encodes the 30 m-waterline land/water edge per
+            // fine texel. Fog reveals at ZONE granularity (you explore in 64 m chunks), so we fog-gate per
+            // ZONE — same ~grid-cell cost as the coarse path — and copy the pre-clipped fine label through
+            // for explored zones, −1 for unexplored. The expensive height test was done ONCE at world-load
+            // in RegionFillMaskBaker, NOT here, so the per-frame cost stays at the coarse grid's scale. ──
+            if (this.fineFillMask != null && this.fineSubdivisions > 0)
+            {
+                int fh = this.fineFillMask.GetLength(0), fw = this.fineFillMask.GetLength(1);
+                int sub = this.fineSubdivisions;
+                const double zone = 64.0;
+                var fineMasked = new int[fh, fw];
+                // Fog state is per zone; cache one IsExplored per zone row/col span instead of per texel.
+                int zonesH = fh / sub, zonesW = fw / sub;
+                for (int zy = 0; zy < zonesH; zy++)
+                {
+                    double wz = (zy + this.gridMinIndex) * zone;
+                    for (int zx = 0; zx < zonesW; zx++)
+                    {
+                        double wx = (zx + this.gridMinIndex) * zone;
+                        bool explored = this.fog.IsExplored(minimap, wx, wz);
+                        int fy0 = zy * sub, fx0 = zx * sub;
+                        for (int dy = 0; dy < sub; dy++)
+                            for (int dx = 0; dx < sub; dx++)
+                            {
+                                int fy = fy0 + dy, fx = fx0 + dx;
+                                fineMasked[fy, fx] = explored ? this.fineFillMask[fy, fx] : -1;
+                            }
+                    }
+                }
+                this.fillTexture = this.baker.BakeFine(fineMasked, this.gridMinIndex, this.fineTexelMeters,
+                                                       activePalette, new Color32(0, 0, 0, 0));
+                this.fill!.texture = this.fillTexture;
+                this.lastFillBakeTime = Time.unscaledTime;
+                this.bakedFillWasBiome = biome;
+                return;
+            }
+
+            // ── COARSE path (fallback, byte-identical to the shipped 64 m fill) ───────────────────────
             // Pre-mask: unexplored cells → -1 (transparent), so the pure Tier-2 baker fog-gates the fill
             // for free without learning about fog. AC-T3-FOG-1.
             int h = this.regionIdGrid.GetLength(0), w = this.regionIdGrid.GetLength(1);
@@ -398,7 +463,6 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
                 }
             }
 
-            if (this.fillTexture != null) Object.Destroy(this.fillTexture);
             this.fillTexture = this.baker.Bake(masked, this.gridMinIndex, activePalette, new Color32(0, 0, 0, 0));
             this.fill!.texture = this.fillTexture;
             this.lastFillBakeTime = Time.unscaledTime;

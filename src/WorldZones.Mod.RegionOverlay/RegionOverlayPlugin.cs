@@ -485,6 +485,22 @@ namespace WorldZones.Mod.RegionOverlay
                     costFloodDeepWeight: 8.0);
                 this.overlayController.SetHaloField(haloFld);
 
+                // ── Phase-2 FINE FILL MASK (2026-06-29): the terrestrial fill stops at the 30 m waterline
+                // instead of the 64 m zone staircase overhanging into water. RegionFillMaskBaker tests each
+                // 16 m texel's height against the waterline (swamp-rescue floor 22 m honoured so walkable
+                // sub-waterline swamp paints solid, not a hole — see region-render-seam.md render model).
+                // Land-or-water is fine; WHICH region a land texel belongs to comes from the SAME mainGrid
+                // the coarse fill + glow attribute to, so all three agree. Baked once per world; the
+                // controller fog-gates per ZONE at draw (cheap) and BakeFine registers it at 16 m.
+                const double fineTexel = 16.0;
+                int fineSub = (int)(zone / fineTexel);   // 4
+                var fillMaskBaker = new RegionFillMaskBaker(
+                    sampler,
+                    coastIso: HeightScalarField.SeaLevel,       // 30 m — true waterline (not the 25 m line iso)
+                    swampLandFloor: 22.0);                       // matches RegionBuildOptions.SwampLandFloorMeters
+                int[,] fineFillMask = fillMaskBaker.Bake(mainGrid, regionWorld.Grid.MinIndex, fineSub);
+                this.overlayController.SetFineFillMask(fineFillMask, fineTexel);
+
                 // Atlas biome palettes (fill wash + sat-floored coast glow), one colour per grid label
                 // (RegionInfo.TransientId) from each region's DominantBiome (ComputeRegionInfo=true
                 // guarantees it). Built once per world; the controller scales alpha at draw.
