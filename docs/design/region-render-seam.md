@@ -732,3 +732,46 @@ topological). The risk is **self-intersection**: a coastal vertex snaps one way,
 another, and the loop crosses itself → fill leaks. The spike's pass/fail gate is a self-intersection +
 winding-preservation check on the refined-then-smoothed ring of one real coastal region on seed
 `bkpcEynZXm3`, rendered 3-up (raw 64 m ring / refined / refined+smoothed) for Daniel's felt judgment.
+
+### 🔴 RENDER MODEL 2026-06-29 (Daniel) — the ring is authoritative for MEMBERSHIP, NOT a fill boundary
+Correcting an earlier mis-framing ("fill to the outer ring"). The outer ring is the source of truth for
+"what region is this point in" (point-in-polygon) + the gazetteer. The RENDER decomposes the ring's
+anatomy into three primitives — **we do NOT fill the outer ring**:
+
+- **FILL = terrestrial only.** Paint the region's LAND (terrain ≥ waterline) and stop at the coast. The
+  fill does NOT reach the ring's seaward/coastal edge. (`RegionFillMaskBaker` already does exactly this:
+  per-fine-texel height test + grid membership. It is BUILT but NOT yet wired — the live overlay still
+  uses the 64 m `RegionTextureBaker`. Phase-2 fill = swap to `RegionFillMaskBaker`.)
+- **GLOW = coastal FADE (rename: it's a fade, not a glow).** The region's surface continuing past the
+  waterline and fading out over its coastal water — one continuous region identity (solid on land, fading
+  on water), transition exactly at the shoreline. Daniel 2026-06-29: **"just the coastal band"** — the
+  fade is the existing distance-from-shore band (`CoastHaloField`, 96 m BFS signed-distance from the
+  shoreline + optional depth gate so it can't haze open ocean), NOT a fill of all in-ring water. It is
+  **attributed per region** (nearest-owned-coast id) so it cannot claim a neighbour's coastal water or
+  open ocean. Today the live overlay already does this; phase-2 = keep the band, ensure the attribution
+  is the region's ring.
+- **INK = terrestrial shared boundaries ONLY.** Only the refined land↔land SEAM edges of the ring are
+  drawn as a line. Coastal (region-vs-void) edges are NOT inked — the fade conveys the coast. (The live
+  Atlas controller already does this: `terrestrialOnly` skips `KeyB == null` coastline arcs. Phase-2 =
+  feed it the refined RING seam edges instead of the separately-refined arcs.)
+
+**Swamp rescue STAYS ON (resolved 2026-06-29).** Because the fade is the coastal BAND (~96 m from ocean
+shore), not a fill of all in-ring water, an interior swamp texel below the 30 m waterline but inland of
+the band is neither fill (under 30 m) nor fade (too far from shore). Dropping the rescue would punch
+BLANK HOLES in those regions. So `RegionFillMaskBaker` keeps the swamp-floor rescue: walkable
+sub-waterline swamp paints as solid region fill. Membership is the RING's job regardless, so the rescue
+is now purely the FILL's anti-hole guard, not a domain mechanism. Phase-2 wiring MUST pass
+`swampLandFloor = RegionBuildOptions.SwampLandFloorMeters` into the baker. Visible result: swamp coast +
+interior swamp paint solid; only the ocean edge fades.
+
+**Mask clip cleaned to 30 m (done 2026-06-29, `RegionFillMaskBaker` default `coastIso` 25→30 =
+`HeightScalarField.SeaLevel`).** The fill now stops at the TRUE waterline (was ~5 m offshore at the 25 m
+coast iso), so terrestrial fill never overhangs into water — the "terrestrial fill extends past the
+coast" bug. The 25 m value still positions the drawn coast LINE (offshore), but the FILL ends at the
+real shoreline and the fade owns everything seaward.
+
+So the three primitives MEET by construction: fill ends at the waterline, glow runs waterline→ring (the
+ring is the glow's outer bound), ink marks only interior land seams. The outer ring itself is never a
+drawn fill region nor a drawn outline — it is the membership substrate the three primitives read. This is
+close to the SHIPPED Atlas behaviour already (terrestrial-only ink + coast glow + fill); phase-2 makes
+all three derive from / be bounded by the ONE authoritative ring instead of three private 64 m paths.

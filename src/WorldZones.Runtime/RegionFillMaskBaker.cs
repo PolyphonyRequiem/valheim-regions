@@ -37,13 +37,20 @@ namespace WorldZones.Runtime
         private readonly double? swampFloor;
 
         /// <param name="sampler">World height + biome source.</param>
-        /// <param name="coastIso">Iso-level (world m) the coast edge hugs — pass
-        ///   <see cref="HeightScalarField.CoastIso"/> (25 m) to match the border line exactly.</param>
+        /// <param name="coastIso">Iso-level (world m) the fill's land/water edge clips at. Defaults to
+        ///   <see cref="HeightScalarField.SeaLevel"/> (30 m, the TRUE waterline) so the terrestrial fill
+        ///   stops exactly where land becomes water and the coastal FADE takes over from there (Daniel,
+        ///   2026-06-29: "clean up the mask to 30 m, then transition to the fade when we hit the water").
+        ///   This is intentionally NOT the 25 m <see cref="HeightScalarField.CoastIso"/> — that ~5 m-offshore
+        ///   value positions the drawn coast LINE, whereas the FILL must end at the real shoreline so it
+        ///   never overhangs into water (the "terrestrial glow extends beyond the coast" bug). The ring's
+        ///   25 m coastal edge then sits just offshore, inside the fade band, not as a fill boundary.</param>
         /// <param name="swampLandFloor">Swamp land-floor (world m) so the fill honours the swamp rescue;
         ///   null = no swamp special-casing (a swamp texel then uses <paramref name="coastIso"/> like any
-        ///   other). Pass the same value as <c>RegionBuildOptions.SwampLandFloorMeters</c>.</param>
+        ///   other). Pass the same value as <c>RegionBuildOptions.SwampLandFloorMeters</c>. REQUIRED to keep
+        ///   swamp coast (walkable terrain below the 30 m waterline) from vanishing when the clip is 30 m.</param>
         public RegionFillMaskBaker(IWorldSampler sampler,
-                                   double coastIso = HeightScalarField.CoastIso,
+                                   double coastIso = HeightScalarField.SeaLevel,
                                    double? swampLandFloor = null)
         {
             this.sampler = sampler ?? throw new ArgumentNullException(nameof(sampler));
