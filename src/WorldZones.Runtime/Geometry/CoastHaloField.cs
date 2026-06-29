@@ -111,6 +111,13 @@ namespace WorldZones.Runtime.Geometry
         ///   supplied, every water texel within the band records the region id of the NEAREST owned-land
         ///   coast, so a consumer can colour the seaward glow per region (Atlas biome glow). Null leaves
         ///   <see cref="NearestRegionIdAt"/> returning −1 everywhere (single-colour glow, prior behaviour).</param>
+        /// <param name="costFloodDeepWeight">C-cost apron deep-weight (m); 0 = legacy fixed band.</param>
+        /// <param name="includeLakes">When true, ALL water (not just edge-connected ocean) is fade-eligible
+        ///   — enclosed lakes / interior sub-waterline pockets grow a fade too, so an in-region lake is
+        ///   covered instead of left as a blank "hole" (Daniel 2026-06-29, option A: "makes lakes look more
+        ///   interesting"). The fade then partitions a region's footprint with the land fill: land = fill,
+        ///   ALL water = fade, no overlap, no gap. Default false = legacy ocean-only (lakes excluded,
+        ///   byte-identical to the prior behaviour).</param>
         public static CoastHaloField Build(
             IScalarField height,
             double originX, double originZ, double cell,
@@ -118,7 +125,10 @@ namespace WorldZones.Runtime.Geometry
             double bandMeters = DefaultBandMeters,
             double depthFadeMeters = 0.0,
             Func<double, double, int> regionIdAt = null,
-            double costFloodDeepWeight = 0.0)
+            double costFloodDeepWeight = 0.0,
+            bool includeLakes = false,
+            double? swampLandFloor = null,
+            Func<double, double, bool> isSwamp = null)
         {
             if (height == null) throw new ArgumentNullException(nameof(height));
             if (cell <= 0) throw new ArgumentOutOfRangeException(nameof(cell));
@@ -136,7 +146,14 @@ namespace WorldZones.Runtime.Geometry
                 {
                     double wx = originX + (gx + 0.5) * cell;
                     double hm = height.Sample(wx, wz);
-                    bool isLand = hm >= SeaLevel;
+                    // Land test MIRRORS RegionFillMaskBaker.IsLand: height ≥ sea level, OR a swamp-rescued
+                    // texel (height ≥ swampLandFloor AND biome is Swamp). This is what makes fill XOR fade
+                    // a true partition — a rescued-swamp texel that the FILL paints as land is ALSO land
+                    // here, so the fade leaves it alone (no double-layer). Without the rescue the fade would
+                    // paint swamp the fill already filled (the 2026-06-29 "swamp extra layer" overlap).
+                    bool isLand = hm >= SeaLevel
+                                  || (swampLandFloor.HasValue && hm >= swampLandFloor.Value
+                                      && isSwamp != null && isSwamp(wx, wz));
                     land[gy, gx] = isLand;
                     depthBelow[gy, gx] = (float)Math.Max(0.0, SeaLevel - hm);
                     ownedLand[gy, gx] = (isLand && regionIdAt != null) ? regionIdAt(wx, wz) : -1;
@@ -144,13 +161,28 @@ namespace WorldZones.Runtime.Geometry
             }
 
             bool[,] ocean = FloodOceanFromEdge(land, h, w);
-            double[,] signed = SignedShorelineDistance(land, ocean, h, w, cell, bandMeters);
+            // Option A (includeLakes): the FADE-eligible water set is ALL water, not just edge-connected
+            // ocean — so enclosed lakes / interior sub-waterline pockets grow a fade instead of reading as
+            // a blank hole. We pass this "fadeWater" mask everywhere the algorithms previously used `ocean`
+            // (shoreline distance, cost apron, nearest-region BFS, the sign step), so a lake is treated
+            // exactly like coastal water. Default (includeLakes=false): fadeWater == ocean → byte-identical.
+            bool[,] fadeWater;
+            if (includeLakes)
+            {
+                fadeWater = new bool[h, w];
+                for (int y = 0; y < h; y++)
+                    for (int x = 0; x < w; x++)
+                        fadeWater[y, x] = !land[y, x];   // every non-land texel fades
+            }
+            else fadeWater = ocean;
+
+            double[,] signed = SignedShorelineDistance(land, fadeWater, h, w, cell, bandMeters);
             // C-cost apron (2026-06-28): when costFloodDeepWeight>0, the SEAWARD reach is cost-flooded —
             // each metre offshore costs ×(1 + depth/deepWeight), so the apron sprawls over shallow
             // shelves/archipelago and retracts at deep drop-offs (terrain-shaped extent, not a fixed
             // buffer). Land/inland side keeps raw distance. deepWeight=0 = legacy fixed-band (unchanged).
             if (costFloodDeepWeight > 0.0)
-                signed = ApplySeawardCost(signed, ocean, depthBelow, h, w, cell, bandMeters, costFloodDeepWeight);
+                signed = ApplySeawardCost(signed, fadeWater, depthBelow, h, w, cell, bandMeters, costFloodDeepWeight);
 
             // Per-texel seaward depth-gate ∈ [0,1]: 1 at the shoreline, fading to 0 by depthFadeMeters.
             // When depthFadeMeters ≤ 0, gating is OFF → all 1 → no behavioural change.
@@ -168,9 +200,9 @@ namespace WorldZones.Runtime.Geometry
             // texel within the band ends up tagged with the region whose coast is nearest — so the
             // seaward glow can be coloured per region (Atlas biome glow). −1 everywhere when no
             // regionIdAt sampler was supplied (single-colour glow, prior behaviour preserved).
-            var nearestRegion = BuildNearestRegion(land, ocean, ownedLand, h, w, cell, bandMeters, regionIdAt != null);
+            var nearestRegion = BuildNearestRegion(land, fadeWater, ownedLand, h, w, cell, bandMeters, regionIdAt != null);
 
-            return new CoastHaloField(signed, ocean, gate, nearestRegion, cell, originX, originZ, bandMeters);
+            return new CoastHaloField(signed, fadeWater, gate, nearestRegion, cell, originX, originZ, bandMeters);
         }
 
         /// <summary>

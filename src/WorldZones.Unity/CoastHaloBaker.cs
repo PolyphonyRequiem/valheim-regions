@@ -88,7 +88,8 @@ namespace WorldZones.Unity
         /// contract as <see cref="Bake"/>, so the consumer's uvRect math is identical.
         /// </summary>
         public Texture2D BakeBiome(CoastHaloField field, CoastHaloMode mode,
-                                   IReadOnlyList<Color32> glowColorByLabel, Color32 fallback, byte peakAlpha)
+                                   IReadOnlyList<Color32> glowColorByLabel, Color32 fallback, byte peakAlpha,
+                                   int[,] fillMaskOrNull = null)
         {
             int w = field.Width, h = field.Height;
             this.bakedOriginX = field.OriginX;
@@ -96,6 +97,14 @@ namespace WorldZones.Unity
             this.bakedSpanX = w * field.Cell;
             this.bakedSpanZ = h * field.Cell;
             this.baked = true;
+
+            // Partition guard (2026-06-29): when the fill mask is supplied, the fade is forced transparent
+            // on any texel the FILL already paints (label ≥ 0), so fill XOR fade — no double-layer. The
+            // fade's coastal land-lip (Alpha > 0 just inland of the shore) was painting onto fill land at
+            // every coastline (~37.7k texels = the "extra layer" ring Daniel saw). The mask shares the
+            // halo field's 16 m lattice + origin, so [gy,gx] maps 1:1. Null = no partition (legacy).
+            bool partition = fillMaskOrNull != null
+                             && fillMaskOrNull.GetLength(0) == h && fillMaskOrNull.GetLength(1) == w;
 
             double peak = peakAlpha / 255.0;
             int paletteCount = glowColorByLabel?.Count ?? 0;
@@ -113,6 +122,8 @@ namespace WorldZones.Unity
                     Color32 rgb = fallback;
                     if (alpha > 0)
                     {
+                        // PARTITION: this texel is FILL land → fade must not paint it (no double-layer).
+                        if (partition && fillMaskOrNull[gy, gx] >= 0) { pixels[row + gx] = new Color32(0, 0, 0, 0); continue; }
                         int rid = field.NearestRegionIdAt(gy, gx);
                         if (rid >= 0 && rid < paletteCount) rgb = glowColorByLabel[rid];
                         // UNINCORPORATED coast (rid<0, or label out of palette range): no region owns this

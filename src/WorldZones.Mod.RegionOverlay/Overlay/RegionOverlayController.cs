@@ -500,8 +500,12 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
             {
                 // Atlas: per-region biome glow. Fallback = the HaloColor's RGB for any out-of-band /
                 // unowned texel (shouldn't paint — alpha there is 0 — but keeps the call total).
+                // Pass the fine fill mask so the fade is PARTITIONED against the fill: no fade texel where
+                // the fill already paints land (kills the coastal land-lip double-layer). The mask shares
+                // the halo field's 16 m lattice; BakeBiome no-ops the partition if dims don't match.
                 this.haloTexture = this.haloBaker.BakeBiome(
-                    this.haloField, mode, this.glowPalette, this.HaloColor, this.ScaledAtlasGlowAlpha());
+                    this.haloField, mode, this.glowPalette, this.HaloColor, this.ScaledAtlasGlowAlpha(),
+                    this.fineFillMask);
             }
             else
             {

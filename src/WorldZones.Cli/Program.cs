@@ -87,6 +87,8 @@ namespace WorldZones.Cli
                     return BridgeProbe.Run(seed);
                 case "fillmaskviz":
                     return FillMaskViz.Run(seed, output ?? "/tmp");
+                case "fillfadeviz":
+                    return FillFadeViz.Run(seed, output ?? "/tmp");
                 case "basemap":
                     return CompositeDump.Basemap(seed, output ?? Path.Combine(Directory.GetCurrentDirectory(), $"{seed}_basemap.bin"), 8);
                 case "locations":

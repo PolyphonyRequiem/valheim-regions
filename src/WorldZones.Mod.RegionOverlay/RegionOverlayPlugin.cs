@@ -482,7 +482,15 @@ namespace WorldZones.Mod.RegionOverlay
                     regionIdAt: regionIdAt,
                     // C-cost apron: terrain-shaped extent — sprawls over shallow archipelago, retracts at
                     // deep drop-offs (deepWeight 8 m = depth that doubles per-step cost). Decided 2026-06-28.
-                    costFloodDeepWeight: 8.0);
+                    costFloodDeepWeight: 8.0,
+                    // Phase-2 partition (2026-06-29, Daniel option A): includeLakes makes ALL water fade —
+                    // enclosed lakes / interior pockets get a fade instead of a blank hole ("makes lakes
+                    // look more interesting"). The swamp floor + isSwamp make the fade's LAND test match
+                    // RegionFillMaskBaker's exactly, so a rescued-swamp texel the fill paints is land here
+                    // too (the fade leaves it alone) — fill XOR fade, no double-layer, no gap.
+                    includeLakes: true,
+                    swampLandFloor: 22.0,
+                    isSwamp: (wx, wz) => sampler.GetBiome((float)wx, (float)wz) == WorldZones.WorldGen.BiomeType.Swamp);
                 this.overlayController.SetHaloField(haloFld);
 
                 // ── Phase-2 FINE FILL MASK (2026-06-29): the terrestrial fill stops at the 30 m waterline
