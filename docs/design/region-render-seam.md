@@ -658,3 +658,77 @@ RegionOverlayController.cs` = 0) and the disc mask is now killed for good. The r
 - **Blocky fill → UNCHANGED** (deferred Path B shape-accurate fill; default `Borders` has no fill).
 
 Files: `RegionOverlayController.cs` (mask removed; edge-ring bleed fix is `5027576`/`6d48e51`).
+
+## 🔴 DECISION 2026-06-29 (Daniel): the refined ring is AUTHORITATIVE bounds, persisted at world creation
+
+A sequence of walk observations on the Atlas build converged on a model decision that **inverts**
+the long-standing "coarse 64 m substrate is truth; refined arcs are an ADDITIVE render layer" framing
+written throughout this doc and `region-borders.md`. The trigger chain, in Daniel's words:
+1. "The region *fill* is filling at the zone level, leaving a blocky zone look. It should stop at the
+   coastline and transition to the coastal glow. The zone fill only makes sense on purely internal
+   zones with no coastal component."
+2. "This might be a domain model gap — we ultimately need the glow and the region boundaries to be in
+   agreement." (The fill reads the raw 64 m grid; the glow is a 16 m height-aware field; the ink is a
+   contour-snapped arc. Three renderers, three private refinements of one coarse truth → they agree only
+   by coincidence.)
+3. "Keep boundary membership based on the polyline geometry — coastal included." (Closed per-region
+   `RegionRing`s already exist and already include the coastal region-vs-void edge; today they are traced
+   on the raw 64 m lattice.)
+4. **"Make the ring geometry agree with our new coastal inclusion and be the authoritative bounds. This
+   should include the rings getting refined to the contour. Jaggies-removal smoothing should be applied
+   LAST."**
+5. **"We should store detailed boundaries at world creation time too."**
+
+### The decided model
+- **The refined `RegionRing` is THE region boundary** — not an additive detail layer. Fill, glow, and ink
+  all derive from this one closed curve, so they agree *by construction* instead of by coincidence.
+- **Coastal edges are part of the authoritative ring**: a ring's region-vs-void edges snap to the
+  sea-level height iso (`HeightScalarField.CoastIso` = 25 m, the same field the glow + coast ink use).
+- **Land↔land edges** snap to their feature/biome contour (same field `RefineBiomeSeams` uses).
+- **Smoothing (despike + Chaikin) is a SEPARABLE, LAST stage.** Refine-to-contour defines the curve;
+  *then* jaggies removal rounds it. NOT the current fused `RefineCoastlinesSmoothed` (which bundles
+  snap+despike+Chaikin in one call over OPEN arcs). The ring path keeps the stages ordered + separable.
+  Implication Daniel accepted: the authoritative bound is the *smoothed* curve (Chaikin shaves convex
+  headlands / fills concave bays slightly), i.e. "smoothed-real," not "exactly-on-terrain" — the right
+  trade when agreement matters more than hugging every pixel. The spike quantifies the drift.
+- **Persist at world creation.** The refined rings are baked + stored when the world is created, so
+  membership / area / gazetteer key off a stored boundary, not a volatile per-session recompute. (A
+  source of truth must not be a render-time recomputation.) This is the DOMAIN follow-on, gated on the
+  spike proving the geometry holds — nothing is worth persisting if it self-intersects.
+
+### Blast radius (named, NOT bundled — tracked as separate domain work)
+`RegionAt` lookup, region area, and the gazetteer currently read the 64 m grid. Authoritative rings move
+these onto point-in-polygon (needs a spatial index to stay per-frame cheap) + Shoelace area. Region
+*identity* / determination and the <200 guard are UNCHANGED — this is a boundary-representation upgrade,
+not a re-seeding. Ship/judge the render spike first; wire domain + persistence second.
+
+### Already-built substrate the spike REUSES (do not rebuild — grep-verified 2026-06-29)
+- `RegionBoundaryGraph.Rings` — closed per-region polygons (CCW outer + CW holes), keyed by region;
+  `OuterRing(key)` returns the single fill loop. Coastal edges already included (region-vs-void, KeyB null).
+- `RegionBoundaryRefiner.TrySnapToIso` / `RefineSegment` — the contour-snap march (used by the ink today).
+- `PolylineSmoother.Despike` + `.Chaikin` (+ `.Smooth`) — the separable jaggies-removal primitives.
+- `RegionFillMaskBaker` — **already bakes a fine (16 m) region-id raster whose land/water edge follows
+  `CoastIso` instead of the 64 m staircase**, honouring the swamp-rescue floor. This is most of the
+  "make the fill agree with the coast" win ALREADY IMPLEMENTED at the raster level (interiors stay 64 m
+  by design). NOTE: this is the RASTER route to coast agreement; the DECISION above is the VECTOR route
+  (the ring itself becomes authoritative).
+
+### RESOLVED 2026-06-29 (Daniel) — vector authoritative, raster is a 2D-map render convenience
+Daniel settled the vector-vs-raster source-of-truth question explicitly:
+- **Vectors are geometrically AUTHORITATIVE for boundaries** — both gameplay membership ("what region am
+  I in?") AND the gazetteer ("what is in this region?"). Point-in-(refined-)polygon is the truth.
+- **Raster MAY render area on the 2D map** *if the resolution is sufficient* — i.e. `RegionFillMaskBaker`
+  is a legitimate render-time CONSUMER of the authoritative vector, for the 2D map surface only. Never a
+  source of truth.
+- **Raster canNOT render area in the 3D world — and that is an ACCEPTED limitation** ("that's probably
+  fine"). 3D-world region area, if ever needed, derives from the vector polygon, not a raster. No action.
+So the two routes are not competing: VECTOR is truth (gameplay + gazetteer + any 3D need); RASTER is a
+2D-map drawing convenience derived from it. The spike proves the vector ring holds; the raster baker stays
+as the 2D-map fill consumer.
+
+### The one real engineering risk the spike must measure
+A `RegionRing` is a single closed vertex list, so per-vertex refinement CANNOT open a gap (closure is
+topological). The risk is **self-intersection**: a coastal vertex snaps one way, its land-seam neighbour
+another, and the loop crosses itself → fill leaks. The spike's pass/fail gate is a self-intersection +
+winding-preservation check on the refined-then-smoothed ring of one real coastal region on seed
+`bkpcEynZXm3`, rendered 3-up (raw 64 m ring / refined / refined+smoothed) for Daniel's felt judgment.

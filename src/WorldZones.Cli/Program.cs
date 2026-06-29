@@ -79,6 +79,12 @@ namespace WorldZones.Cli
                     return GlowProbe.Run(seed);
                 case "apronviz":
                     return ApronViz.Run(seed, output ?? "/tmp");
+                case "ringspike":
+                    return RingSpike.Run(seed, output ?? "/tmp");
+                case "islandloss":
+                    return IslandLoss.Run(seed);
+                case "bridgeprobe":
+                    return BridgeProbe.Run(seed);
                 case "basemap":
                     return CompositeDump.Basemap(seed, output ?? Path.Combine(Directory.GetCurrentDirectory(), $"{seed}_basemap.bin"), 8);
                 case "locations":
