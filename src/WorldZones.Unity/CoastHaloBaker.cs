@@ -115,6 +115,13 @@ namespace WorldZones.Unity
                     {
                         int rid = field.NearestRegionIdAt(gy, gx);
                         if (rid >= 0 && rid < paletteCount) rgb = glowColorByLabel[rid];
+                        // UNINCORPORATED coast (rid<0, or label out of palette range): no region owns this
+                        // coast, so nothing should glow here. Decided 2026-06-29 (Daniel): the deep-separated
+                        // islands/archipelagos are CORRECTLY unincorporated — the old gold-fallback halo that
+                        // smeared around them was a cosmetic wart, not data they want to keep. Force alpha 0 so
+                        // unincorporated coast is dark in Atlas, instead of painting the gold HaloColor. (Flat
+                        // F7 gold mode in Bake() is untouched — it's the per-region-agnostic debug fallback.)
+                        else alpha = 0;
                     }
                     pixels[row + gx] = new Color32(rgb.r, rgb.g, rgb.b, alpha);
                 }
