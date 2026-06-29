@@ -75,6 +75,26 @@ namespace WorldZones.Cli
             for(int y=0;y<H;y++)for(int x=0;x<W;x++){int lab=rgrid[y,x];if(lab<0||sv2[y,x])continue;var st=new Stack<(int,int)>();st.Push((y,x));sv2[y,x]=true;int n=0;var mc=new List<(int,int)>();while(st.Count>0){var(cy,cx)=st.Pop();n++;compId[cy,cx]=cid;for(int dy=-1;dy<=1;dy++)for(int dx=-1;dx<=1;dx++){int ny=cy+dy,nx=cx+dx;if(ny<0||nx<0||ny>=H||nx>=W||sv2[ny,nx]||rgrid[ny,nx]!=lab)continue;sv2[ny,nx]=true;st.Push((ny,nx));}}cs.Add((lab,n,cid));cid++;}
             var biggest=new Dictionary<int,(int sz,int id)>();foreach(var c in cs){if(!biggest.TryGetValue(c.lab,out var b)||c.sz>b.sz)biggest[c.lab]=(c.sz,c.id);}
             var mainGrid=new int[H,W];for(int y=0;y<H;y++)for(int x=0;x<W;x++){int lab=rgrid[y,x];mainGrid[y,x]=(lab>=0&&biggest[lab].id==compId[y,x])?lab:-1;}
+            // DOMAIN DIVERGENCE: how much does dropping orphans move each region's area + centroid?
+            // big drift = render-strip (map hides orphans, data keeps them) actively LIES vs engine-strip.
+            var fullN=new long[maxLabel+1];var fcx=new double[maxLabel+1];var fcy=new double[maxLabel+1];
+            var mainN=new long[maxLabel+1];var mcx=new double[maxLabel+1];var mcy=new double[maxLabel+1];
+            for(int y=0;y<H;y++)for(int x=0;x<W;x++){int r=rgrid[y,x];if(r>=0){fullN[r]++;fcx[r]+=x;fcy[r]+=y;}int m=mainGrid[y,x];if(m>=0){mainN[m]++;mcx[m]+=x;mcy[m]+=y;}}
+            int areaLost10=0,bigShift=0;double maxShiftM=0;for(int r=0;r<=maxLabel;r++){if(fullN[r]==0)continue;double lost=1.0-(double)mainN[r]/fullN[r];if(lost>=0.10)areaLost10++;if(mainN[r]>0){double sx=(fcx[r]/fullN[r]-mcx[r]/mainN[r])*cell,sy=(fcy[r]/fullN[r]-mcy[r]/mainN[r])*cell,sh=Math.Sqrt(sx*sx+sy*sy);if(sh>maxShiftM)maxShiftM=sh;if(sh>=256)bigShift++;}}
+            Console.WriteLine($"DIVERGENCE: regions losing >=10% area when orphans stripped={areaLost10}/164; centroid shift>=256m={bigShift}; maxShift={maxShiftM:F0}m");
+            // safety: would engine-strip ever leave a region with a TINY main body (whole region was islands)?
+            int tinyMain=0,zeroMain=0,worstLost=0;double worstPct=0;for(int r=0;r<=maxLabel;r++){if(fullN[r]==0)continue;if(mainN[r]==0)zeroMain++;else if(mainN[r]<6)tinyMain++;double lost=1.0-(double)mainN[r]/fullN[r];if(lost>worstPct){worstPct=lost;worstLost=r;}}
+            Console.WriteLine($"STRIP-SAFETY: regions reduced to 0 main cells={zeroMain}, to <6 cells={tinyMain}, worst area loss={worstPct*100:F0}% (region {worstLost})");
+            // DIVERGENCE MAP: main bodies dim biome, stripped orphans BRIGHT RED, centroid shift = white→cyan dot.
+            var dv=new byte[W*H*3];
+            for(int y=0;y<H;y++)for(int x=0;x<W;x++){int o=(y*W+x)*3;int r=rgrid[y,x];if(r<0)continue;
+                bool main=biggest[r].id==compId[y,x];
+                if(main){var(cr,cg,cb)=BiomeRenderPalette.Wash(biomeOf[r]);dv[o]=(byte)(cr/3);dv[o+1]=(byte)(cg/3);dv[o+2]=(byte)(cb/3);}
+                else{dv[o]=255;dv[o+1]=40;dv[o+2]=40;}}      // stripped orphans = red
+            for(int r=0;r<=maxLabel;r++){if(fullN[r]==0||mainN[r]==0)continue;
+                void dot(double cx,double cy,byte cr,byte cg,byte cb){int px=(int)(cx),py=(int)(cy);for(int dy=-2;dy<=2;dy++)for(int dx=-2;dx<=2;dx++){int X=px+dx,Y=py+dy;if(X>=0&&Y>=0&&X<W&&Y<H){int o=(Y*W+X)*3;dv[o]=cr;dv[o+1]=cg;dv[o+2]=cb;}}}
+                dot(fcx[r]/fullN[r],fcy[r]/fullN[r],255,255,255); dot(mcx[r]/mainN[r],mcy[r]/mainN[r],0,255,255);}
+            PngWriter.Write("/tmp/apron-divergence.png",W,H,dv);Console.WriteLine("  divergence map → /tmp/apron-divergence.png (red=stripped orphan land; white dot=full centroid, cyan=main-only)");
             RenderVariant("A-distance", world, biomeOf, rgrid, depth, W, H, cell, (d, dist) => dist <= 96 ? 1.0 : -1, landMass);
             RenderVariant("Amain-distance", world, biomeOf, mainGrid, depth, W, H, cell, (d, dist) => dist <= 96 ? 1.0 : -1, landMass);
             RenderVariant("B-depth",    world, biomeOf, rgrid, depth, W, H, cell, (d, dist) => d <= 14 ? 1.0 : -1, landMass);
