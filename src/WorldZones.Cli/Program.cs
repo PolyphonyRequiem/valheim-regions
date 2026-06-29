@@ -77,6 +77,8 @@ namespace WorldZones.Cli
                     return CompositeDump.Run(seed, output ?? Path.Combine(Directory.GetCurrentDirectory(), $"{seed}_composite.json"));
                 case "glowprobe":
                     return GlowProbe.Run(seed);
+                case "apronviz":
+                    return ApronViz.Run(seed, output ?? "/tmp");
                 case "basemap":
                     return CompositeDump.Basemap(seed, output ?? Path.Combine(Directory.GetCurrentDirectory(), $"{seed}_basemap.bin"), 8);
                 case "locations":

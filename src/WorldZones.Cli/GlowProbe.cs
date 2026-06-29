@@ -100,6 +100,25 @@ namespace WorldZones.Cli
                 if (rid >= 0 && rid <= maxLabel) usedGlowColours.Add(glowPal[rid]);
             Console.WriteLine($"(b) distinct GLOW colours those ids map to: {usedGlowColours.Count}");
 
+            // ── (b2) THE FALLBACK-GOLD QUESTION: of texels that actually GLOW (alpha>0), how many get a
+            // real per-region biome colour vs fall back to the gold HaloColor (235,180,95) because their
+            // nearest coast is unincorporated (rid<0)? This is the "yellow glow on non-region stuff" bug. ──
+            long glowTexels = 0, biomeColoured = 0, fallbackGold = 0;
+            for (int gy = 1; gy < haloH - 1; gy++)
+                for (int gx = 1; gx < haloW - 1; gx++)
+                {
+                    double alpha = haloFld.Alpha(CoastHaloMode.Seaward, gy, gx);
+                    if (alpha <= 0) continue;           // not glowing
+                    glowTexels++;
+                    int rid = haloFld.NearestRegionIdAt(gy, gx);
+                    if (rid >= 0 && rid <= maxLabel) biomeColoured++;
+                    else fallbackGold++;
+                }
+            Console.WriteLine($"(b2) GLOWING texels (Seaward, alpha>0): {glowTexels}; "
+                            + $"biome-coloured={biomeColoured} ({(glowTexels>0?100.0*biomeColoured/glowTexels:0):F1}%), "
+                            + $"FALLBACK-GOLD={fallbackGold} ({(glowTexels>0?100.0*fallbackGold/glowTexels:0):F1}%) "
+                            + $"← gold = coast whose nearest land is UNINCORPORATED (rid<0)");
+
             // ── (c) fill-palette spread for comparison (the visibly-working half) ──
             var distinctFill = new HashSet<(byte, byte, byte)>();
             var distinctGlowAll = new HashSet<(byte, byte, byte)>();
