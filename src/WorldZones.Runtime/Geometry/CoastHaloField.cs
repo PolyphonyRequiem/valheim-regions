@@ -117,7 +117,8 @@ namespace WorldZones.Runtime.Geometry
             int width, int height_,
             double bandMeters = DefaultBandMeters,
             double depthFadeMeters = 0.0,
-            Func<double, double, int> regionIdAt = null)
+            Func<double, double, int> regionIdAt = null,
+            double costFloodDeepWeight = 0.0)
         {
             if (height == null) throw new ArgumentNullException(nameof(height));
             if (cell <= 0) throw new ArgumentOutOfRangeException(nameof(cell));
@@ -144,6 +145,12 @@ namespace WorldZones.Runtime.Geometry
 
             bool[,] ocean = FloodOceanFromEdge(land, h, w);
             double[,] signed = SignedShorelineDistance(land, ocean, h, w, cell, bandMeters);
+            // C-cost apron (2026-06-28): when costFloodDeepWeight>0, the SEAWARD reach is cost-flooded —
+            // each metre offshore costs ×(1 + depth/deepWeight), so the apron sprawls over shallow
+            // shelves/archipelago and retracts at deep drop-offs (terrain-shaped extent, not a fixed
+            // buffer). Land/inland side keeps raw distance. deepWeight=0 = legacy fixed-band (unchanged).
+            if (costFloodDeepWeight > 0.0)
+                signed = ApplySeawardCost(signed, ocean, depthBelow, h, w, cell, bandMeters, costFloodDeepWeight);
 
             // Per-texel seaward depth-gate ∈ [0,1]: 1 at the shoreline, fading to 0 by depthFadeMeters.
             // When depthFadeMeters ≤ 0, gating is OFF → all 1 → no behavioural change.
@@ -322,6 +329,54 @@ namespace WorldZones.Runtime.Geometry
                     signed[y, x] = waterSide ? -dm : dm;
                 }
             }
+            return signed;
+        }
+
+        /// <summary>
+        /// C-cost apron: replace the SEAWARD half of <paramref name="signed"/> with a depth-weighted cost
+        /// distance, leaving land (≥0) untouched. Multi-source BFS from ocean texels adjacent to land; each
+        /// step's effective cost = cell·(1 + depth/deepWeight), so deep water burns the band budget fast
+        /// (apron retracts) while shallow shelves stay cheap (apron sprawls across archipelago). Clamped to
+        /// ±band exactly like the distance field, so Alpha()'s fade math is unchanged — only the reach
+        /// shape differs. Pure, deterministic, no Unity. deepWeight is the depth (m) that doubles per-step
+        /// cost; smaller = harsher deep-water penalty.
+        /// </summary>
+        private static double[,] ApplySeawardCost(double[,] signed, bool[,] ocean, float[,] depthBelow,
+                                                  int h, int w, double cell, double band, double deepWeight)
+        {
+            var cost = new double[h, w];
+            for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) cost[y, x] = double.MaxValue;
+            var pq = new Queue<(int, int)>();
+            // Seed: ocean texels touching land start at cost 0 (the shoreline).
+            for (int y = 0; y < h; y++) for (int x = 0; x < w; x++)
+            {
+                if (!ocean[y, x]) continue;
+                bool coast = false;
+                for (int d = 0; d < 4 && !coast; d++)
+                {
+                    int ny = y + (d == 0 ? -1 : d == 1 ? 1 : 0), nx = x + (d == 2 ? -1 : d == 3 ? 1 : 0);
+                    if (ny >= 0 && ny < h && nx >= 0 && nx < w && !ocean[ny, nx] && depthBelow[ny, nx] <= 0f) coast = true;
+                }
+                if (coast) { cost[y, x] = 0.0; pq.Enqueue((y, x)); }
+            }
+            // Dijkstra-ish flood (uniform-ish edge cost → BFS w/ relaxation is adequate at this resolution).
+            while (pq.Count > 0)
+            {
+                var (y, x) = pq.Dequeue();
+                double depth = depthBelow[y, x];
+                double step = cell * (1.0 + Math.Max(0.0, depth) / deepWeight);
+                double nc = cost[y, x] + step;
+                if (nc > band) continue;
+                for (int d = 0; d < 4; d++)
+                {
+                    int ny = y + (d == 0 ? -1 : d == 1 ? 1 : 0), nx = x + (d == 2 ? -1 : d == 3 ? 1 : 0);
+                    if (ny < 0 || ny >= h || nx < 0 || nx >= w || !ocean[ny, nx] || cost[ny, nx] <= nc) continue;
+                    cost[ny, nx] = nc; pq.Enqueue((ny, nx));
+                }
+            }
+            // Overwrite water side with cost-distance (clamped to band); land side untouched.
+            for (int y = 0; y < h; y++) for (int x = 0; x < w; x++)
+                if (ocean[y, x]) { double c = cost[y, x] > band ? band : cost[y, x]; signed[y, x] = -c; }
             return signed;
         }
 

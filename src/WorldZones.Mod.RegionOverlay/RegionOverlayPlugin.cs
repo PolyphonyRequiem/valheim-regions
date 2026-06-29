@@ -473,7 +473,10 @@ namespace WorldZones.Mod.RegionOverlay
                     // over deep water (no open-sea haze). docs/design/region-atlas-render.md. The F7
                     // gold halo on the other styles also picks up the tighter band — an improvement.
                     bandMeters: CoastHaloField.DefaultBandMeters, depthFadeMeters: 14.0,
-                    regionIdAt: regionIdAt);
+                    regionIdAt: regionIdAt,
+                    // C-cost apron: terrain-shaped extent — sprawls over shallow archipelago, retracts at
+                    // deep drop-offs (deepWeight 8 m = depth that doubles per-step cost). Decided 2026-06-28.
+                    costFloodDeepWeight: 8.0);
                 this.overlayController.SetHaloField(haloFld);
 
                 // Atlas biome palettes (fill wash + sat-floored coast glow), one colour per grid label
