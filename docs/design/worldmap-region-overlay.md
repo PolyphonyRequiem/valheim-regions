@@ -2,9 +2,12 @@
 
 > **Status:** DESIGN EXPLORATION opened 2026-06-23; **locks #1, #2, #4 RESOLVED 2026-06-25** (see
 > `## Resolved locks` — fog-respecting reveal, borders-only default on a 4-stop dial, BOTH render
-> primitives ship). **v2 LOCKED 2026-06-25** (refined-arc lines + disc clip + shader-fill backend —
-> see `## v2: refined arcs + disc clip + swappable fill backend` below and the full buildable surface
-> in `region-render-seam.md` `## Region-overlay v2`). The buildable surface lives in
+> primitives ship). **v2 LOCKED 2026-06-25** (refined-arc lines + bake-source bleed handling +
+> shader-fill backend — see `## v2: refined arcs + bake-source bleed fix + swappable fill backend`
+> below and the full buildable surface in `region-render-seam.md` `## Region-overlay v2`).
+> **Correction 2026-06-28:** the disc/circular clip mask is KILLED for good (`6d48e51`); bleed is
+> solved at the texture-bake source (alpha-0 edge ring, `5027576`), not a clip mask. The buildable
+> surface lives in
 > `region-render-seam.md` (`## Steps 2–3 lock` + `## Region-overlay v2`); this doc holds the in-world
 > design intent the impl realises. Locks #3 + #5 stay open (deferred — only matter when parchment / a
 > multi-label atlas is actually built). Daniel gates the merge.
@@ -101,7 +104,7 @@ Build that projection once; every style mode draws from it.
    may be needed — but it's not on the steps 2–3 path (the borders draw reuses the existing
    single/hover label untouched). Revisit when a many-labels atlas is actually wanted.
 
-## v2: refined arcs + disc clip + swappable fill backend (LOCKED 2026-06-25)
+## v2: refined arcs + bake-source bleed fix + swappable fill backend (LOCKED 2026-06-25; bleed approach corrected 2026-06-28)
 
 The borders-only overlay shipped and Daniel walked it in-world (clean reference install, world
 SolidHmm, 2026-06-25). It DRAWS — fog-gated, borders on the real map. Two quality gaps remained, in
@@ -116,14 +119,16 @@ closes both. The in-world intent (the buildable surface is `region-render-seam.m
    already-built `RegionUiVertexFiller.FillPolylines`. The line a player sees becomes the same smooth
    contour the dataset carries — the consistency bar from the border work, now visible.
 
-2. **Kill "stretch into the beyond" — manufacture our own circular clip.** The overlay bleeds past the
-   map disc into the black starfield because **the vanilla disc clip is NOT inherited by an injected
-   layer.** Decomp-grounded (see the Open Lock answer in `region-render-seam.md`): vanilla paints the
-   whole SQUARE map texture and culls pins with a RECTANGULAR bounds test — the circle lives in
-   prefab/material asset config, invisible to and uninherited by our mount. JotunnLib hit the exact
-   same wall and manufactures its own `CircleMask` + uGUI `Mask`. v2 does the same: one uGUI Mask
-   (runtime-generated circle sprite, no asset bundle, no builtin sprite — honouring the mod's
-   no-`Knob.psd` doctrine) on the content root, clipping both lines and fill to the disc.
+2. **Kill "stretch into the beyond" — bake a transparent edge so there's nothing to smear.** The overlay
+   bleeds past the map disc into the black starfield because **the vanilla disc clip is NOT inherited by an
+   injected layer** — vanilla paints the whole SQUARE map texture and culls pins with a RECTANGULAR bounds
+   test; the circle lives in prefab/material asset config, invisible to and uninherited by our mount.
+   **Shipped fix (2026-06-28, `5027576`/`6d48e51`):** every Clamp-sampled layer (fill + halo) bakes a
+   transparent alpha-0 border, so when the displayed `uvRect` runs past `[0,1]` Clamp repeats a transparent
+   edge texel — nothing to smear, full rectangular map preserved, no mask. **A circular uGUI Mask was tried
+   and REMOVED:** it only clipped the smear to a disc (bars still ran out to the disc edge), forced a round
+   clip on a rectangular map, and relied on a runtime sprite. The disc clip is killed for good; see
+   `RegionOverlayController.cs:497–504` "No clip mask."
 
 3. **Ship the fill backend as a SWAP (Daniel's reversible-architecture preference).** Two genuinely
    different fill-quality patterns, both shipped, both documented as reference patterns for modders:
@@ -141,8 +146,8 @@ closes both. The in-world intent (the buildable surface is `region-render-seam.m
    whole job — demonstrate BOTH a uGUI path and a shader path for the same problem.
 
 **Why both, not pick-one:** this mod's deliverable is *demonstrating patterns for modders*. A uGUI
-overlay-with-manufactured-mask and a shader-compose-layer are the two canonical ways to add a data
-layer to Valheim's map; shipping both behind one swap dial is itself the teaching artifact.
+overlay-with-source-side-bleed-handling and a shader-compose-layer are the two canonical ways to add a
+data layer to Valheim's map; shipping both behind one swap dial is itself the teaching artifact.
 
 ## The mocks (eye-validation, headless)
 

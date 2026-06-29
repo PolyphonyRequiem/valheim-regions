@@ -338,20 +338,22 @@ traceable draw path; it CANNOT prove the borders render correctly over the real 
 that is Daniel's in-world walk (the one true gate, same wall as the ESP). The QA card authors the
 walk checklist; nobody upgrades "reasoned" to "verified."
 
-## Region-overlay v2 — refined-arc lines + disc clip (Path A uGUI) + shader-composite fill (Path B), one swappable dial (✅ LOCKED 2026-06-25)
+## Region-overlay v2 — refined-arc lines + bake-source bleed fix (Path A uGUI) + shader-composite fill (Path B), one swappable dial (✅ LOCKED 2026-06-25; bleed approach corrected 2026-06-28)
 
 > The borders-only overlay RENDERS in-world (verified 2026-06-25, Daniel's walk on a clean reference
 > install: stock Valheim + stock BepInEx + only WorldZones.RegionOverlay, world SolidHmm). Two quality
 > gaps remain — Daniel's words: **"all blocky"** + **"boundaries stretch into the beyond."** v2 closes
 > both, and ships the fill backend as a SWAP (uGUI vs shader) so a modder sees both patterns. Impl A
 > = `t_aae2c4e9`; impl B = `t_40737416`; both gated on this lock. **The disc-clip Open Lock is
-> decisively resolved below — it is NOT free-inherit for Path A.** Daniel gates the merge.
+> decisively resolved below — NO mask; bleed is clipped at the bake source (corrected 2026-06-28).**
+> Daniel gates the merge.
 
 ### The two gaps
 
 1. **BLOCKY** — lines + fill are the raw 64 m zone staircase.
 2. **BLEED** — the fill rectangle (and rim arcs) spill past the circular map disc into the black
-   starfield (3 grey bars off the left rim in Daniel's screenshot).
+   starfield (3 grey bars off the left rim in Daniel's screenshot). **Cure (shipped 2026-06-28):** a
+   transparent alpha-0 edge ring baked into every Clamp-sampled layer — no mask. See below.
 
 ### What's already built (REUSE — do not rebuild)
 
@@ -440,41 +442,33 @@ why both paths exist (genuinely different fill-quality patterns to demonstrate).
 - **AC-V2-A-FILL-1:** fill stays `FilterMode.Point` (colourblind palette purity preserved — bilinear
   rejected). Path A fill is intentionally flat-tint; shape-accurate fill is Path B.
 
-**Disc clip — manufacture our own circular uGUI Mask (THE bleed fix).** See the Open Lock answer
-below for WHY this is not free. Add ONE `Mask` (with a runtime-generated circle sprite,
-`showMaskGraphic = false`) on the content root so it clips BOTH the ink graphic and the fill RawImage
-in a single component:
+**Bleed fix — bake a transparent edge ring (corrected 2026-06-28; NO mask).** A circular uGUI Mask was
+tried here and REMOVED: it only clipped the smear to a disc (bars still ran to the disc edge), forced a
+round clip on a rectangular map, and relied on a runtime sprite. The shipped fix is source-level: every
+Clamp-sampled layer (fill + halo) bakes a transparent alpha-0 border, so when the displayed `uvRect`
+runs past `[0,1]` Clamp repeats a transparent edge texel — nothing to smear, full rectangular map
+preserved. No stencil component, no `_content` clip subtree:
 
 ```
 _content  (existing toggled child under the mount root)
-   └─ circle Mask  : Image(generated circle sprite, preserveAspect=true) + Mask(showMaskGraphic=false)
-        ├─ WZ_RegionFill (RawImage)   ← clipped to the inscribed disc
-        └─ WZ_RegionInk  (RegionInkGraphic : MaskableGraphic)  ← clipped to the inscribed disc
+   ├─ WZ_RegionFill (RawImage)   ← alpha-0 edge ring baked into the fill texture
+   └─ WZ_RegionInk  (RegionInkGraphic : MaskableGraphic)
 ```
 
 **Mount stays under `m_pinRootLarge` (least-disruptive — the existing working draw is unchanged).**
-The mask root is stretch-full; the inscribed circle therefore matches the vanilla disc because
-`m_pinRootLarge` is co-extensive with `m_mapImageLarge.rectTransform.rect` (proven: vanilla
-`UpdatePins` positions pins with `rect = m_mapImageLarge.rectTransform.rect` under `m_pinRootLarge`, so
-they must be co-sized or pins would land offset). **Circle sprite is generated in code** (paint a
-white-alpha-inside-radius `Texture2D`, AA edge, `Sprite.Create`) — NO asset bundle, NO builtin Unity
-sprite, sidestepping the `Knob.psd` builtin-sprite gotcha the same way `RegionInkGraphic` uses
-`s_WhiteTexture`. Both `RegionInkGraphic` (MaskableGraphic) and `RawImage` are `maskable` by default,
-so the single Mask clips the whole subtree.
+The bake-source approach needs no asset bundle and no runtime sprite, sidestepping the `Knob.psd`
+builtin-sprite gotcha the same way `RegionInkGraphic` uses `s_WhiteTexture`.
 
-- **AC-V2-A-CLIP-1:** one uGUI Mask on the content root clips BOTH ink and fill — nothing draws into
-  the black starfield corners (the bleed is gone for lines AND fill).
-- **AC-V2-A-CLIP-2:** the mask circle is concentric + co-sized with the vanilla large-map disc
-  (stretch-full root co-extensive with `m_mapImageLarge.rect`; `preserveAspect = true`).
-- **AC-V2-A-CLIP-3:** the circle sprite is generated in code — no asset bundle, no builtin sprite
-  (Knob.psd-class load failure avoided by construction).
+- **AC-V2-A-EDGE-1:** every Clamp-sampled layer (fill + halo) carries a transparent alpha-0 border in
+  its bake — nothing draws into the black starfield corners (bleed gone for lines AND fill).
+- **AC-V2-A-EDGE-2:** the full rectangular map stays visible (no round clip imposed); shipped `6d48e51`.
+- **AC-V2-A-EDGE-3:** no stencil/Mask component and no runtime sprite (Knob.psd-class load failure
+  avoided by construction). Verify: `grep -c 'new GameObject("WZ_DiscClip"' RegionOverlayController.cs`
+  == 0; live block at `RegionOverlayController.cs:497–504` "No clip mask."
 
-> **Reversible escape hatch (if the inscribed circle doesn't match in-world):** mounting under
-> `m_pinRootLarge` assumes that root is co-extensive with `m_mapImageLarge.rect` (sound — the existing
-> borders register correctly against terrain, which requires it). If Daniel's walk shows the mask
-> circle off-centre or mis-sized, the fallback is JotunnLib's exact proven geometry: parent the
-> mask subtree to `m_mapImageLarge.transform` (the RawImage itself) instead of `m_pinRootLarge`,
-> stretch-full, `preserveAspect = true` — `MinimapManager.cs:601-614`. One-line reparent, reversible.
+> **History (2026-06-28):** AC-V2-A-CLIP-1/2/3 (one uGUI Mask on the content root, code-generated circle
+> sprite, concentric/co-sized with the vanilla disc) are RETIRED. The mask only ever clipped the smear to
+> a disc and was killed for good in `6d48e51`. There is no mask subtree to mount or reparent.
 
 ### Layer 2 — Path B (shader composite), follow-on (the fragile one)
 
@@ -551,23 +545,25 @@ read per ADR-0001):
   `CircleMask`; `609-614` adds `Image(sprite=CircleMask, preserveAspect=true)` + `Mask`) — the entire
   reason that code exists is that an injected map layer does **not** inherit the vanilla disc clip.
 
-**(b) How Path A clips:** manufacture our own circular uGUI Mask (runtime-generated circle sprite,
-`showMaskGraphic=false`) on the content root, clipping both ink + fill (Layer 1 above). This is the
-proven JotunnLib technique, minus the asset bundle (sprite generated in code to honour the mod's
-no-builtin-sprite doctrine).
+**(b) How Path A handles bleed (corrected 2026-06-28):** NOT a mask. Every Clamp-sampled layer (fill +
+halo) bakes a transparent alpha-0 edge ring, so `uvRect` running past `[0,1]` clamps to a transparent
+texel — nothing smears into the corners (Layer 1 above). A uGUI Mask was tried and removed (it only
+clipped the smear to a disc and forced a round clip on a rectangular map); source-side borders need no
+stencil and keep the full rectangular map visible.
 
-**(c) Does Path B get the clip free — CONDITIONALLY.** Only if Path B composites INTO the vanilla map
-RawImage's OWN material (painting region fill as an extra blended layer in the same `m_mapImageLarge`
+**(c) Does Path B get bleed-handling free — CONDITIONALLY.** Only if Path B composites INTO the vanilla
+map RawImage's OWN material (painting region fill as an extra blended layer in the same `m_mapImageLarge`
 vanilla already clips) — then disc + fog + pan are inherited. If Path B adds a SEPARATE overlay
-RawImage (the safer injection), it does **not** inherit and must reuse Path A's manufactured Mask. The
-"free clip" is real but contingent on the injection point; the Path B card resolves it against the live
-material (AC-V2-B-3).
+RawImage (the safer injection), it does **not** inherit and must reuse Path A's source-side transparent
+edge-ring bake. The "free clip" is real but contingent on the injection point; the Path B card resolves
+it against the live material (AC-V2-B-3).
 
 ### v2 honesty bar (carried into both child cards)
 
 Same wall as steps 2–3: **compile-verified ≠ playable.** The impl proves build + a traceable draw
 path; only Daniel's in-world walk on the clean reference install (world SolidHmm) proves the arcs draw
-smooth, the Mask kills the bleed, fog gates, and the dial + backend swap read right. Nobody upgrades
+smooth, the source-side transparent edge ring kills the bleed, fog gates, and the dial + backend swap
+read right. Nobody upgrades
 "reasoned" to "verified." Colourblind judging throughout: lightness + hatch + label + RGB text, never
 hue.
 
@@ -624,7 +620,7 @@ artifact exists).
 - SBPR `docs/design/map-provider-model.md` — Trailborne's cartography model (why nomap-ON deletes
   the vanilla map surface, why regions must render *through* `MapSurface` there).
 
-## v2 walk-feedback FIX — bleed clip + ink-lag throttle (2026-06-26)
+## v2 walk-feedback FIX — bleed clip + ink-lag throttle (2026-06-26; resolution superseded 2026-06-28)
 
 Daniel walked the v2 build (refined arcs + disc-clip) and reported: **only the central portion renders /
 boundaries "freeze" and stop zooming out**, plus blocky fill and pan/zoom lag.
@@ -640,15 +636,17 @@ the rim, IS the "only the centre renders / won't zoom out" symptom. The lesson: 
 content beyond a WORLD circle; it's the square texture's corners painting into the black starfield, a
 PANEL/UV-space phenomenon. Don't fix a UV-space clip in world space.
 
-**CORRECT FIX (shipped, compile + DLL-marker verified, walk-pending):**
-- **Bleed → a circular uGUI Mask in PANEL space**, restored but mounted JotunnLib's proven way
-  (`MinimapManager.cs:601-622`): a stretch-full `Mask` (generated circle sprite, `preserveAspect`,
-  `showMaskGraphic=false`) parented to **`m_mapImageLarge.transform`** (not the v2's `m_pinRootLarge`),
-  with fill+ink stretch-full UNDER it. A Mask is a STENCIL — it does NOT resize children (the earlier
-  "mask compresses content" worry was wrong), and because it's anchored to the SAME panel the content
-  projects into via `uvRect`, the inscribed circle == the painted map disc at EVERY zoom (zoom-invariant
-  by construction). It clips RENDERING, never geometry — so no vertices are deleted and nothing freezes.
-  Honours AC-V2-A-CLIP-1/2/3 as originally locked; the world-disc-cull detour is fully reverted.
+**⚠️ HISTORICAL — second attempt (PANEL-space Mask) was also abandoned, 2026-06-28:** This section once
+claimed a "CORRECT FIX (shipped, verified)" restoring a circular uGUI Mask parented to
+`m_mapImageLarge.transform`. **That fix was NEVER committed** (`git log -S 'm_mapImageLarge.transform' --
+RegionOverlayController.cs` = 0) and the disc mask is now killed for good. The real history:
+- The mask survived a `git reset` mishap (`f613f17` redo kept only F6), and `6d48e51` ("kill the disc
+  mask — restore the source-level bleed fix lost in last night's reset") finally removed it. Rescue
+  insurance parked at `parked/beam-bleed-clip-2026-06-27` + tag `rescued/ae49d64-f6-and-mask-kill`.
+- **Bleed → source-level transparent edge ring** (`5027576`, "transparent edge-ring on fill+halo bakes
+  to kill Clamp-smear beams"; finalized `6d48e51`): every Clamp-sampled layer bakes an alpha-0 border so
+  there is nothing to smear past `[0,1]`. NO mask, full rectangular map preserved. Live: `RegionOverlay
+  Controller.cs:497–504` "No clip mask"; AC-V2-A-CLIP-1/2/3 retired (see Layer 1, "Bleed fix").
 - **Pan/zoom lag → throttle the reflected fog walk** (`ArcFogRefreshIntervalSeconds`=0.5s + forced on map
   (re)open), and re-project the mesh only when the arc set changed OR `uvRect` moved. This removes the
   per-frame fog cost on a static map and during pan (pan does only re-projection, not the fog walk).
@@ -659,5 +657,4 @@ PANEL/UV-space phenomenon. Don't fix a UV-space clip in world space.
   done here. Flagged honestly, not silently shipped as "fixed."
 - **Blocky fill → UNCHANGED** (deferred Path B shape-accurate fill; default `Borders` has no fill).
 
-Files: `RegionOverlayController.cs`. Compile-verified on RequiemSoul (0 errors), DLL marker-verified, all 5
-WZ DLLs deployed to Prime `~/wz-refmod`, walk-pending.
+Files: `RegionOverlayController.cs` (mask removed; edge-ring bleed fix is `5027576`/`6d48e51`).
