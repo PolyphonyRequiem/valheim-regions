@@ -120,6 +120,39 @@ namespace WorldZones.Runtime
         public int MinRegionZones { get; set; } = 6;
 
         /// <summary>
+        /// Minimum LAND-COMPONENT size in 64 m zones for a component to earn a region seed. A connected
+        /// land mass smaller than this never gets a proto-seed — it is recorded as a
+        /// <see cref="ProtoRegionResult.MinorIslets">MinorIslet</see> and renders as UNINCORPORATED land
+        /// (no region id, no name, no fill), exactly the "deep separated islands stay unincorporated"
+        /// stance. Now PLUMBED to this option (was a hardcoded <c>12</c> via
+        /// <c>ProtoRegionGenerator.DefaultMinComponentZonesForProto</c>) so callers can tune it.
+        ///
+        /// <para>
+        /// This is the lever — NOT <see cref="MinRegionZones"/> — for the "runt region" problem. The merge
+        /// floor only folds a runt that shares a LAND border with a bigger region; a tiny whole-island
+        /// runt has no land neighbour (verified 2026-06-30 on Astley: all 27 sub-25-zone regions are their
+        /// own entire land component, 0 land-adjacent → the merge provably can't touch them). Raising THIS
+        /// floor is what demotes those islands. Daniel LOCKED this design (option A) 2026-06-30. The two
+        /// floors are orthogonal and cover the two distinct runt cases: a sub-split of a big component that
+        /// shares a land border → <see cref="MinRegionZones"/> merges it; a tiny standalone island →
+        /// THIS floor demotes it to unincorporated.
+        /// </para>
+        ///
+        /// <para>
+        /// LOCKED at <c>25</c> (design A, Daniel, 2026-06-30): the only floor that takes runt regions to
+        /// exactly 0 on Astley — every surviving region is ≥25 land-component zones. Measured cost
+        /// (`compfloor` sweep, seed Astley): 27 tiny whole-island components demote to unincorporated,
+        /// world-wide unincorporated land 4.52% → 6.24% (~+1.7 pts). The 12-24 zone band had no natural
+        /// gap, so 25 is an intent line ("too small to be a place"), not a distribution cliff. Raising
+        /// this guarantees no region's LAND COMPONENT is below the floor — it does NOT by itself guarantee
+        /// no region is below the floor in zones (a large component can still birth a small sub-split region
+        /// down to <see cref="MinRegionZones"/>); on Astley the two coincide (min region land == 25). For a
+        /// full min-size guarantee in worlds where they diverge, move both floors together.
+        /// </para>
+        /// </summary>
+        public int MinComponentZonesForProto { get; set; } = 25;
+
+        /// <summary>
         /// Swamp land-rescue floor (world metres). Swamp terrain straddles the 30 m waterline
         /// (measured range ~24.8–33.8 m on real worlds), so the height-only land test
         /// (<c>height ≥ 30</c>) drops ~64% of swamp zones to Shallow/Deep — they then fall out of every

@@ -27,8 +27,41 @@ the `ProtoRegionGenerator` changes if you need the diff.
 
 ---
 
-## THREAD 1 — the region min-size MERGE BUG (the real task)
+## THREAD 1 — the region min-size MERGE BUG (the real task) — ✅ RESOLVED 2026-06-30
 
+### RESOLUTION (2026-06-30): there was NO merge bug. Fixed via the SEED-ELIGIBILITY floor, not the merge.
+Measured on Astley with a read-only probe (`WorldZones.Cli mergebug`, kept as the validation record):
+- **Param flow works.** Built at floor 6 / 25 / 130: 6→25 identical (182 regions, merged=0), but
+  floor=130 → 164 regions, **merged=18**. The option reaches the merge and the merge fires when
+  handed mergeable input. Hyp #1 (param-not-flowing) is dead.
+- **Hyp #4 CONFIRMED — the "12 mergeable runts" were a diagnostic artifact.** For every sub-25
+  region, reconstructed the merge's land-only 4-neighbour adjacency from the grid and cross-tabbed
+  against `NeighborKeys`. Result: **all 27 survivors have landAdj==0, ZERO have a real land
+  neighbour.** The 12 that showed `NeighborKeys≥1` were counting a POST-FRINGE shallow-water phantom
+  the land-only merge never saw (`GazetteerBuilder`'s neighbour scan runs post-`ExpandRegionsInto
+  AdjacentShallowZones` and is NOT land-gated; `MergeTinyRegions` runs pre-fringe, land-only).
+  `MergeTinyRegions` is **correct**. Moreover every survivor is its OWN whole land component
+  (comp==land, cReg==1) → nothing to merge into by construction.
+
+### THE FIX (Daniel LOCKED design A, 2026-06-30): raise `MinComponentZonesForProto` 12 → 25.
+The real lever for tiny-island runts is the SEED-ELIGIBILITY floor (a land component below it never
+earns a region seed → demotes to an unincorporated MinorIslet), NOT the merge floor.
+- Plumbed `RegionBuildOptions.MinComponentZonesForProto` (was hardcoded
+  `ProtoRegionGenerator.DefaultMinComponentZonesForProto=12`) → `WorldZonesRuntime.Build` →
+  `GenerateLand(minComponentZonesForProto:)`. **Default set to 25.**
+- `MinRegionZones` stays **6** — orthogonal knob, handles the OTHER runt case (a sub-split of a big
+  component that DOES share a land border). Both floors documented as the two distinct runt cases.
+- Intent set by the `compfloor` sweep (measure-distribution-then-pick, same method as the swamp
+  floor): 25 is the only floor taking runt regions to exactly 0 on Astley. Cost: 27 components
+  demote, world-wide unincorporated land 4.52% → 6.24% (~+1.7 pts). Daniel will catch the grey on
+  the walk. The 12–24 zone band had no natural gap, so 25 is an intent line, not a cliff.
+- **Verification:** full suite green **186/186** (58 Runtime + 79 Regions + 49 WorldGen). The
+  `GazetteerCompositionTests` golden-value lock passed UNCHANGED (spawn region r.7.7 is 445 zones,
+  far above the floor; dropping smallest-area tail components doesn't perturb the large components'
+  RNG draws — no re-pin needed). Gazetteer at the new default: 155 regions, 860 islets (matches the
+  sweep's floor-25 row exactly).
+
+### Original investigation notes (kept for context)
 ### What Daniel asked for
 "We should have a minimum region size in our configuration. Maybe 25 zones?" — triggered by the worldmap
 showing **"the Eldkyst Marshlands" (r.-55.-21 on seed Astley)**: a **17-zone / 0.07 km²** swamp region,

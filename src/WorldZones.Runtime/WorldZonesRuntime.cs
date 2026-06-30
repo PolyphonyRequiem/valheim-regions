@@ -90,6 +90,7 @@ namespace WorldZones.Runtime
                 out int[,] regionIdGrid,
                 out _,
                 minRegionZones: options.MinRegionZones,
+                minComponentZonesForProto: options.MinComponentZonesForProto,
                 inlandWaterOptions: options.IncludeInlandWater
                     ? new InlandWaterAttributionOptions { Enabled = true }
                     : null,

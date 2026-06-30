@@ -103,6 +103,10 @@ namespace WorldZones.Cli
                     return SwampFloorDelta.Run(seed);
                 case "rivergap":
                     return RiverGapViz.Run(seed);
+                case "mergebug":
+                    return MergeBugProbe.Run(seed);
+                case "compfloor":
+                    return CompFloorSweep.Run(seed);
                 case "basemap":
                     return CompositeDump.Basemap(seed, output ?? Path.Combine(Directory.GetCurrentDirectory(), $"{seed}_basemap.bin"), 8);
                 case "locations":
