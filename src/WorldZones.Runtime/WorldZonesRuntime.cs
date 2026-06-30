@@ -89,6 +89,7 @@ namespace WorldZones.Runtime
                 seedRng,
                 out int[,] regionIdGrid,
                 out _,
+                minRegionZones: options.MinRegionZones,
                 inlandWaterOptions: options.IncludeInlandWater
                     ? new InlandWaterAttributionOptions { Enabled = true }
                     : null,

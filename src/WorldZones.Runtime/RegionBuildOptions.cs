@@ -105,17 +105,35 @@ namespace WorldZones.Runtime
         public static RegionBuildOptions Default => new RegionBuildOptions();
 
         /// <summary>
+        /// Minimum region size in 64 m zones. After growth, any region smaller than this is merged into
+        /// its largest-shared-border neighbour (<c>MergeTinyRegions</c>), so the world has no runt regions
+        /// that are too small to read as a real place on the map. Now PLUMBED to this option (was a
+        /// hardcoded <c>6</c> in <c>ProtoRegionGenerator</c>) so callers can tune it. Default kept at
+        /// <c>6</c> for now: raising it to 25 was investigated 2026-06-29 (Daniel) after a 17-zone runt
+        /// rendered as a non-region, BUT the bump had ZERO effect because <c>MergeTinyRegions</c> only
+        /// merges runts that have a land neighbour — 15 of 27 sub-25 regions are isolated islands
+        /// (unmergeable) and a further 12 have neighbours yet survive anyway (a real merge bug). Until
+        /// that merge bug is fixed, raising this default is cosmetic. See the handoff:
+        /// docs/design/region-min-size-merge-handoff.md. Higher = fewer, larger regions; merge tie-break
+        /// is lower region id.
+        /// </summary>
+        public int MinRegionZones { get; set; } = 6;
+
+        /// <summary>
         /// Swamp land-rescue floor (world metres). Swamp terrain straddles the 30 m waterline
         /// (measured range ~24.8–33.8 m on real worlds), so the height-only land test
         /// (<c>height ≥ 30</c>) drops ~64% of swamp zones to Shallow/Deep — they then fall out of every
         /// region (no fill, no border), the "swamp not reliably included" bug. When set, a zone is also
         /// classified Land if its biome is Swamp AND its height ≥ this floor. Gated to the Swamp biome,
         /// so it provably changes NO other terrain (zero blast radius outside swamp — verified across the
-        /// whole world). Default <c>22f</c>: just below swamp's measured floor, which fully heals swamp
-        /// (0% dropped) without reaching into open water. Set <c>null</c> to disable (legacy height-only
-        /// behaviour, byte-identical to the old geometry). See docs/design/region-borders.md
-        /// ("the swamp land-floor").
+        /// whole world). Default <c>28.5f</c>: ~1.5 m below the 30 m waterline. Measured 2026-06-29 (seed
+        /// Astley): swamp terrain sits in a tight 24–33 m band (mean 29.6, peak 29), so 28.5 rescues the
+        /// near-surface walkable swamp while letting the deeper bog read as water. The swamp zones that
+        /// flip to water vs the old 22 m floor are 99.6% COASTAL (wet shoreline bog that should read as
+        /// water/fade, not solid region land) and ~0% inland body — so this cleans swamp COASTS without
+        /// shrinking the inland swamp. Set <c>null</c> to disable (legacy height-only behaviour). See
+        /// docs/design/region-borders.md ("the swamp land-floor").
         /// </summary>
-        public float? SwampLandFloorMeters { get; set; } = 22f;
+        public float? SwampLandFloorMeters { get; set; } = 28.5f;
     }
 }

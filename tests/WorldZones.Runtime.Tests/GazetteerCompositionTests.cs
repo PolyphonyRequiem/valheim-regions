@@ -105,31 +105,32 @@ namespace WorldZones.Runtime.Tests
 
         /// <summary>The shipped swamp land-floor (RegionBuildOptions default). A swamp region's terrain
         /// legitimately reaches this far below the waterline; below it would be leaked water.</summary>
-        private const float SwampFloor = 22f;
+        private const float SwampFloor = 28.5f;
 
         [Fact]
         public void OriginRegion_HasExpectedCorrectedValues()
         {
             // Locks the specific values for Niflheim's spawn region, so a regression in the land-gating
             // shows up as a concrete, readable diff rather than a whole-world statistical drift.
-            // NOTE: these are the SWAMP-LAND-FLOOR values (RegionBuildOptions default SwampLandFloorMeters=22):
-            // rescuing sub-waterline swamp into regions shifts seeding/growth, so spawn now resolves to a
-            // different, larger region (r.3.11 "the Highlands of Jarnfjord", BlackForest) than the pre-swamp
-            // r.3.-10 Meadows. This RegionKey renumber is the documented, accepted consequence of the
-            // classification change (keys are seed-coordinate-derived). The SampledLand==Land invariant
-            // and the land-only character guarantees still hold.
+            // NOTE: these are the SWAMP-LAND-FLOOR values (RegionBuildOptions default SwampLandFloorMeters).
+            // The floor was tightened 22→28.5 m on 2026-06-29 (data-driven: swamp terrain sits in a 24–33 m
+            // band, and the zones that flip to water at 28.5 are 99.6% COASTAL wet bog, not inland body).
+            // Tightening the rescue shifts seeding/growth, so spawn now resolves to r.7.7 "the Gentle Downs"
+            // (Meadows) — verified, not guessed. This RegionKey renumber is the documented, accepted
+            // consequence of the classification change (keys are seed-coordinate-derived). The
+            // SampledLand==Land invariant and the land-only character guarantees still hold.
             RegionWorld world = BuildNiflheim();
             RegionInfo origin = world.RegionAt(0f, 0f);
 
             Assert.NotNull(origin);
-            Assert.Equal("r.3.11", origin.RegionKey);
-            Assert.Equal(BiomeType.BlackForest, origin.DominantBiome);
-            Assert.Equal(origin.LandZones, origin.SampledLandZones); // 351 == 351, the invariant
+            Assert.Equal("r.7.7", origin.RegionKey);
+            Assert.Equal(BiomeType.Meadows, origin.DominantBiome);
+            Assert.Equal(origin.LandZones, origin.SampledLandZones); // 445 == 445, the invariant
 
-            // BlackForest dominates ~41%, Meadows ~36% (land-only denominator).
-            float blackForest = origin.BiomeComposition[BiomeType.BlackForest];
-            Assert.True(blackForest > 0.39f && blackForest < 0.44f,
-                $"origin BlackForest fraction {blackForest:F3} off expected ~0.413");
+            // Meadows dominates ~44%, BlackForest ~37% (land-only denominator).
+            float meadows = origin.BiomeComposition[BiomeType.Meadows];
+            Assert.True(meadows > 0.41f && meadows < 0.47f,
+                $"origin Meadows fraction {meadows:F3} off expected ~0.438");
 
             // This spawn region carries no swamp, so its min elevation still sits on the 30 m land floor
             // (the swamp rescue did not drag it down — the land-only character guarantee holds).

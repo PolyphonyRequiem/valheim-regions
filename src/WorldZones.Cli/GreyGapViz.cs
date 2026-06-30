@@ -95,6 +95,24 @@ namespace WorldZones.Cli
                 }
 
             Console.WriteLine($"  UNINCORPORATED land texels in window: {unincTotal}  (touching THIS region's coast: {unincCoast})");
+            // Diagnose WHAT the magenta zones are: depth class + assigned-neighbour count, to tell
+            // 'island across water' from 'skipped interior zone' from 'fine-texel-below-30m speckle'.
+            int magShallowZone=0, magDeepZone=0, magLandZone=0, magHasAssignedLandNbr=0;
+            for (int ty=0;ty<Ht;ty++) for (int tx=0;tx<Wt;tx++)
+            {
+                int fx=minfx+tx, fy=minfy+ty;
+                if (!IsLand(fx,fy)) continue; int z=zoneAt(fx,fy); if (z>=0) continue;
+                // this is a magenta texel — what's its ZONE depth + does a region's land touch its zone?
+                double wx=ox+(fx+0.5)*texel, wz=oz+(fy+0.5)*texel;
+                int zx=(int)Math.Round(wx/zone)-min, zy=(int)Math.Round(wz/zone)-min;
+                double zwx=(zx+min)*zone, zwz=(zy+min)*zone; double zh=sampler.GetHeight((float)zwx,(float)zwz);
+                if (zh>=HeightScalarField.SeaLevel) magLandZone++; else if (zh>=20) magShallowZone++; else magDeepZone++;
+                // assigned-land zone neighbour?
+                bool nbr=false; foreach (var (dx,dy) in new[]{(1,0),(-1,0),(0,1),(0,-1)}) { int n=zoneAt(fx+dx*4,fy+dy*4); if(n>=0){nbr=true;break;} }
+                if (nbr) magHasAssignedLandNbr++;
+            }
+            Console.WriteLine($"  magenta texel ZONE-CENTRE depth: land(≥30)={magLandZone} shallow(20-30)={magShallowZone} deep(<20)={magDeepZone}");
+            Console.WriteLine($"  magenta texels whose zone has an ASSIGNED-LAND zone neighbour: {magHasAssignedLandNbr}");
             Console.WriteLine($"  → magenta = land ≥30m that NO region claims = the 'grey gap'");
             PngWriter.Write(System.IO.Path.Combine(outDir,"greygap.png"), W, H, img);
             Console.WriteLine($"  → {outDir}/greygap.png");

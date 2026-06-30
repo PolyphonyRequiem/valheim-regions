@@ -97,6 +97,12 @@ namespace WorldZones.Cli
                     return GreyGapViz.Run(seed, output ?? "/tmp");
                 case "unincland":
                     return UnincLandViz.Run(seed);
+                case "swampheight":
+                    return SwampHeightViz.Run(seed);
+                case "swampfloordelta":
+                    return SwampFloorDelta.Run(seed);
+                case "rivergap":
+                    return RiverGapViz.Run(seed);
                 case "basemap":
                     return CompositeDump.Basemap(seed, output ?? Path.Combine(Directory.GetCurrentDirectory(), $"{seed}_basemap.bin"), 8);
                 case "locations":
