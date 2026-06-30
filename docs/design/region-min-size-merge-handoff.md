@@ -127,8 +127,34 @@ default that silently does nothing.
 
 ---
 
-## THREAD 2 — swamp-floor 28.5 m, UNDEPLOYED, pending Daniel's A/B
+## THREAD 2 — swamp-floor — ✅ RESOLVED + LOCKED at 27.5 (2026-06-30)
 
+### RESOLUTION (2026-06-30): locked at 27.5, NOT 28.5. The A/B killed 28.5.
+The gate was a same-window 22-vs-floor A/B on swamp-heavy NON-runt regions (the `swampab` CLI probe,
+seed Astley). The decisive addition over the 2026-06-29 attempt was an HONEST coastal-vs-interior
+split: flood from open water through the shed band — a shed cell the flood REACHES is the shoreline
+retreating inward (coastal/good), a shed cell walled off by surviving land is an interior hole in the
+bog (bad). At **28.5** the shed punched interior holes: Kjellvik 89% interior, Marshlands 36%,
+Nordreach 29%, Galdhavn 11% — water pockets inside the swamp body, exactly what Daniel's eye caught
+("they look interior often"). The holes were almost entirely terrain in the razor-thin **[27.5, 28.5)**
+band, so dropping the floor 1 m to **27.5** rescues 94–100% of them and every region reads CLEAN
+COASTAL TRIM (interior 0–5%; Kjellvik sheds nothing). Daniel locked 27.5 after seeing the A/B.
+
+🔴 The 2026-06-29 "99.6% / 100% COASTAL @28.5" claim was WRONG — it came from a broken proximity
+metric (counted any shed cell within 128 m of *any* water as coastal, including the bog being shed).
+In a wet swamp that reports ~100% by construction. Superseded by the flood-based split. **Do not
+resurrect proximity-to-any-water as a coastal test.**
+
+### THE LOCK — all 3 load-bearing sites moved together (they MUST, or fill/fade/membership disagree)
+- `RegionBuildOptions.SwampLandFloorMeters` default → **27.5f**.
+- `RegionOverlayPlugin.cs` fade-field `swampLandFloor:` arg → **27.5** (the build inherits the option
+  default for membership+fill; only the fade field hardcodes it).
+- `GazetteerCompositionTests.SwampFloor` golden const → **27.5f**.
+- Suite green **186/186**. Golden `OriginRegion_HasExpectedCorrectedValues` passed UNCHANGED — the
+  floor is swamp-gated and spawn r.7.7 is Meadows (no swamp), so it doesn't move. net472 mod build
+  clean. Committed; net472 DLLs built and ready to deploy to Prime (was NOT yet deployed at lock time).
+
+### Original investigation notes (kept for context) — these describe the SUPERSEDED 28.5 path
 ### What's DONE (committed, green, NOT deployed to Prime)
 `RegionBuildOptions.SwampLandFloorMeters` raised **22 → 28.5**, and the plugin's fade `swampLandFloor`
 arg matched to 28.5 (`RegionOverlayPlugin.cs`). Full runtime suite green (58/58) — the golden-value test
