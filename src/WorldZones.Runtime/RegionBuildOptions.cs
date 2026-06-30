@@ -159,14 +159,27 @@ namespace WorldZones.Runtime
         /// region (no fill, no border), the "swamp not reliably included" bug. When set, a zone is also
         /// classified Land if its biome is Swamp AND its height ≥ this floor. Gated to the Swamp biome,
         /// so it provably changes NO other terrain (zero blast radius outside swamp — verified across the
-        /// whole world). Default <c>28.5f</c>: ~1.5 m below the 30 m waterline. Measured 2026-06-29 (seed
-        /// Astley): swamp terrain sits in a tight 24–33 m band (mean 29.6, peak 29), so 28.5 rescues the
-        /// near-surface walkable swamp while letting the deeper bog read as water. The swamp zones that
-        /// flip to water vs the old 22 m floor are 99.6% COASTAL (wet shoreline bog that should read as
-        /// water/fade, not solid region land) and ~0% inland body — so this cleans swamp COASTS without
-        /// shrinking the inland swamp. Set <c>null</c> to disable (legacy height-only behaviour). See
+        /// whole world). Default <c>27.5f</c>: ~2.5 m below the 30 m waterline. Measured 2026-06-29 (seed
+        /// Astley): swamp terrain sits in a tight 24–33 m band (mean 29.6, peak 29), so a floor in this
+        /// range rescues the near-surface walkable swamp while letting the deeper bog read as water.
+        ///
+        /// <para>
+        /// FINALISED at <c>27.5</c> (Daniel, 2026-06-30) after the same-window 22-vs-floor A/B
+        /// (<c>swampab</c>, seed Astley) on 4 swamp-heavy non-runt regions, with an HONEST coastal-vs-
+        /// interior split (flood from open water through the shed band: a shed cell the flood reaches =
+        /// shoreline retreat = coastal/good; a shed cell walled off by surviving land = interior hole/bad).
+        /// At 28.5 the shed punched INTERIOR HOLES into swamp bodies (Kjellvik 89% interior, Kjellhavn 36%,
+        /// Nordreach 29%, Galdhavn 11%) — water pockets inside the bog, not clean coast. Those holes were
+        /// almost entirely terrain in the razor-thin <c>[27.5, 28.5)</c> band: dropping the floor 1 m to
+        /// 27.5 rescues 94–100% of them, and every region then reads as CLEAN COASTAL TRIM (interior 0–5%).
+        /// 27.5 is the line that trims wet coast without holing the body. (An earlier "100% coastal @28.5"
+        /// claim came from a BROKEN proximity metric that counted bog-near-bog as coast — superseded by the
+        /// flood-based split. Do not resurrect proximity-to-any-water as a coastal test.)
+        /// </para>
+        ///
+        /// Set <c>null</c> to disable (legacy height-only behaviour). See
         /// docs/design/region-borders.md ("the swamp land-floor").
         /// </summary>
-        public float? SwampLandFloorMeters { get; set; } = 28.5f;
+        public float? SwampLandFloorMeters { get; set; } = 27.5f;
     }
 }

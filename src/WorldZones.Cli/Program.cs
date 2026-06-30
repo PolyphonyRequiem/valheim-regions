@@ -36,6 +36,7 @@ namespace WorldZones.Cli
             string? probePrefab = null;
             string? dumpPath = null;
             bool emitBoundaries = false;
+            double abFloor = 28.5;
 
             for (int i = 1; i < args.Length; i++)
             {
@@ -61,6 +62,8 @@ namespace WorldZones.Cli
                     dumpPath = args[++i];
                 else if (args[i] == "--boundaries")
                     emitBoundaries = true;
+                else if (args[i] == "--floor" && i + 1 < args.Length)
+                    abFloor = double.Parse(args[++i], System.Globalization.CultureInfo.InvariantCulture);
             }
 
             switch (command)
@@ -107,6 +110,8 @@ namespace WorldZones.Cli
                     return MergeBugProbe.Run(seed);
                 case "compfloor":
                     return CompFloorSweep.Run(seed);
+                case "swampab":
+                    return SwampFloorAB.Run(seed, output ?? "/tmp", 4, abFloor);
                 case "basemap":
                     return CompositeDump.Basemap(seed, output ?? Path.Combine(Directory.GetCurrentDirectory(), $"{seed}_basemap.bin"), 8);
                 case "locations":

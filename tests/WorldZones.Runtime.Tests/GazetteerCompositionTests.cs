@@ -104,8 +104,10 @@ namespace WorldZones.Runtime.Tests
         }
 
         /// <summary>The shipped swamp land-floor (RegionBuildOptions default). A swamp region's terrain
-        /// legitimately reaches this far below the waterline; below it would be leaked water.</summary>
-        private const float SwampFloor = 28.5f;
+        /// legitimately reaches this far below the waterline; below it would be leaked water. Locked to
+        /// 27.5 m on 2026-06-30 (A/B: 28.5 holed bog interiors; 27.5 = clean coastal trim). Must equal
+        /// RegionBuildOptions.SwampLandFloorMeters — they move together.</summary>
+        private const float SwampFloor = 27.5f;
 
         [Fact]
         public void OriginRegion_HasExpectedCorrectedValues()

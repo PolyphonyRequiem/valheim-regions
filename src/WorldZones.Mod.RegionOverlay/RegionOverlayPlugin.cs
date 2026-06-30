@@ -489,7 +489,7 @@ namespace WorldZones.Mod.RegionOverlay
                     // RegionFillMaskBaker's exactly, so a rescued-swamp texel the fill paints is land here
                     // too (the fade leaves it alone) — fill XOR fade, no double-layer, no gap.
                     includeLakes: true,
-                    swampLandFloor: 28.5,   // matches RegionBuildOptions.SwampLandFloorMeters (data-driven 2026-06-29)
+                    swampLandFloor: 27.5,   // matches RegionBuildOptions.SwampLandFloorMeters (A/B-locked 2026-06-30: 28.5 holed bog interiors, 27.5 = clean coastal trim)
                     isSwamp: (wx, wz) => sampler.GetBiome((float)wx, (float)wz) == WorldZones.WorldGen.BiomeType.Swamp);
                 this.overlayController.SetHaloField(haloFld);
 
