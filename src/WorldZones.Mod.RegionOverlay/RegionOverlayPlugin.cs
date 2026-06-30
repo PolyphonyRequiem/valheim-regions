@@ -493,21 +493,40 @@ namespace WorldZones.Mod.RegionOverlay
                     isSwamp: (wx, wz) => sampler.GetBiome((float)wx, (float)wz) == WorldZones.WorldGen.BiomeType.Swamp);
                 this.overlayController.SetHaloField(haloFld);
 
-                // ── Phase-2 FINE FILL MASK (2026-06-29): the terrestrial fill stops at the 30 m waterline
-                // instead of the 64 m zone staircase overhanging into water. RegionFillMaskBaker tests each
-                // 16 m texel's height against the waterline (swamp-rescue floor 22 m honoured so walkable
-                // sub-waterline swamp paints solid, not a hole — see region-render-seam.md render model).
-                // Land-or-water is fine; WHICH region a land texel belongs to comes from the SAME mainGrid
-                // the coarse fill + glow attribute to, so all three agree. Baked once per world; the
-                // controller fog-gates per ZONE at draw (cheap) and BakeFine registers it at 16 m.
+                // ── Phase-2 FINE FILL MASK (2026-06-29): the terrestrial fill follows the AUTHORITATIVE
+                // REFINED RING, not the 64 m zone grid. Daniel's swamp walk showed the raster fill edge was
+                // a 64 m zone-membership staircase (72% zone-limited) that stops short of the real coast.
+                // The fix: build the refined ring boundary (coast edges snapped to the 30 m waterline iso,
+                // land-seam edges to the biome flip, smoothed-last with the watertight guards) and rasterize
+                // it (point-in-ring, holes subtracted) into the SAME fine int[,] the height-clip mask used —
+                // so the controller / BakeFine / fog-gate / fill↔fade partition are all UNCHANGED. The fill
+                // edge becomes the smooth contour instead of the zone staircase. Built once per world.
                 const double fineTexel = 16.0;
                 int fineSub = (int)(zone / fineTexel);   // 4
-                var fillMaskBaker = new RegionFillMaskBaker(
-                    sampler,
-                    coastIso: HeightScalarField.SeaLevel,       // 30 m — true waterline (not the 25 m line iso)
-                    swampLandFloor: 22.0);                       // matches RegionBuildOptions.SwampLandFloorMeters
-                int[,] fineFillMask = fillMaskBaker.Bake(mainGrid, regionWorld.Grid.MinIndex, fineSub);
+                var ringCoastField = new HeightScalarField(sampler, HeightScalarField.SeaLevel); // iso = 30 m waterline
+                var ringSeamField = new BiomeCategoryField(sampler);
+                var ringKeyToLabel = new System.Collections.Generic.Dictionary<string, int>(System.StringComparer.Ordinal);
+                foreach (RegionInfo r in regionWorld.Regions) ringKeyToLabel[r.RegionKey] = r.TransientId;
+                int ringRidW = mainGrid.GetLength(1), ringRidH = mainGrid.GetLength(0);
+                int ringMin = regionWorld.Grid.MinIndex;
+                RegionRingRefiner.RegionIdAt ringRidAt = (wx, wz) =>
+                {
+                    int zx = (int)System.Math.Round(wx / zone) - ringMin;
+                    int zy = (int)System.Math.Round(wz / zone) - ringMin;
+                    return (zx < 0 || zy < 0 || zx >= ringRidW || zy >= ringRidH) ? -1 : mainGrid[zy, zx];
+                };
+                // Refine the rings off the MAIN-ONLY graph (same grid the fill+glow attribute to) so the
+                // fill footprint matches the rest of the overlay. Stripped orphan chunks stay unincorporated.
+                var mainIdToKey = new System.Collections.Generic.Dictionary<int, string>();
+                foreach (RegionInfo r in regionWorld.Regions) if (!mainIdToKey.ContainsKey(r.TransientId)) mainIdToKey[r.TransientId] = r.RegionKey;
+                RegionBoundaryGraph mainGraph = RegionBoundaryExtractor.Extract(mainGrid, ringMin, mainIdToKey);
+                RefinedRegionBoundary ringBoundary = RefinedRegionBoundary.Build(
+                    mainGraph, ringKeyToLabel, ringRidAt, ringCoastField, ringSeamField);
+                var ringFillBaker = new RegionRingFillBaker(ringBoundary, ringKeyToLabel);
+                int[,] fineFillMask = ringFillBaker.Bake(ringRidH, ringRidW, ringMin, fineSub);
                 this.overlayController.SetFineFillMask(fineFillMask, fineTexel);
+                this.Logger.LogInfo($"RegionOverlay: ring fill baked — {ringBoundary.Rings.Count} refined rings "
+                             + $"(rolledToRaw={ringBoundary.RolledBackToRawCount}, skippedSmall={ringBoundary.SkippedSmallCount}).");
 
                 // Atlas biome palettes (fill wash + sat-floored coast glow), one colour per grid label
                 // (RegionInfo.TransientId) from each region's DominantBiome (ComputeRegionInfo=true

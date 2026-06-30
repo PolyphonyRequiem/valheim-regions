@@ -89,6 +89,10 @@ namespace WorldZones.Cli
                     return FillMaskViz.Run(seed, output ?? "/tmp");
                 case "fillfadeviz":
                     return FillFadeViz.Run(seed, output ?? "/tmp");
+                case "swampedgeviz":
+                    return SwampEdgeViz.Run(seed, output ?? "/tmp");
+                case "ringfillviz":
+                    return RingFillViz.Run(seed, output ?? "/tmp");
                 case "basemap":
                     return CompositeDump.Basemap(seed, output ?? Path.Combine(Directory.GetCurrentDirectory(), $"{seed}_basemap.bin"), 8);
                 case "locations":
