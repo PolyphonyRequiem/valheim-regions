@@ -93,6 +93,10 @@ namespace WorldZones.Cli
                     return SwampEdgeViz.Run(seed, output ?? "/tmp");
                 case "ringfillviz":
                     return RingFillViz.Run(seed, output ?? "/tmp");
+                case "greygapviz":
+                    return GreyGapViz.Run(seed, output ?? "/tmp");
+                case "unincland":
+                    return UnincLandViz.Run(seed);
                 case "basemap":
                     return CompositeDump.Basemap(seed, output ?? Path.Combine(Directory.GetCurrentDirectory(), $"{seed}_basemap.bin"), 8);
                 case "locations":
