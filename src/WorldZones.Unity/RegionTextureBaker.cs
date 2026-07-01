@@ -196,7 +196,13 @@ namespace WorldZones.Unity
             {
                 name = "WZ_RegionFillFine",
                 wrapMode = TextureWrapMode.Clamp,
-                filterMode = FilterMode.Point,
+                // Bilinear (2026-07-01): the fill mask is a 16 m raster of a SMOOTH (~1.8 m) boundary; under
+                // the map's magnification Point renders each 16 m texel as a hard square → a 64 m-looking
+                // staircase on an edge that is actually smooth. Bilinear blends adjacent texels so the fill
+                // edge reads smooth (matching the coast glow, which already uses Bilinear). This anti-aliases
+                // the 16 m raster; it does NOT recover sub-texel detail (that needs a true vector fill — the
+                // fill/ink/glow unification). Reversible styling choice, sanctioned in Bake's note above.
+                filterMode = FilterMode.Bilinear,
             };
             tex.SetPixels32(pixels);
             tex.Apply(updateMipmaps: false, makeNoLongerReadable: false);
