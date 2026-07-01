@@ -94,6 +94,8 @@ namespace WorldZones.Cli
                     return RingSigmaViz.Run(seed, output ?? "/tmp");
                 case "sharedseamspike":
                     return SharedSeamSpike.Run(seed, output ?? "/tmp");
+                case "sharedseamviz":
+                    return SharedSeamViz.Run(seed, output ?? "/tmp");
                 case "seamfork":
                     return SeamFork.Run(seed, output ?? "/tmp");
                 case "negotiateprobe":
