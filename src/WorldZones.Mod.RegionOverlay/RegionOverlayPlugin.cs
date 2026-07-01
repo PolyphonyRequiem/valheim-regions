@@ -71,7 +71,7 @@ namespace WorldZones.Mod.RegionOverlay
         /// + redeploy to ship; gated on Daniel's in-world walk. static readonly (not const) so the off path
         /// carries no unreachable-code warning.
         /// </summary>
-        private static readonly bool UseSharedSeamFill = false;
+        private static readonly bool UseSharedSeamFill = true;
         // Live realization overlay — non-null only when a location-bearing gazetteer has been built
         // (a consumer that opts into RegionBuildOptions.LocationSource). Until then the realization
         // signal is received but has nothing to update, so it is a no-op. See location-gazetteer-api.md.
