@@ -449,10 +449,13 @@ namespace WorldZones.Mod.RegionOverlay
                 RegionBoundaryGraph graph = RegionBoundaryExtractor.Extract(
                     regionWorld.RegionIdGrid, regionWorld.Grid.MinIndex, idToKey);
 
-                // Layer 0: refine the SAME graph into smooth arcs (coast ∪ biome-seam) off the live
-                // sampler — byte-for-byte the headless gazetteer path (Gazetteer.WriteBoundaries:294-297:
-                // same two refiners, same fields, same 25 m default coast iso). One flat List<RefinedBorder>.
-                var heightField = new HeightScalarField(sampler);   // default CoastIso = 25 m
+                // Layer 0: refine the SAME graph into smooth arcs (coast ∪ biome-seam) off the live sampler.
+                // COAST ISO (2026-07-01): the coast ink now hugs the 30 m WATERLINE (SeaLevel), the SAME
+                // contour Valheim draws as the shoreline AND the fill's coast ring uses — so ink, fill, and
+                // the vanilla map coast all agree. Was CoastIso=25 m (a deliberate ~5 m-under-water "shelf"
+                // line), which drew the coast ink INLAND of the real shore (Daniel's walk: blue ≠ coastline).
+                // Revert to `new HeightScalarField(sampler)` for the old 25 m shelf line.
+                var heightField = new HeightScalarField(sampler, HeightScalarField.SeaLevel);   // 30 m waterline
                 var biomeField = new BiomeCategoryField(sampler);
                 var arcs = new List<RefinedBorder>();
                 arcs.AddRange(RegionBoundaryRefiner.RefineCoastlinesSmoothed(graph, heightField));
