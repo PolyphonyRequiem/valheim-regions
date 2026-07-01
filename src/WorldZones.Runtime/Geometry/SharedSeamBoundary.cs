@@ -92,6 +92,37 @@ namespace WorldZones.Runtime.Geometry
         public static IReadOnlyList<SharedSeamRing> Build(SharedSeamSet seams, RegionBoundaryGraph coarseGraph)
             => Build(seams, coarseGraph, out _);
 
+        /// <summary>
+        /// Adapter: package the shared-seam reassembly as a <see cref="RefinedRegionBoundary"/> so the
+        /// existing <see cref="RegionRingFillBaker"/> (and every other <see cref="RefinedRing"/> consumer)
+        /// can rasterize it UNCHANGED — the drop-in wire for fork B into the live overlay. Each
+        /// <see cref="SharedSeamRing"/> becomes a <see cref="RefinedRing"/> with outcome <see
+        /// cref="RingRefineOutcome.Smoothed"/> (the seams were already refined + watertight-laddered).
+        /// Regions that failed to reassemble fall back to the caller's <paramref name="fallback"/> boundary
+        /// (the independent per-region refine) so the fill never has a hole — fork B improves the fill where
+        /// it succeeds and is byte-identical to today where it doesn't.
+        /// </summary>
+        public static RefinedRegionBoundary ToRefinedRegionBoundary(SharedSeamSet seams,
+            RegionBoundaryGraph coarseGraph, RefinedRegionBoundary fallback = null)
+        {
+            IReadOnlyList<SharedSeamRing> ssRings = Build(seams, coarseGraph, out var failed);
+            var failedSet = new HashSet<string>(failed, StringComparer.Ordinal);
+
+            var refined = new List<RefinedRing>(ssRings.Count);
+            foreach (SharedSeamRing r in ssRings)
+                refined.Add(new RefinedRing(r.RegionKey, r.Vertices, r.SignedArea, RingRefineOutcome.Smoothed,
+                                            huggedVertices: r.Vertices.Count));
+
+            // For any region that did NOT reassemble, keep its independent-refine ring(s) from the fallback so
+            // the fill stays complete (zero-regression on the failure set).
+            if (fallback != null && failedSet.Count > 0)
+                foreach (string region in failedSet)
+                    foreach (RefinedRing fr in fallback.RingsFor(region))
+                        refined.Add(fr);
+
+            return new RefinedRegionBoundary(refined);
+        }
+
         // ── Chain one region's seams into closed loops by shared junction-node endpoints ──────────────────
         // Greedy head-to-tail: proven on 3 real seeds to reassemble 149/156/152 regions watertight once the
         // seams themselves are watertight (spike-004 SPIKE 3). Multi-wedge junctions resolve because a

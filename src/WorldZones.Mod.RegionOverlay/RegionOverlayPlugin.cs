@@ -63,6 +63,15 @@ namespace WorldZones.Mod.RegionOverlay
             ("Whisper", 0.12f),
         };
         private bool overlayWorldCached;
+
+        /// <summary>
+        /// FORK B toggle (docs/design/spike-004-shared-seam-primitive.md): when true, the map fill is
+        /// reassembled from ONE shared seam per region-pair (the same curve the ink draws), so fill and ink
+        /// agree by construction. false ⇒ the shipped independent-refine fill (byte-identical). Flip to true
+        /// + redeploy to ship; gated on Daniel's in-world walk. static readonly (not const) so the off path
+        /// carries no unreachable-code warning.
+        /// </summary>
+        private static readonly bool UseSharedSeamFill = false;
         // Live realization overlay — non-null only when a location-bearing gazetteer has been built
         // (a consumer that opts into RegionBuildOptions.LocationSource). Until then the realization
         // signal is received but has nothing to update, so it is a no-op. See location-gazetteer-api.md.
@@ -522,6 +531,23 @@ namespace WorldZones.Mod.RegionOverlay
                 RegionBoundaryGraph mainGraph = RegionBoundaryExtractor.Extract(mainGrid, ringMin, mainIdToKey);
                 RefinedRegionBoundary ringBoundary = RefinedRegionBoundary.Build(
                     mainGraph, ringKeyToLabel, ringRidAt, ringCoastField, ringSeamField);
+
+                // ── FORK B (2026-07-01): the SHARED-SEAM fill. Off by default (flip to true + redeploy to
+                // ship, same gate as every other border lever). When on, the fill ring is reassembled from
+                // ONE shared seam per region-pair — the SAME curve the ink draws — so fill and ink agree by
+                // construction (kills the ~16 m weave) instead of being three independent refinements. Any
+                // region that fails to reassemble falls back to the independent-refine ringBoundary above, so
+                // the fill is never holed. false ⇒ byte-identical to the shipped independent-refine path.
+                // See docs/design/spike-004-shared-seam-primitive.md.
+                // (static readonly, not const, so flipping it needs no code edit here and the off path
+                //  compiles without an unreachable-code warning.)
+                if (UseSharedSeamFill)
+                {
+                    var seamSet = SharedSeamSet.Build(mainGraph, ringCoastField, ringSeamField);
+                    ringBoundary = SharedSeamBoundary.ToRefinedRegionBoundary(seamSet, mainGraph, fallback: ringBoundary);
+                    this.Logger.LogInfo($"RegionOverlay: fork-B shared-seam fill ON — {seamSet.Seams.Count} shared seams.");
+                }
+
                 var ringFillBaker = new RegionRingFillBaker(ringBoundary, ringKeyToLabel);
                 int[,] fineFillMask = ringFillBaker.Bake(ringRidH, ringRidW, ringMin, fineSub);
                 this.overlayController.SetFineFillMask(fineFillMask, fineTexel);
