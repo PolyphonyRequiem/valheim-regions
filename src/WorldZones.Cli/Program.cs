@@ -88,6 +88,24 @@ namespace WorldZones.Cli
                     return IslandLoss.Run(seed);
                 case "bridgeprobe":
                     return BridgeProbe.Run(seed);
+                case "seamdiag":
+                    return SeamDiag.Run(seed, output ?? "/tmp");
+                case "ringsigmaviz":
+                    return RingSigmaViz.Run(seed, output ?? "/tmp");
+                case "sharedseamspike":
+                    return SharedSeamSpike.Run(seed, output ?? "/tmp");
+                case "seamfork":
+                    return SeamFork.Run(seed, output ?? "/tmp");
+                case "negotiateprobe":
+                    return NegotiateProbe.Run(seed, output ?? "/tmp");
+                case "negotiatezoom":
+                    return NegotiateZoom.Run(seed, output ?? "/tmp");
+                case "contourtrace":
+                    return ContourTrace.Run(seed, output ?? "/tmp");
+                case "smoothscale":
+                    return SmoothScale.Run(seed, output ?? "/tmp");
+                case "sigmaverify":
+                    return SigmaVerify.Run(seed, output ?? "/tmp");
                 case "fillmaskviz":
                     return FillMaskViz.Run(seed, output ?? "/tmp");
                 case "fillfadeviz":
