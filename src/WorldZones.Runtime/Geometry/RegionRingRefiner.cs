@@ -24,6 +24,20 @@ namespace WorldZones.Runtime.Geometry
         /// 0 disables smoothing entirely (refine-only authoritative ring).</summary>
         public int SmoothIterations { get; set; } = 2;
 
+        /// <summary>
+        /// Terrain-scale CLOSED-LOOP Gaussian smoothing width in METRES (docs/design/
+        /// region-boundary-negotiation.md, "SUPERSEDED-2"). When &gt; 0, the refined ring is smoothed by
+        /// <see cref="PolylineSmoother.SmoothGaussianClosed"/> as the LAST stage (after the closed despike),
+        /// INSTEAD of Chaikin — a physical σ-in-metres low-pass that means the same thing across seeds, and
+        /// (unlike the OPEN ink smoother) wraps the closure seam so a fill ring does not kink there. The
+        /// watertight ladder still wraps the result: a smoothed ring that self-intersects or flips winding
+        /// rolls back to the refined ring exactly as with Chaikin. Default 0 ⇒ OFF: the legacy despike+Chaikin
+        /// path is byte-identical (zero regression). Shipped tuning target is 30 m; walk-gated.
+        /// This is fork "A" — regions stop stepping; fill and ink stay independently derived (~16 m apart)
+        /// until the shared-seam primitive (fork "B") collapses them to one curve.
+        /// </summary>
+        public double SmoothingSigmaMeters { get; set; } = 0.0;
+
         /// <summary>GUARD 1a — a ring with fewer raw vertices than this skips smoothing (kept refined).
         /// The sweep showed failures concentrate at tiny rings (median 4 verts) where Chaikin has nothing
         /// to cut and self-intersects. 8 keeps every speck watertight as a refined ring.</summary>
@@ -171,7 +185,9 @@ namespace WorldZones.Runtime.Geometry
                 return new RefinedRing(ring.RegionKey, refined, areaRefined,
                                        RingRefineOutcome.SkippedSmoothTooSmall, hugged);
 
-            var smoothed = Chaikin(Despike(refined, options.DespikeThreshold), options.SmoothIterations);
+            var smoothed = options.SmoothingSigmaMeters > 0
+                ? PolylineSmoother.SmoothGaussianClosed(Despike(refined, options.DespikeThreshold), options.SmoothingSigmaMeters)
+                : Chaikin(Despike(refined, options.DespikeThreshold), options.SmoothIterations);
 
             // GUARD 2: watertight ladder. Prefer smoothed; if it self-intersects or flips winding, fall
             // back to refined; if the REFINED ring ALSO self-intersects (rare: a large ring where the snap

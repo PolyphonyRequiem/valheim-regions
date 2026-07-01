@@ -32,6 +32,16 @@ namespace WorldZones.Runtime.Geometry
         /// <summary>Chaikin corner-cutting iterations applied after despiking. Default 2. Set 0 to disable.</summary>
         public int SmoothIterations { get; set; } = 2;
 
+        /// <summary>
+        /// Terrain-scale Gaussian smoothing width in METRES (docs/design/region-boundary-negotiation.md).
+        /// When &gt; 0, the refined polyline is smoothed by <see cref="PolylineSmoother.SmoothGaussian"/>
+        /// as the LAST stage (after despiking), INSTEAD of Chaikin — a physical σ-in-metres low-pass that
+        /// means the same thing across seeds, rather than a grid-flavoured iteration count. Endpoints stay
+        /// pinned. Default 0 ⇒ OFF: the legacy despike+Chaikin path is byte-identical (zero regression).
+        /// Shipped tuning target is 30 m; walk-gated.
+        /// </summary>
+        public double SmoothingSigmaMeters { get; set; } = 0.0;
+
         public static SegmentRefineOptions Default => new SegmentRefineOptions();
     }
 
@@ -150,7 +160,9 @@ namespace WorldZones.Runtime.Geometry
                     IReadOnlyList<WzVec2> poly = snapped;
                     if (options.DespikeThreshold > 0)
                         poly = PolylineSmoother.Despike(poly, options.DespikeThreshold);
-                    if (options.SmoothIterations > 0)
+                    if (options.SmoothingSigmaMeters > 0)
+                        poly = PolylineSmoother.SmoothGaussian(poly, options.SmoothingSigmaMeters);
+                    else if (options.SmoothIterations > 0)
                         poly = PolylineSmoother.Chaikin(poly, options.SmoothIterations);
 
                     result.Add(new RefinedBorder(poly, kv.Key, null, anyHug));
@@ -359,7 +371,8 @@ namespace WorldZones.Runtime.Geometry
 
                     IReadOnlyList<WzVec2> poly = snapped;
                     if (options.DespikeThreshold > 0) poly = PolylineSmoother.Despike(poly, options.DespikeThreshold);
-                    if (options.SmoothIterations > 0) poly = PolylineSmoother.Chaikin(poly, options.SmoothIterations);
+                    if (options.SmoothingSigmaMeters > 0) poly = PolylineSmoother.SmoothGaussian(poly, options.SmoothingSigmaMeters);
+                    else if (options.SmoothIterations > 0) poly = PolylineSmoother.Chaikin(poly, options.SmoothIterations);
 
                     result.Add(new RefinedBorder(poly, kv.Key.Item1, kv.Key.Item2, anyHug));
                 }

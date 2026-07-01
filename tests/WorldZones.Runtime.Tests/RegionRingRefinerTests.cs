@@ -18,6 +18,9 @@ namespace WorldZones.Runtime.Tests
         private const string NiflheimSeed = "ForTheWort";
 
         private static (RefinedRegionBoundary boundary, int ringCount) BuildBoundary(string seed)
+            => BuildBoundary(seed, null);
+
+        private static (RefinedRegionBoundary boundary, int ringCount) BuildBoundary(string seed, RingRefineOptions options)
         {
             var sampler = PortWorldSampler.FromSeed(seed);
             RegionWorld world = WorldZonesRuntime.Build(sampler, new RegionBuildOptions
@@ -46,7 +49,7 @@ namespace WorldZones.Runtime.Tests
             var coast = new HeightScalarField(sampler);
             var seam = new BiomeCategoryField(sampler);
 
-            var boundary = RefinedRegionBoundary.Build(graph, idToLabel, ridAt, coast, seam);
+            var boundary = RefinedRegionBoundary.Build(graph, idToLabel, ridAt, coast, seam, options);
             return (boundary, graph.Rings.Count);
         }
 
@@ -123,6 +126,92 @@ namespace WorldZones.Runtime.Tests
                 checkd++;
             }
             Assert.True(checkd > 0);
+        }
+
+        // ── Fork A: the σ (closed-loop Gaussian) fill-ring smoother, on real Niflheim (SUPERSEDED-2 note in
+        //    shared-border-primitive.md). These lock the zero-regression default AND the watertight guarantee
+        //    with σ ON — the two things that must hold before this reaches Daniel's walk. ──
+
+        [Fact]
+        public void SigmaZero_IsByteIdenticalToDefault_ZeroRegression()
+        {
+            // The off-by-default contract: SmoothingSigmaMeters = 0 must reproduce the legacy Chaikin path
+            // EXACTLY (same vertex count, same coordinates, same outcome) for every ring on the real world.
+            var (def, _) = BuildBoundary(NiflheimSeed);                                        // default options
+            var (z0, _) = BuildBoundary(NiflheimSeed, new RingRefineOptions { SmoothingSigmaMeters = 0.0 });
+            Assert.Equal(def.Rings.Count, z0.Rings.Count);
+            for (int i = 0; i < def.Rings.Count; i++)
+            {
+                RefinedRing a = def.Rings[i], b = z0.Rings[i];
+                Assert.Equal(a.RegionKey, b.RegionKey);
+                Assert.Equal(a.Outcome, b.Outcome);
+                Assert.Equal(a.Vertices.Count, b.Vertices.Count);
+                for (int k = 0; k < a.Vertices.Count; k++)
+                {
+                    Assert.Equal(a.Vertices[k].X, b.Vertices[k].X, 12);
+                    Assert.Equal(a.Vertices[k].Z, b.Vertices[k].Z, 12);
+                }
+            }
+        }
+
+        [Fact]
+        public void EveryRefinedRing_WithSigma30_OnRealNiflheim_IsStillWatertight()
+        {
+            // Fork A's headline safety property: turning σ=30 ON must keep EVERY ring on the real world free of
+            // self-intersection with winding preserved — the closed Gaussian rides the SAME watertight ladder
+            // (self-int → rollback to refined → rollback to raw) as Chaikin, so the n=164 guarantee survives.
+            var (boundary, sourceRingCount) = BuildBoundary(NiflheimSeed, new RingRefineOptions { SmoothingSigmaMeters = 30.0 });
+            Assert.NotEmpty(boundary.Rings);
+            Assert.Equal(sourceRingCount, boundary.Rings.Count);   // still 1:1, no ring dropped
+
+            int selfInt = 0; var offenders = new List<string>();
+            foreach (RefinedRing r in boundary.Rings)
+                if (HasSelfIntersection(r.Vertices)) { selfInt++; offenders.Add($"{r.RegionKey}/{r.Outcome}/verts={r.Vertices.Count}"); }
+            Assert.True(selfInt == 0, $"σ=30 produced {selfInt} self-intersecting rings (watertight ladder regressed): {string.Join(" | ", offenders)}");
+        }
+
+        [Fact]
+        public void Sigma30_ActuallySmoothsTheFill_VsChaikin_OnRealNiflheim()
+        {
+            // Prove the knob BITES on the real world: σ=30 must reduce the mean per-vertex jaggedness (distance
+            // to the ring-neighbour midpoint, measured modulo n so the closure seam counts) of the large
+            // smoothed rings vs the legacy Chaikin fill. This is the headless analogue of "regions stop
+            // stepping" — the thing Daniel will see. Compare only rings SMOOTHED under both paths (same bodies).
+            var (chaikin, _) = BuildBoundary(NiflheimSeed);
+            var (sigma, _) = BuildBoundary(NiflheimSeed, new RingRefineOptions { SmoothingSigmaMeters = 30.0 });
+
+            var chByKey = new Dictionary<string, RefinedRing>(StringComparer.Ordinal);
+            foreach (RefinedRing r in chaikin.Rings)
+                if (r.Outcome == RingRefineOutcome.Smoothed && !r.IsHole && !chByKey.ContainsKey(r.RegionKey))
+                    chByKey[r.RegionKey] = r;
+
+            double sumCh = 0, sumSig = 0; int compared = 0;
+            foreach (RefinedRing s in sigma.Rings)
+            {
+                if (s.Outcome != RingRefineOutcome.Smoothed || s.IsHole) continue;
+                if (!chByKey.TryGetValue(s.RegionKey, out RefinedRing c)) continue;
+                if (s.Vertices.Count < 8 || c.Vertices.Count < 8) continue;
+                sumCh += MeanModularMidpointDev(c.Vertices);
+                sumSig += MeanModularMidpointDev(s.Vertices);
+                compared++;
+            }
+            Assert.True(compared > 10, $"expected many comparable large rings, got {compared}");
+            double meanCh = sumCh / compared, meanSig = sumSig / compared;
+            Assert.True(meanSig < meanCh,
+                $"σ=30 fill should be smoother than Chaikin fill on the real world (jaggedness {meanSig:F3} !< {meanCh:F3} m over {compared} rings)");
+        }
+
+        private static double MeanModularMidpointDev(IReadOnlyList<WzVec2> v)
+        {
+            double s = 0; int n = v.Count;
+            for (int i = 0; i < n; i++)
+            {
+                WzVec2 prev = v[(i - 1 + n) % n], next = v[(i + 1) % n];
+                double mx = (prev.X + next.X) * 0.5, mz = (prev.Z + next.Z) * 0.5;
+                double dx = v[i].X - mx, dz = v[i].Z - mz;
+                s += Math.Sqrt(dx * dx + dz * dz);
+            }
+            return n > 0 ? s / n : 0;
         }
 
         // Local O(n²) self-intersection check (mirrors the production guard; independent so the test

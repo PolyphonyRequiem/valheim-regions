@@ -345,6 +345,259 @@ namespace WorldZones.Runtime.Tests
             }
         }
 
+        // ── SmoothGaussian: the terrain-scale (σ-in-metres) low-pass (region-boundary-negotiation.md) ──
+
+        [Fact]
+        public void SmoothGaussian_PinsEndpoints()
+        {
+            // A noisy zig-zag along +X. Whatever σ does in the middle, both endpoints must not move
+            // (junctions where borders meet are pinned).
+            var pts = MakeNoisyLine(count: 60, spacingM: 4.0, noiseAmpM: 6.0, seed: 1);
+            var outp = PolylineSmoother.SmoothGaussian(pts, sigmaMeters: 30.0);
+            Assert.True(outp.Count >= 2);
+            Assert.Equal(pts[0].X, outp[0].X, 6);
+            Assert.Equal(pts[0].Z, outp[0].Z, 6);
+            Assert.Equal(pts[^1].X, outp[^1].X, 6);
+            Assert.Equal(pts[^1].Z, outp[^1].Z, 6);
+        }
+
+        [Fact]
+        public void SmoothGaussian_SigmaZeroOrTiny_IsIdentity()
+        {
+            var pts = MakeNoisyLine(count: 20, spacingM: 4.0, noiseAmpM: 5.0, seed: 2);
+            // σ ≤ 0 is the off-by-default legacy path: return the input reference unchanged.
+            Assert.Same(pts, PolylineSmoother.SmoothGaussian(pts, sigmaMeters: 0.0));
+            Assert.Same(pts, PolylineSmoother.SmoothGaussian(pts, sigmaMeters: -5.0));
+            // A degenerate <3-point polyline is returned as-is regardless of σ.
+            var two = new[] { new WzVec2(0, 0), new WzVec2(10, 0) };
+            Assert.Same(two, PolylineSmoother.SmoothGaussian(two, sigmaMeters: 30.0));
+        }
+
+        [Fact]
+        public void SmoothGaussian_IsDeterministic()
+        {
+            var pts = MakeNoisyLine(count: 80, spacingM: 3.0, noiseAmpM: 7.0, seed: 3);
+            var a = PolylineSmoother.SmoothGaussian(pts, sigmaMeters: 30.0);
+            var b = PolylineSmoother.SmoothGaussian(pts, sigmaMeters: 30.0);
+            Assert.Equal(a.Count, b.Count);
+            for (int i = 0; i < a.Count; i++)
+            {
+                Assert.Equal(a[i].X, b[i].X, 12);
+                Assert.Equal(a[i].Z, b[i].Z, 12);
+            }
+        }
+
+        [Fact]
+        public void SmoothGaussian_ReducesNoise_AndLargerSigmaReducesMore()
+        {
+            // A straight baseline (z=0) corrupted with perpendicular noise. Smoothing must shrink the mean
+            // |z| deviation, and a larger σ must shrink it more (the low-pass gets stronger with width).
+            var pts = MakeNoisyLine(count: 120, spacingM: 3.0, noiseAmpM: 8.0, seed: 4);
+            double rawDev = MeanAbsZ(pts);
+            double dev10 = MeanAbsZ(PolylineSmoother.SmoothGaussian(pts, sigmaMeters: 10.0));
+            double dev30 = MeanAbsZ(PolylineSmoother.SmoothGaussian(pts, sigmaMeters: 30.0));
+            Assert.True(dev10 < rawDev, $"σ=10 should reduce noise ({dev10:F2} !< {rawDev:F2})");
+            Assert.True(dev30 < dev10, $"σ=30 should smooth more than σ=10 ({dev30:F2} !< {dev10:F2})");
+        }
+
+        [Fact]
+        public void SmoothGaussian_StaysNearTheCurve_DoesNotWanderOff()
+        {
+            // The smoothed curve must not invent a large excursion: every output point stays within a
+            // bound of the original line's corridor. Here the true line is z=0 ± noiseAmp, so no smoothed
+            // point should sit further than the noise amplitude off the axis (a low-pass can only pull IN
+            // toward the mean, never overshoot beyond the input envelope by more than rounding).
+            const double amp = 8.0;
+            var pts = MakeNoisyLine(count: 150, spacingM: 3.0, noiseAmpM: amp, seed: 5);
+            var outp = PolylineSmoother.SmoothGaussian(pts, sigmaMeters: 30.0);
+            foreach (var p in outp)
+                Assert.True(Math.Abs(p.Z) <= amp + 1e-6, $"smoothed point wandered to z={p.Z:F2} (envelope ±{amp})");
+        }
+
+        [Fact]
+        public void ResampleUniform_ProducesEvenSpacing_PreservesEndpoints()
+        {
+            // Non-uniform input (a 5 m hop then a 40 m jump) resampled to 4 m steps: interior gaps ≈ 4 m,
+            // endpoints preserved exactly.
+            var pts = new[] { new WzVec2(0, 0), new WzVec2(5, 0), new WzVec2(45, 0) };
+            var outp = PolylineSmoother.ResampleUniform(pts, step: 4.0);
+            Assert.Equal(0.0, outp[0].X, 6);
+            Assert.Equal(45.0, outp[^1].X, 6);
+            Assert.True(outp.Count > pts.Length, "resampling a 45 m line at 4 m should add points");
+            // Every consecutive interior gap (except the final remainder into the pinned endpoint) ≈ step.
+            for (int i = 1; i < outp.Count - 1; i++)
+            {
+                double gap = Dist(outp[i - 1], outp[i]);
+                Assert.InRange(gap, 3.0, 5.0);
+            }
+        }
+
+        // ── SmoothGaussianClosed: the fill-RING (closed-loop) σ low-pass — fork A (shared-border-primitive.md).
+        //    A fill ring is a CLOSED membership loop; the OPEN SmoothGaussian pins endpoints and kinks at the
+        //    closure seam, so the ring path needs this wrap-around variant. ──
+
+        [Fact]
+        public void SmoothGaussianClosed_SigmaZeroOrTiny_IsIdentity()
+        {
+            var ring = MakeNoisyRing(count: 80, radiusM: 500, noiseAmpM: 20, seed: 11);
+            // σ ≤ 0 is the off-by-default legacy path: return the input reference unchanged (byte-identical).
+            Assert.Same(ring, PolylineSmoother.SmoothGaussianClosed(ring, sigmaMeters: 0.0));
+            Assert.Same(ring, PolylineSmoother.SmoothGaussianClosed(ring, sigmaMeters: -5.0));
+            // A degenerate <3-point loop is returned as-is regardless of σ.
+            var two = new[] { new WzVec2(0, 0), new WzVec2(10, 0) };
+            Assert.Same(two, PolylineSmoother.SmoothGaussianClosed(two, sigmaMeters: 30.0));
+        }
+
+        [Fact]
+        public void SmoothGaussianClosed_IsDeterministic()
+        {
+            var ring = MakeNoisyRing(count: 120, radiusM: 600, noiseAmpM: 25, seed: 12);
+            var a = PolylineSmoother.SmoothGaussianClosed(ring, sigmaMeters: 30.0);
+            var b = PolylineSmoother.SmoothGaussianClosed(ring, sigmaMeters: 30.0);
+            Assert.Equal(a.Count, b.Count);
+            for (int i = 0; i < a.Count; i++)
+            {
+                Assert.Equal(a[i].X, b[i].X, 12);
+                Assert.Equal(a[i].Z, b[i].Z, 12);
+            }
+        }
+
+        [Fact]
+        public void SmoothGaussianClosed_ReducesRadialNoise_AndLargerSigmaReducesMore()
+        {
+            // A clean circle corrupted with radial noise. Smoothing must shrink the mean |r - R| deviation,
+            // and a larger σ must shrink it more (the low-pass gets stronger with width) — the same physical
+            // guarantee as the open smoother, now around a closed loop.
+            const double R = 600;
+            var ring = MakeNoisyRing(count: 200, radiusM: R, noiseAmpM: 24, seed: 13);
+            double raw = MeanAbsRadius(ring, R);
+            double d10 = MeanAbsRadius(PolylineSmoother.SmoothGaussianClosed(ring, sigmaMeters: 10.0), R);
+            double d30 = MeanAbsRadius(PolylineSmoother.SmoothGaussianClosed(ring, sigmaMeters: 30.0), R);
+            Assert.True(d10 < raw, $"σ=10 should reduce ring noise ({d10:F2} !< {raw:F2})");
+            Assert.True(d30 < d10, $"σ=30 should smooth a ring more than σ=10 ({d30:F2} !< {d10:F2})");
+        }
+
+        [Fact]
+        public void SmoothGaussianClosed_PreservesWinding()
+        {
+            // A CCW noisy ring must stay CCW (positive signed area). The fill baker's point-in-polygon AND
+            // the ring refiner's watertight winding-sign guard both depend on orientation never flipping.
+            var ring = MakeNoisyRing(count: 100, radiusM: 500, noiseAmpM: 20, seed: 14);
+            double before = ClosedSignedArea(ring);
+            double after = ClosedSignedArea(PolylineSmoother.SmoothGaussianClosed(ring, sigmaMeters: 30.0));
+            Assert.True(before > 0, "test fixture should be CCW (positive area)");
+            Assert.True(after > 0, $"smoothing flipped winding (area {before:F0} → {after:F0})");
+            // A low-pass shrinks a noisy loop slightly (noise inflates area; smoothing removes it) but must
+            // neither collapse nor balloon it.
+            Assert.InRange(after / before, 0.75, 1.05);
+        }
+
+        [Fact]
+        public void SmoothGaussianClosed_SmoothsAcrossClosureSeam_NoKink()
+        {
+            // The whole reason this variant exists: a fill ring is CLOSED, so the OPEN smoother (which pins
+            // endpoints) leaves a jagged corner where the loop closes. The closed smoother wraps its window
+            // MODULO n and smooths through the seam. Measure "kink" as each vertex's deviation from its
+            // ring-neighbour midpoint, computed MODULO n so the seam is included. Closed must show NO seam
+            // spike; the open smoother on the same ring must (its two pinned noisy ends ARE the seam corner).
+            var ring = MakeNoisyRing(count: 160, radiusM: 700, noiseAmpM: 22, seed: 15);
+            var closed = PolylineSmoother.SmoothGaussianClosed(ring, sigmaMeters: 30.0);
+            var open = PolylineSmoother.SmoothGaussian(ring, sigmaMeters: 30.0);   // pins endpoints ⇒ seam kink
+            double kinkClosed = MaxModularMidpointDev(closed);
+            double kinkOpen = MaxModularMidpointDev(open);
+            Assert.True(kinkClosed < kinkOpen,
+                $"closed-loop smoothing should have NO seam kink vs the open smoother ({kinkClosed:F2} !< {kinkOpen:F2})");
+            // Absolute: the closed loop's worst local midpoint deviation is tiny (a clean smooth circle).
+            Assert.True(kinkClosed < 6.0, $"closed ring worst kink = {kinkClosed:F2} m (expected < 6)");
+        }
+
+        [Fact]
+        public void ResampleUniformClosed_EvenSpacingAllTheWayAround_KeepsFirstNotLast()
+        {
+            // A closed square (first != last) resampled fine: every edge around the loop — INCLUDING the
+            // closing edge n-1 → 0 — is ~step, and the output stays a closed loop (no duplicated closure).
+            var square = new[] { new WzVec2(0, 0), new WzVec2(100, 0), new WzVec2(100, 100), new WzVec2(0, 100) };
+            var outp = PolylineSmoother.ResampleUniformClosed(square, step: 5.0);
+            Assert.True(outp.Count > square.Length, "resampling a 400 m perimeter at 5 m should add points");
+            Assert.True(Dist(outp[0], outp[^1]) > 1e-3, "closed output must keep first != last (no dup closure vertex)");
+            int n = outp.Count, within = 0;
+            for (int i = 0; i < n; i++)
+            {
+                double gap = Dist(outp[i], outp[(i + 1) % n]);   // includes the closing edge
+                if (gap >= 3.0 && gap <= 7.5) within++;
+            }
+            // Every gap is ~step except at most ONE that carries the folded sub-step closure remainder.
+            Assert.True(within >= n - 1, $"closed resample spacing uneven: only {within}/{n} edges within [3,7.5] m");
+        }
+
+        // Build a polyline along +X at fixed spacing with deterministic perpendicular (±z) noise, so
+        // tests never depend on wall-clock randomness. Baseline is z=0; noise is bounded by noiseAmpM.
+        private static WzVec2[] MakeNoisyLine(int count, double spacingM, double noiseAmpM, int seed)
+        {
+            var rng = new Random(seed);
+            var pts = new WzVec2[count];
+            for (int i = 0; i < count; i++)
+            {
+                double z = (i == 0 || i == count - 1) ? 0.0 : (rng.NextDouble() * 2 - 1) * noiseAmpM;
+                pts[i] = new WzVec2(i * spacingM, z);
+            }
+            return pts;
+        }
+
+        private static double MeanAbsZ(IReadOnlyList<WzVec2> pts)
+        {
+            double s = 0; foreach (var p in pts) s += Math.Abs(p.Z); return s / pts.Count;
+        }
+
+        private static double Dist(WzVec2 a, WzVec2 b)
+        {
+            double dx = a.X - b.X, dz = a.Z - b.Z; return Math.Sqrt(dx * dx + dz * dz);
+        }
+
+        // Build a CLOSED ring: a circle of radius R with deterministic radial noise, first != last (the fill
+        // ring convention). Used by the SmoothGaussianClosed suite.
+        private static WzVec2[] MakeNoisyRing(int count, double radiusM, double noiseAmpM, int seed)
+        {
+            var rng = new Random(seed);
+            var pts = new WzVec2[count];
+            for (int i = 0; i < count; i++)
+            {
+                double ang = 2.0 * Math.PI * i / count;
+                double r = radiusM + (rng.NextDouble() * 2 - 1) * noiseAmpM;
+                pts[i] = new WzVec2(r * Math.Cos(ang), r * Math.Sin(ang));
+            }
+            return pts;
+        }
+
+        private static double MeanAbsRadius(IReadOnlyList<WzVec2> pts, double R)
+        {
+            double s = 0; foreach (var p in pts) s += Math.Abs(Math.Sqrt(p.X * p.X + p.Z * p.Z) - R); return s / pts.Count;
+        }
+
+        // Signed area of a CLOSED loop (first != last): the closing edge n-1 → 0 is included via modulo.
+        private static double ClosedSignedArea(IReadOnlyList<WzVec2> v)
+        {
+            double s = 0; int n = v.Count;
+            for (int i = 0; i < n; i++) { WzVec2 a = v[i], b = v[(i + 1) % n]; s += a.X * b.Z - b.X * a.Z; }
+            return s / 2.0;
+        }
+
+        // Worst-case local jaggedness of a CLOSED loop: max over vertices of the distance from each vertex to
+        // the midpoint of its two ring neighbours (indices modulo n, so the closure seam is measured too).
+        private static double MaxModularMidpointDev(IReadOnlyList<WzVec2> v)
+        {
+            double worst = 0; int n = v.Count;
+            for (int i = 0; i < n; i++)
+            {
+                WzVec2 prev = v[(i - 1 + n) % n], next = v[(i + 1) % n];
+                double mx = (prev.X + next.X) * 0.5, mz = (prev.Z + next.Z) * 0.5;
+                double dx = v[i].X - mx, dz = v[i].Z - mz;
+                double d = Math.Sqrt(dx * dx + dz * dz);
+                if (d > worst) worst = d;
+            }
+            return worst;
+        }
+
         [Fact]
         public void RefineCoastlinesSmoothed_OnRealNiflheim_ChainsAndStaysNearIso()
         {
