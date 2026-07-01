@@ -64,4 +64,42 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
         public static RegionOverlayStyle Next(this RegionOverlayStyle s) =>
             s == RegionOverlayStyle.Atlas ? RegionOverlayStyle.Vanilla : RegionOverlayStyle.Atlas;
     }
+
+    /// <summary>
+    /// The boundary-line draw dial (F7), independent of the F8 style. Selects WHICH region boundaries the
+    /// ink strokes and lets the two types show in distinct colours — a live diagnostic for whether the
+    /// coast ink and the fill/glow coast agree. Cycled Off → CoastOnly → SeamOnly → All → Off.
+    /// Orthogonal to the Atlas terrestrial-ink filter: when the user picks a mode that includes coasts,
+    /// coasts are drawn even though Atlas normally leaves them to the glow.
+    /// </summary>
+    public enum BoundaryDrawMode
+    {
+        /// <summary>No boundary ink at all.</summary>
+        Off = 0,
+        /// <summary>Only coast boundaries (region ↔ water/void, KeyB == null).</summary>
+        CoastOnly = 1,
+        /// <summary>Only interior seams (region ↔ region, KeyB != null).</summary>
+        SeamOnly = 2,
+        /// <summary>Both coast and interior boundaries, each in its own colour.</summary>
+        All = 3,
+    }
+
+    /// <summary>F7 boundary-mode helpers.</summary>
+    public static class BoundaryDrawModeExtensions
+    {
+        /// <summary>Advance the dial: Off → CoastOnly → SeamOnly → All → Off.</summary>
+        public static BoundaryDrawMode Next(this BoundaryDrawMode m) =>
+            m == BoundaryDrawMode.Off ? BoundaryDrawMode.CoastOnly
+            : m == BoundaryDrawMode.CoastOnly ? BoundaryDrawMode.SeamOnly
+            : m == BoundaryDrawMode.SeamOnly ? BoundaryDrawMode.All
+            : BoundaryDrawMode.Off;
+
+        /// <summary>True if this mode draws coast (region↔void) boundaries.</summary>
+        public static bool DrawsCoast(this BoundaryDrawMode m) =>
+            m == BoundaryDrawMode.CoastOnly || m == BoundaryDrawMode.All;
+
+        /// <summary>True if this mode draws interior (region↔region) seams.</summary>
+        public static bool DrawsSeam(this BoundaryDrawMode m) =>
+            m == BoundaryDrawMode.SeamOnly || m == BoundaryDrawMode.All;
+    }
 }

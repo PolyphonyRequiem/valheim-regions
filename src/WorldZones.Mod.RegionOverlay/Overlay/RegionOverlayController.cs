@@ -46,6 +46,7 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
         private GameObject? root;       // stable host under m_pinRootLarge — never SetActive(false)
         private GameObject? content;    // toggled child holding the graphics
         private RegionInkGraphic? ink;
+        private RegionInkGraphic? inkSeam;   // second ink layer: interior seams in SeamInkColor (F7 two-colour)
         private RawImage? fill;
         private RawImage? halo;          // soft coast-fade layer (below ink, beside fill)
         private bool mountLogged;
@@ -133,6 +134,22 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
         private readonly List<List<WzVec2>> fragmentPool = new List<List<WzVec2>>(512);
         private readonly List<RefinedBorder> borderWrapperPool = new List<RefinedBorder>(512);
         private int fragmentPoolUsed;
+
+        // Second parallel set for the SEAM ink layer (F7 two-colour boundary draw). The coast arcs go through
+        // the buffers above (fed to `ink`), the interior seams through these (fed to `inkSeam`), so the two
+        // types stroke in distinct colours in the same frame. Same no-alloc cross-frame-reuse contract.
+        private readonly List<RefinedBorder> visibleArcsSeam = new List<RefinedBorder>(512);
+        private readonly List<List<WzVec2>> fragmentPoolSeam = new List<List<WzVec2>>(512);
+        private readonly List<RefinedBorder> borderWrapperPoolSeam = new List<RefinedBorder>(512);
+        private int fragmentPoolUsedSeam;
+
+        // ── F7 boundary-draw dial (which boundaries + per-type colour) — set by the plugin before Render ──
+        /// <summary>Which boundaries the ink strokes (F7). Default All = coast + seam both shown.</summary>
+        public BoundaryDrawMode BoundaryMode { get; set; } = BoundaryDrawMode.All;
+        /// <summary>Coast (region↔water) ink colour. Blue — colourblind-safe vs the seam amber. Tweak-me.</summary>
+        public Color32 CoastInkColor { get; set; } = new Color32(40, 120, 255, 235);
+        /// <summary>Interior seam (region↔region) ink colour. Amber — colourblind-safe vs the coast blue.</summary>
+        public Color32 SeamInkColor { get; set; } = new Color32(255, 150, 40, 235);
 
         public RegionOverlayController(ManualLogSource? logger)
         {
@@ -271,17 +288,36 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
                 this.halo!.gameObject.SetActive(false);
             }
 
-            // ── Ink (refined contour-hugging arcs), fog-gated per SUB-SEGMENT ─────────────────────────
-            if (style.DrawsInk())
+            // ── Ink (refined contour-hugging arcs), fog-gated per SUB-SEGMENT, TWO layers by type ────────
+            // F7 BoundaryMode is the authority over WHICH boundary types draw, and each type gets its own
+            // colour: coast (region↔water) on `ink` in CoastInkColor (blue), interior seams (region↔region)
+            // on `inkSeam` in SeamInkColor (amber). This OVERRIDES the Atlas terrestrial-only default — if
+            // the user asks for coasts via F7, coasts show even under Atlas (which normally leaves them to
+            // the glow). When style draws no ink at all (Vanilla), both layers hide regardless.
+            bool styleDrawsInk = style.DrawsInk();
+            bool drawCoast = styleDrawsInk && this.BoundaryMode.DrawsCoast();
+            bool drawSeam = styleDrawsInk && this.BoundaryMode.DrawsSeam();
+
+            if (drawCoast)
             {
-                BuildVisibleArcs(minimap, style.TerrestrialInkOnly());
-                Color32 inkColor = style == RegionOverlayStyle.Atlas ? this.AtlasInkColor : this.InkColor;
-                this.ink!.SetBorders(this.visibleArcs, fullFrame, vanillaUvRect, this.StrokeWidthPx, inkColor);
+                BuildVisibleArcs(minimap, wantCoast: true, seamLayer: false);
+                this.ink!.SetBorders(this.visibleArcs, fullFrame, vanillaUvRect, this.StrokeWidthPx, this.CoastInkColor);
                 this.ink.gameObject.SetActive(true);
             }
             else
             {
                 this.ink!.gameObject.SetActive(false);
+            }
+
+            if (drawSeam)
+            {
+                BuildVisibleArcs(minimap, wantCoast: false, seamLayer: true);
+                this.inkSeam!.SetBorders(this.visibleArcsSeam, fullFrame, vanillaUvRect, this.StrokeWidthPx, this.SeamInkColor);
+                this.inkSeam.gameObject.SetActive(true);
+            }
+            else
+            {
+                this.inkSeam!.gameObject.SetActive(false);
             }
 
             // ── Fill (baked texture), fog-gated per texel (pre-masked grid) ──────────────────────────
@@ -319,18 +355,28 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
         /// produced <see cref="visibleArcs"/> are consumed by uGUI within the SAME frame — identical
         /// cross-frame-reuse contract to the prior <see cref="visibleSegments"/> path.</para>
         /// </summary>
-        private void BuildVisibleArcs(Minimap minimap, bool terrestrialOnly)
+        /// <summary>
+        /// Fog-gate the cached refined arcs of ONE type into ONE target ink buffer.
+        /// <paramref name="wantCoast"/> selects coast arcs (KeyB == null) when true, interior seams
+        /// (KeyB != null) when false; <paramref name="seamLayer"/> selects which pooled buffer set the
+        /// visible fragments go into (false = the coast `visibleArcs`/`ink`, true = `visibleArcsSeam`/`inkSeam`).
+        /// The sub-segment fog gate (per vertex-pair <c>IsExplored</c>) is unchanged; only the arc-type
+        /// filter and the destination buffers differ, so the two ink layers can draw distinct types/colours
+        /// in the same frame with the same no-alloc contract.
+        /// </summary>
+        private void BuildVisibleArcs(Minimap minimap, bool wantCoast, bool seamLayer)
         {
-            this.visibleArcs.Clear();
-            this.fragmentPoolUsed = 0;
+            List<RefinedBorder> outList = seamLayer ? this.visibleArcsSeam : this.visibleArcs;
+            outList.Clear();
+            if (seamLayer) this.fragmentPoolUsedSeam = 0; else this.fragmentPoolUsed = 0;
             if (this.arcs == null) return;
 
             for (int a = 0; a < this.arcs.Count; a++)
             {
-                // Atlas: ink ONLY interior land↔land seams. A coastline arc (region-vs-void) carries
-                // KeyB == null; the seaward glow draws those, so the ink skips them. Biome-seam arcs
-                // (two real regions) keep both keys → kept. This is the terrestrial-vs-coastal axis.
-                if (terrestrialOnly && this.arcs[a].KeyB == null) continue;
+                // Filter to the requested boundary TYPE: coast arcs carry KeyB == null (region-vs-void),
+                // interior seams carry both keys (region-vs-region).
+                bool isCoast = this.arcs[a].KeyB == null;
+                if (isCoast != wantCoast) continue;
 
                 IReadOnlyList<WzVec2> poly = this.arcs[a].Polyline;
                 if (poly == null || poly.Count < 2) continue;
@@ -346,46 +392,57 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
                     {
                         if (frag == null)
                         {
-                            frag = RentFragment();
+                            frag = RentFragment(seamLayer);
                             frag.Add(poly[j - 1]);
                         }
                         frag.Add(poly[j]);
                     }
                     else if (frag != null)
                     {
-                        FlushFragment(frag);
+                        FlushFragment(frag, seamLayer);
                         frag = null;
                     }
                     prevExplored = curExplored;
                 }
-                if (frag != null) FlushFragment(frag);
+                if (frag != null) FlushFragment(frag, seamLayer);
             }
         }
 
-        /// <summary>Rent a cleared point-list from the pool (grows the pool 1:1 with its wrapper).</summary>
-        private List<WzVec2> RentFragment()
+        /// <summary>Rent a cleared point-list from the pool for the chosen layer (grows the pool 1:1 with its wrapper).</summary>
+        private List<WzVec2> RentFragment(bool seamLayer)
         {
-            if (this.fragmentPoolUsed >= this.fragmentPool.Count)
+            List<List<WzVec2>> pool = seamLayer ? this.fragmentPoolSeam : this.fragmentPool;
+            List<RefinedBorder> wrappers = seamLayer ? this.borderWrapperPoolSeam : this.borderWrapperPool;
+            int used = seamLayer ? this.fragmentPoolUsedSeam : this.fragmentPoolUsed;
+            if (used >= pool.Count)
             {
                 var fresh = new List<WzVec2>(64);
-                this.fragmentPool.Add(fresh);
+                pool.Add(fresh);
                 // A wrapper that PERMANENTLY wraps this pool list — clearing/refilling the list updates
                 // what RefinedBorder.Polyline exposes, so the wrapper is reusable every frame. Keys are
                 // irrelevant to FillPolylines (it reads Polyline only), so null/false is fine.
-                this.borderWrapperPool.Add(new RefinedBorder(fresh, null, null, false));
+                wrappers.Add(new RefinedBorder(fresh, null, null, false));
             }
-            List<WzVec2> list = this.fragmentPool[this.fragmentPoolUsed];
+            List<WzVec2> list = pool[used];
             list.Clear();
             return list;
         }
 
-        /// <summary>Commit the current fragment (≥2 points) as a visible arc via its pooled wrapper.</summary>
-        private void FlushFragment(List<WzVec2> frag)
+        /// <summary>Commit the current fragment (≥2 points) as a visible arc via its pooled wrapper (chosen layer).</summary>
+        private void FlushFragment(List<WzVec2> frag, bool seamLayer)
         {
             if (frag.Count >= 2)
             {
-                this.visibleArcs.Add(this.borderWrapperPool[this.fragmentPoolUsed]);
-                this.fragmentPoolUsed++;
+                if (seamLayer)
+                {
+                    this.visibleArcsSeam.Add(this.borderWrapperPoolSeam[this.fragmentPoolUsedSeam]);
+                    this.fragmentPoolUsedSeam++;
+                }
+                else
+                {
+                    this.visibleArcs.Add(this.borderWrapperPool[this.fragmentPoolUsed]);
+                    this.fragmentPoolUsed++;
+                }
             }
             // A <2-point fragment can't occur (we always seed with 2), but if it did we'd leak a pool
             // slot for this frame; harmless (reclaimed next frame's reset). Left explicit for clarity.
@@ -597,6 +654,15 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
             this.ink = inkGo.AddComponent<RegionInkGraphic>();
             inkGo.SetActive(false);
 
+            // Second ink layer for interior SEAMS (F7 two-colour draw): coast arcs draw on `ink`, seams on
+            // `inkSeam`, so each type strokes in its own colour. Stacked above the coast ink.
+            var inkSeamGo = new GameObject("WZ_RegionInkSeam", typeof(RectTransform), typeof(CanvasRenderer));
+            var inkSeamRt = (RectTransform)inkSeamGo.transform;
+            inkSeamRt.SetParent(contentRt, worldPositionStays: false);
+            StretchFull(inkSeamRt);
+            this.inkSeam = inkSeamGo.AddComponent<RegionInkGraphic>();
+            inkSeamGo.SetActive(false);
+
             this.content.SetActive(false);
             this.boundMinimap = minimap;
 
@@ -630,6 +696,7 @@ namespace WorldZones.Mod.RegionOverlay.Overlay
             this.root = null;
             this.content = null;
             this.ink = null;
+            this.inkSeam = null;
             this.fill = null;
             this.halo = null;
             this.boundMinimap = null;

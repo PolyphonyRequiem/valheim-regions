@@ -45,9 +45,14 @@ namespace WorldZones.Mod.RegionOverlay
         // the overlay start OFF.
         private RegionOverlayStyle overlayStyle = RegionOverlayStyle.Atlas;
         private const KeyCode OverlayCycleKey = KeyCode.F8;
-        // Coast-halo dial (F7) — independent of the F8 style. Resting default = Off (opt-in soft fade).
+        // Coast-halo dial — resting default = Off (Atlas implies the seaward glow regardless). F7 no longer
+        // cycles this (recycled to the boundary-draw dial, 2026-07-01); the field remains because the halo
+        // layer + Atlas-implied glow still read it. NextHaloMode is retained for a future re-bind if wanted.
         private CoastHaloMode haloMode = CoastHaloMode.Off;
-        private const KeyCode HaloCycleKey = KeyCode.F7;
+        // Boundary-draw dial (F7, recycled): cycles which region boundaries the ink draws + colours them by
+        // type (coast=blue, seam=amber). Off → CoastOnly → SeamOnly → All → Off. Resting = All.
+        private BoundaryDrawMode boundaryDrawMode = BoundaryDrawMode.All;
+        private const KeyCode BoundaryModeCycleKey = KeyCode.F7;
         // Glow-intensity dial (F6) — scales the F7 gold halo + Atlas glow so Daniel can A/B "kinda faint"
         // in-world. Walks named stops Full→Strong→Medium→Faint→Whisper→(wrap). Resting = Full (ship default).
         private const KeyCode GlowIntensityCycleKey = KeyCode.F6;
@@ -352,11 +357,14 @@ namespace WorldZones.Mod.RegionOverlay
                 this.Logger.LogInfo($"RegionOverlay: style → {this.overlayStyle} (hotkey {OverlayCycleKey}).");
             }
 
-            // Coast-halo hotkey (F7) — independent dial: Off → Seaward → Inland → Off. Same focus guard.
-            if (Input.GetKeyDown(HaloCycleKey) && !IsTextInputActive())
+            // Boundary-draw hotkey (F7, RECYCLED 2026-07-01) — cycles WHICH region boundaries the ink draws,
+            // each type in its own colour (coast=blue, seam=amber): Off → CoastOnly → SeamOnly → All → Off.
+            // A live diagnostic for whether the coast ink and the fill/glow coast agree. The coast halo is
+            // no longer on F7 (Atlas still implies it); this key now drives the boundary-type dial. Same guard.
+            if (Input.GetKeyDown(BoundaryModeCycleKey) && !IsTextInputActive())
             {
-                this.haloMode = NextHaloMode(this.haloMode);
-                this.Logger.LogInfo($"RegionOverlay: coast halo → {this.haloMode} (hotkey {HaloCycleKey}).");
+                this.boundaryDrawMode = this.boundaryDrawMode.Next();
+                this.Logger.LogInfo($"RegionOverlay: boundary draw → {this.boundaryDrawMode} (hotkey {BoundaryModeCycleKey}).");
             }
 
             // Glow-intensity hotkey (F6) — walks the named stops and pushes the multiplier to the controller,
@@ -369,6 +377,9 @@ namespace WorldZones.Mod.RegionOverlay
                 this.Logger.LogInfo(
                     $"RegionOverlay: glow intensity → {stop.Label} ({stop.Mul:0.00}×) (hotkey {GlowIntensityCycleKey}).");
             }
+
+            // Push the current F7 boundary-draw dial to the controller before it renders this frame.
+            this.overlayController.BoundaryMode = this.boundaryDrawMode;
 
             // Render only once a world's geometry is cached; otherwise keep the overlay hidden.
             if (this.regionDataReady && this.overlayWorldCached)
