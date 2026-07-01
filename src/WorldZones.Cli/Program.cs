@@ -98,6 +98,8 @@ namespace WorldZones.Cli
                     return SharedSeamViz.Run(seed, output ?? "/tmp");
                 case "forkbwirecheck":
                     return ForkBWireCheck.Run(seed);
+                case "blockyprobe":
+                    return BlockyProbe.Run(seed, output ?? "/tmp");
                 case "seamfork":
                     return SeamFork.Run(seed, output ?? "/tmp");
                 case "negotiateprobe":
